@@ -138,7 +138,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	if err != nil {
 		return nil, err
 	}
-	rc.getIgwConfig(res, regionToStructMap, shouldSkipVpcIds)
+	rc.getIgwConfig(res, shouldSkipVpcIds)
 	printVPCConfigs(res)
 
 	return res, nil
@@ -301,50 +301,44 @@ func (rc *AWSresourcesContainer) getSGconfig(
 
 func (rc *AWSresourcesContainer) getIgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	regionToStructMap map[string]*commonvpc.Region,
 	skipByVPC map[string]bool) {
 	for _, igw := range rc.InternetGWList {
 		igwID := *igw.InternetGatewayId
 		igwName := igwID
-		subnets := []*commonvpc.Subnet{}
-		for _, att := range igw.Attachments {
-			vpcUID := *att.VpcId
-			if skipByVPC[vpcUID] {
-				continue
-			}
-			vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
-			subnets = append(subnets, vpc.Subnets()...)
+		if len(igw.Attachments) != 1 {
+			logging.Warnf("skipping internet gateway %s - it has %d vpcs attached\n", igwName, len(igw.Attachments))
+			continue
 		}
+		vpcUID := *igw.Attachments[0].VpcId
+		if skipByVPC[vpcUID] {
+			continue
+		}
+		vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
+		subnets := vpc.Subnets()
+		// todo - use only the public subnet:
 		if len(subnets) == 0 {
 			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
 			continue
 		}
-		routerIgw := newIGW(igwName, igwID, subnets, defaultRegionName, regionToStructMap)
+		routerIgw := newIGW(igwName, igwID, subnets, vpc)
 		// TODO - where to put this resource?
-		for _, att := range igw.Attachments {
-			vpcUID := *att.VpcId
-			if skipByVPC[vpcUID] {
-				continue
-			}
-			res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
-			res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
-		}
+		res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
+		res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 	}
 }
 
-func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet,
-	region string, regionToStructMap map[string]*commonvpc.Region) *InternetGateway {
+func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, vpc vpcmodel.VPC) *InternetGateway {
 	srcNodes := commonvpc.GetSubnetsNodes(subnets)
 	return &InternetGateway{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: igwName,
 			ResourceUID:  igwCRN,
 			ResourceType: commonvpc.ResourceTypePublicGateway,
-			Region:       region,
+			Region:       vpc.RegionName(),
 		},
 		src:        srcNodes,
 		srcSubnets: subnets,
-		region:     commonvpc.GetRegionByName(region, regionToStructMap),
+		vpc:        vpc,
 	}
 }
 

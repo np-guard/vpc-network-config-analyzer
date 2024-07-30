@@ -19,7 +19,7 @@ type InternetGateway struct {
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 	srcSubnets   []*commonvpc.Subnet
-	region       *commonvpc.Region
+	vpc          vpcmodel.VPC
 }
 
 func (igw *InternetGateway) Sources() []vpcmodel.Node {
@@ -28,8 +28,8 @@ func (igw *InternetGateway) Sources() []vpcmodel.Node {
 func (igw *InternetGateway) Destinations() []vpcmodel.Node {
 	return igw.destinations
 }
-func (igw *InternetGateway) Region() *commonvpc.Region {
-	return igw.region
+func (igw *InternetGateway) VPC() vpcmodel.VPCResourceIntf {
+	return igw.vpc
 }
 func (igw *InternetGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
 	igw.destinations = destinations
