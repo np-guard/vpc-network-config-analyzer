@@ -83,8 +83,8 @@ func (finding *ruleNonRelevantCIDR) string() string {
 
 // for json:
 type rulesNonRelevantCIDRJSON struct {
-	Rule            vpcmodel.RuleOfFilter `json:"vpc_name"`
-	VpcName         string                `json:"rule_details"`
+	Rule            vpcmodel.RuleOfFilter `json:"rule_details"`
+	VpcName         string                `json:"vpc_name"`
 	VpcAddressRange string                `json:"vpc_address_range"`
 }
 
