@@ -200,7 +200,7 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns map[string]*VPCConnectivity,
 	subnetsConns map[string]*VPCsubnetConnectivity, configsDiff *diffBetweenCfgs,
 	outFile string, grouping bool, uc OutputUseCase,
-	explainStruct *Explanation, detailExplain bool, provider common.Provider) (string, error) {
+	explainStruct *Explanation, detailExplain bool, _ common.Provider) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
