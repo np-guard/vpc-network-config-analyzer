@@ -157,6 +157,17 @@ func NewTransitGatewayTreeNode(parent SquareTreeNodeInterface, name string) *Tra
 }
 
 // ///////////////////////////////////////////
+type InternetGatewayTreeNode struct {
+	abstractIconTreeNode
+}
+
+func NewInternetGatewayTreeNode(parent SquareTreeNodeInterface, name string) *InternetGatewayTreeNode {
+	igw := InternetGatewayTreeNode{newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&igw)
+	return &igw
+}
+
+// ///////////////////////////////////////////
 type UserTreeNode struct {
 	abstractIconTreeNode
 }
