@@ -40,6 +40,8 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		&ruleNonRelevantCIDRSGLint{basicLinter: basicLint},
 		&ruleNonRelevantCIDRNACLLint{basicLinter: basicLint},
 		&blockedTCPResponseLint{connectionLinter: connLint},
+		//&ruleRedundantNACLLint{basicLinter: basicLint},
+		//&ruleRedundantSGLint{basicLinter: basicLint},
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
