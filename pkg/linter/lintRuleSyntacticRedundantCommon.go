@@ -11,6 +11,7 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
+	"strings"
 )
 
 const NetworkACL = "network ACL" // todo: https://github.com/np-guard/vpc-network-config-analyzer/issues/724
@@ -19,8 +20,9 @@ const NetworkACL = "network ACL" // todo: https://github.com/np-guard/vpc-networ
 // nacl rule - implied by higher priority rules in the nacl table
 // sg rule - implied by other rules in the sg table
 type ruleRedundant struct {
-	rule        vpcmodel.RuleOfFilter
-	vpcResource vpcmodel.VPC
+	rule         vpcmodel.RuleOfFilter
+	containRules map[int]string // indexes of rules because of which this rule is redundant to their description
+	vpcResource  vpcmodel.VPC
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,26 +61,37 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		tableToRules, tableToAtomicBlocks := getTableToAtomicBlocks(rules)
 		for isRedundantRule := range rules {
 			tableIndex := rules[isRedundantRule].Filter.FilterIndex
+			isRedundantRuleIndex := rules[isRedundantRule].RuleIndex
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
 			// gathers atomic blocks within rule's src and dst
 			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].SrcCidr)
 			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].DstCidr)
 			connOfOthers := connection.None()
+			containRules := map[int]string{}
 			// iterates over cartesian product of atomic blocks within rule's src and dst
 			for _, srcAtomicBlock := range srcBlocks {
 				for _, dstAtomicBlock := range dstBlocks {
 					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
 					for otherRule := range tableToRules[tableIndex] {
 						// needs to be "other" rule always, for nacl needs to be higher priority rule
-						if rules[isRedundantRule].RuleIndex == tableToRules[tableIndex][otherRule].RuleIndex ||
+						otherRuleIndex := tableToRules[tableIndex][otherRule].RuleIndex
+						if isRedundantRuleIndex == otherRuleIndex ||
 							(filterLayerName == vpcmodel.NaclLayer &&
-								rules[isRedundantRule].RuleIndex <= tableToRules[tableIndex][otherRule].RuleIndex) {
+								isRedundantRuleIndex <= otherRuleIndex) {
 							continue
 						}
 						if rules[isRedundantRule].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
 							srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
-							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) {
+							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) &&
+							!rules[isRedundantRule].Conn.Intersect(tableToRules[tableIndex][otherRule].Conn).IsEmpty() {
+							connOfOthersOld := connOfOthers
 							connOfOthers = connOfOthers.Union(tableToRules[tableIndex][otherRule].Conn)
+							if !connOfOthersOld.Equal(connOfOthers) {
+								if _, ok := containRules[otherRuleIndex]; !ok {
+									containRules[otherRuleIndex] = tableToRules[tableIndex][otherRule].RuleDesc
+									fmt.Println("added!!!", otherRuleIndex, tableToRules[tableIndex][otherRule].RuleDesc)
+								}
+							}
 						}
 					}
 				}
@@ -143,14 +156,24 @@ func (finding *ruleRedundant) vpc() []vpcmodel.VPCResourceIntf {
 
 func (finding *ruleRedundant) string() string {
 	rule := finding.rule
-	strRes := fmt.Sprintf("In VPC %s %s %s's is redundant. ",
+	strResPrefix := fmt.Sprintf("In VPC %s %s %s's is redundant. ",
 		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName)
 	if rule.Filter.LayerName == NetworkACL {
-		strRes += fmt.Sprintf("It is overruled by by higher priority rules")
+		strResPrefix += fmt.Sprintf("It is shadowed by by higher priority rules")
 	} else {
-		strRes += fmt.Sprintf("It is implied by other rules in the table")
+		strResPrefix += fmt.Sprintf("It is implied by other rules in the table")
 	}
-	return strRes + "\n\tRule's details: " + rule.RuleDesc
+	strResPrefix = strResPrefix + "\n\tRule's details: " + rule.RuleDesc
+	if rule.Filter.LayerName == NetworkACL {
+		strResPrefix += fmt.Sprintf("\tShadowing rules:\n")
+	} else {
+		strResPrefix += fmt.Sprintf("\tImplying rules:\n")
+	}
+	containingRulesSlice := []string{}
+	for _, ruleStr := range finding.containRules {
+		containingRulesSlice = append(containingRulesSlice, "\t\t"+ruleStr)
+	}
+	return strResPrefix + strings.Join(containingRulesSlice, "\n")
 }
 
 // for json:

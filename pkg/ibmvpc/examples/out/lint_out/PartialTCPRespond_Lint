@@ -23,11 +23,28 @@ In VPC test-vpc1-ky, security group sg2-ky rule's indexed 6 splits subnets subne
 In VPC test-vpc1-ky, security group sg2-ky rule's indexed 7 splits subnets subnet2-ky (10.240.20.0/24), subnet3-ky (10.240.30.0/24). Splitting rule details: index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
+"security group rules that are implied by other rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC test-vpc1-ky security group sg2-ky's is redundant. It is implied by other rules in the table
+	Rule's details: index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+
+In VPC test-vpc1-ky security group sg3-ky's is redundant. It is implied by other rules in the table
+	Rule's details: index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+In VPC test-vpc1-ky security group sg3-ky's is redundant. It is implied by other rules in the table
+	Rule's details: index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 no lint "Overlapping CIDR ranges between different subnets" issues
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 no lint "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+no lint "rules of network ACLs that are overruled by higher priority rules" issues
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
