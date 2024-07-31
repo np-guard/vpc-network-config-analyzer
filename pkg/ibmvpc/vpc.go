@@ -654,7 +654,12 @@ func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
 }
 func (tgw *TransitGateway) SourcesSubnets() []vpcmodel.Subnet {
-	return nil
+	// todo - rewrite with fix of issue #740
+	res := make([]vpcmodel.Subnet, len(tgw.sourceSubnets))
+	for i,s := range tgw.sourceSubnets{
+		res[i] = s
+	}
+	return res
 }
 
 func (tgw *TransitGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
