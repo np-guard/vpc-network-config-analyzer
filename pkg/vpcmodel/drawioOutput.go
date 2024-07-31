@@ -10,7 +10,6 @@ import (
 	"errors"
 	"slices"
 
-	collector_common "github.com/np-guard/cloud-resource-collector/pkg/common"
 	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -234,8 +233,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation, detailExplain bool,
-	provider collector_common.Provider) (string, error) {
+	explanation *Explanation, detailExplain bool) (string, error) {
 	switch uc {
 	case AllEndpoints:
 		gConn := map[string]*GroupConnLines{}
@@ -244,7 +242,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		}
 		d.init(cConfigs, conn, gConn, uc)
 	case AllSubnets:
-		gConfigs := NewMultipleVPCConfigs(cConfigs.CloudName())
+		gConfigs := NewMultipleVPCConfigs(cConfigs.Provider())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for id, vpcConn := range subnetsConn {
@@ -259,7 +257,8 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations(), provider)
+	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets,
+		d.drawioFormat(), d.createExplanations(), cConfigs.Provider())
 	if err != nil {
 		return "", err
 	}
@@ -285,6 +284,6 @@ func (d *ArchDrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 	outFile string,
 	grouping bool,
 	uc OutputUseCase,
-	explanation *Explanation, detailExplain bool, provider collector_common.Provider) (string, error) {
-	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation, detailExplain, provider)
+	explanation *Explanation, detailExplain bool) (string, error) {
+	return d.DrawioOutputFormatter.WriteOutput(cConfigs, nil, nil, nil, outFile, grouping, uc, explanation, detailExplain)
 }
