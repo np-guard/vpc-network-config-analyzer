@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/aws"
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
@@ -99,7 +100,7 @@ func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 // containing the parsed resources in the relevant model objects
 func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs("AWS Cloud")      // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs(common.AWS)      // map from VPC UID to its config
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error
 
