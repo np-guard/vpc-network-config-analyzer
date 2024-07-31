@@ -532,7 +532,7 @@ type PublicGateway struct {
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
 	// todo - the following should be []vpcmodel.Subnet, however, I can not do this fix now, since it involve a big fix in the parser.
-	// and the parser has 2 PRs on it 
+	// and the parser has 2 PRs on it. will fix with issue #740
 	srcSubnets   []*commonvpc.Subnet
 	subnetCidr   []string
 	vpc          *commonvpc.VPC
@@ -546,6 +546,7 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 	return pgw.src
 }
 func (pgw *PublicGateway) SourcesSubnets() []vpcmodel.Subnet {
+	// todo - rewrite with issue #740
 	res := make([]vpcmodel.Subnet, len(pgw.srcSubnets))
 	for i,s := range pgw.srcSubnets{
 		res[i] = s
