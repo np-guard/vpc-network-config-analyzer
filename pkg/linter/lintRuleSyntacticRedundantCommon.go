@@ -162,19 +162,27 @@ func (finding *ruleRedundant) string() string {
 	strResPrefix := fmt.Sprintf("In VPC %s %s %s's is redundant. ",
 		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName)
 	if rule.Filter.LayerName == NetworkACL {
-		strResPrefix += fmt.Sprintf("It is shadowed by by higher priority rules")
+		strResPrefix += fmt.Sprintf("It is shadowed by by higher priority rule")
 	} else {
-		strResPrefix += fmt.Sprintf("It is implied by other rules in the table")
+		strResPrefix += fmt.Sprintf("It is implied by other rule")
+	}
+	if len(finding.containRules) > 1 {
+		strResPrefix += "s"
 	}
 	strResPrefix = strResPrefix + "\n\tRule's details: " + rule.RuleDesc
 	if rule.Filter.LayerName == NetworkACL {
-		strResPrefix += fmt.Sprintf("\tShadowing rules:\n")
+		strResPrefix += fmt.Sprintf("\t\tShadowing rule")
 	} else {
-		strResPrefix += fmt.Sprintf("\tImplying rules:\n")
+		strResPrefix += fmt.Sprintf("\t\tImplying rule")
+	}
+	if len(finding.containRules) > 1 {
+		strResPrefix += "s:\n\t\t"
+	} else {
+		strResPrefix += ": "
 	}
 	containingRulesSlice := []string{}
 	for _, ruleStr := range finding.containRules {
-		containingRulesSlice = append(containingRulesSlice, "\t\t"+ruleStr)
+		containingRulesSlice = append(containingRulesSlice, ruleStr)
 	}
 	return strResPrefix + strings.Join(containingRulesSlice, "\n")
 }
