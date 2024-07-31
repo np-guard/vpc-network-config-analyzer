@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
@@ -23,7 +24,7 @@ func TestVPCResourceModelRegion(t *testing.T) {
 	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
-	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name")
+	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name", common.IBM)
 	regionToStructMap := make(map[string]*commonvpc.Region)
 	err = rc.getVPCconfig(vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)

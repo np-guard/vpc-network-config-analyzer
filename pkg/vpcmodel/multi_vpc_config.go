@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
+	common2 "github.com/np-guard/cloud-resource-collector/pkg/common"
 )
 
 // MultipleVPCConfigs captures a set of VPCConfig objects, as a map from vpcID to the VPCConfig
@@ -18,10 +19,11 @@ type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
 	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
 	cloudName        string
+	provider common2.Provider
 }
 
-func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
-	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
+func NewMultipleVPCConfigs(cloudName string, provider common2.Provider) *MultipleVPCConfigs {
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName, provider}
 }
 
 func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
