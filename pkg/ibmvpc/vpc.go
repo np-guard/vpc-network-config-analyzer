@@ -325,19 +325,34 @@ func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 }
 
 func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRulesIngress, err1 := nl.getIngressOrEgressRules(true)
+	if err1 != nil {
+		return nil, err1
+	}
+	resRulesEgress, err2 := nl.getIngressOrEgressRules(false)
+	if err2 != nil {
+		return nil, err2
+	}
+	return append(resRulesIngress, resRulesEgress...), nil
+}
+
+func (nl *NaclLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmodel.RuleOfFilter, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
 	for naclIndx, nacl := range nl.naclList {
-		naclRules := nacl.analyzer.egressRules
-		naclRules = append(naclRules, nacl.analyzer.ingressRules...)
+		var naclRules []*NACLRule
+		if isIngress {
+			naclRules = nacl.analyzer.ingressRules
+		} else {
+			naclRules = nacl.analyzer.egressRules
+		}
 		if nacl.analyzer.naclResource.Name == nil {
 			return nil, fmt.Errorf(commonvpc.EmptyNameError, networkACL, naclIndx)
 		}
 		naclName := *nacl.analyzer.naclResource.Name
 		for _, rule := range naclRules {
-			ruleBlocks := []*ipblock.IPBlock{rule.src, rule.dst}
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
 			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.index,
-				ruleBlocks))
+				isIngress, rule.src, rule.dst))
 		}
 	}
 	return resRules, nil
