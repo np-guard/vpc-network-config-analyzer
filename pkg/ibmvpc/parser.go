@@ -115,7 +115,7 @@ func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resou
 //nolint:funlen // serial list of commands, no need to split it
 func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs("IBM Cloud", common.IBM)      // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs(common.IBM)      // map from VPC UID to its config
 	filteredOut := map[string]bool{}                        // store networkInterface UIDs filtered out by skipByVPC
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error

@@ -24,7 +24,7 @@ func TestVPCResourceModelRegion(t *testing.T) {
 	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
-	vpcConfigs := vpcmodel.NewMultipleVPCConfigs("cloud name", common.IBM)
+	vpcConfigs := vpcmodel.NewMultipleVPCConfigs(common.IBM)
 	regionToStructMap := make(map[string]*commonvpc.Region)
 	err = rc.getVPCconfig(vpcConfigs, nil, regionToStructMap)
 	require.Nilf(t, err, "err: %s", err)

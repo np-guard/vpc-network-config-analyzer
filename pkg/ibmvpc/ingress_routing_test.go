@@ -106,7 +106,7 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	vpcConfEnterprise := genConfig(vpcEnterprise, []*commonvpc.Subnet{workerSubnetEnterprise},
 		[]*commonvpc.NetworkInterface{enterpriseTestInstance}, nil, nil)
 
-	globalConfig := vpcmodel.NewMultipleVPCConfigs("", common.IBM)
+	globalConfig := vpcmodel.NewMultipleVPCConfigs(common.IBM)
 	globalConfig.AddConfig(vpcConfTransit)
 	globalConfig.AddConfig(vpcConfSpoke)
 	globalConfig.AddConfig(vpcConfEnterprise)
