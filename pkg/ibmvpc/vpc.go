@@ -533,9 +533,9 @@ type PublicGateway struct {
 	destinations []vpcmodel.Node
 	// todo - the following should be []vpcmodel.Subnet, however, I can not do this fix now, since it involve a big fix in the parser.
 	// and the parser has 2 PRs on it. will fix with issue #740
-	srcSubnets   []*commonvpc.Subnet
-	subnetCidr   []string
-	vpc          *commonvpc.VPC
+	srcSubnets []*commonvpc.Subnet
+	subnetCidr []string
+	vpc        *commonvpc.VPC
 }
 
 func (pgw *PublicGateway) Zone() (*commonvpc.Zone, error) {
@@ -548,7 +548,7 @@ func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 func (pgw *PublicGateway) SourcesSubnets() []vpcmodel.Subnet {
 	// todo - rewrite with issue #740
 	res := make([]vpcmodel.Subnet, len(pgw.srcSubnets))
-	for i,s := range pgw.srcSubnets{
+	for i, s := range pgw.srcSubnets {
 		res[i] = s
 	}
 	return res
@@ -656,7 +656,7 @@ func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 func (tgw *TransitGateway) SourcesSubnets() []vpcmodel.Subnet {
 	// todo - rewrite with fix of issue #740
 	res := make([]vpcmodel.Subnet, len(tgw.sourceSubnets))
-	for i,s := range tgw.sourceSubnets{
+	for i, s := range tgw.sourceSubnets {
 		res[i] = s
 	}
 	return res
