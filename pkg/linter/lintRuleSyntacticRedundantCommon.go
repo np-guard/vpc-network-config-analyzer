@@ -162,12 +162,17 @@ func (finding *ruleRedundant) string() string {
 	strResPrefix := fmt.Sprintf("In VPC %s %s %s's rule %d is redundant. ",
 		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex)
 	if rule.Filter.LayerName == NetworkACL {
-		strResPrefix += fmt.Sprintf("It is shadowed by by higher priority rule")
+		if len(finding.containRules) == 1 {
+			strResPrefix += fmt.Sprintf("It is shadowed by an higher priority rule")
+		} else { // >1
+			strResPrefix += fmt.Sprintf("It is shadowed by higher priority rules")
+		}
 	} else {
-		strResPrefix += fmt.Sprintf("It is implied by other rule")
-	}
-	if len(finding.containRules) > 1 {
-		strResPrefix += "s"
+		if len(finding.containRules) == 1 {
+			strResPrefix += fmt.Sprintf("It is implied by another rule")
+		} else { // >1
+			strResPrefix += fmt.Sprintf("It is implied by other rules")
+		}
 	}
 	strResPrefix = strResPrefix + "\n\tRule's details: " + rule.RuleDesc
 	if rule.Filter.LayerName == NetworkACL {

@@ -22,7 +22,7 @@ ________________________________________________________________________________
 
 "rules of network ACLs that are shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC test-vpc1-ky network ACL acl2-ky's rule 6 is redundant. It is shadowed by by higher priority rule
+In VPC test-vpc1-ky network ACL acl2-ky's rule 6 is redundant. It is shadowed by an higher priority rule
 	Rule's details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
 		Shadowing rule: index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
 
