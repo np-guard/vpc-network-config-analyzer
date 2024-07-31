@@ -100,7 +100,7 @@ func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 // containing the parsed resources in the relevant model objects
 func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs(common.AWS)      // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs(common.AWS)       // map from VPC UID to its config
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error
 
