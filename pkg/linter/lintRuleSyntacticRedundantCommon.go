@@ -63,27 +63,29 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			// gathers atomic blocks within rule's src and dst
 			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].SrcCidr)
 			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].DstCidr)
+			connOfOthers := connection.None()
 			// iterates over cartesian product of atomic blocks within rule's src and dst
 			for _, srcAtomicBlock := range srcBlocks {
 				for _, dstAtomicBlock := range dstBlocks {
 					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-					connOfOthers := connection.None()
 					for otherRule := range tableToRules[tableIndex] {
+						// needs to be "other" rule always, for nacl needs to be higher priority rule
 						if rules[isRedundantRule].RuleIndex == tableToRules[tableIndex][otherRule].RuleIndex ||
 							(filterLayerName == vpcmodel.NaclLayer &&
 								rules[isRedundantRule].RuleIndex <= tableToRules[tableIndex][otherRule].RuleIndex) {
 							continue
 						}
-						if srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
+						if rules[isRedundantRule].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
+							srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
 							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) {
 							connOfOthers = connOfOthers.Union(tableToRules[tableIndex][otherRule].Conn)
 						}
 					}
-					// is rule redundant?
-					if rules[isRedundantRule].Conn.ContainedIn(connOfOthers) {
-						res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule]})
-					}
 				}
+			}
+			// is rule redundant?
+			if rules[isRedundantRule].Conn.ContainedIn(connOfOthers) {
+				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule]})
 			}
 		}
 
@@ -107,13 +109,16 @@ func getTableToAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
 ) {
 	// 1. Creates a map from each table index to its rules
+	tableToRules = map[int][]vpcmodel.RuleOfFilter{}
 	for i := range rules {
-		if _, ok := tableToRules[rules[i].Filter.FilterIndex]; !ok {
-			tableToRules[rules[i].Filter.FilterIndex] = []vpcmodel.RuleOfFilter{}
+		filterIndex := rules[i].Filter.FilterIndex
+		if _, ok := tableToRules[filterIndex]; !ok {
+			tableToRules[filterIndex] = []vpcmodel.RuleOfFilter{}
 		}
-		tableToRules[rules[i].Filter.FilterIndex] = append(tableToRules[rules[i].Filter.FilterIndex], rules[i])
+		tableToRules[filterIndex] = append(tableToRules[filterIndex], rules[i])
 	}
 	// 2. For each table computes its atomic blocks and creates the above resulting map
+	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for tableIndex := range tableToRules {
 		for i := range tableToRules[tableIndex] {
 			thisRuleBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{tableToRules[tableIndex][i].SrcCidr},
