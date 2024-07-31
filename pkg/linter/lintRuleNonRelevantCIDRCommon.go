@@ -26,12 +26,12 @@ type ruleNonRelevantCIDR struct {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []ruleNonRelevantCIDR, err error) {
-	for uid := range configs {
-		if configs[uid].IsMultipleVPCsConfig {
+	for _, config := range configs {
+		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		vpcAddressRange := configs[uid].VPC.AddressRange()
-		filterLayer := configs[uid].GetFilterTrafficResourceOfKind(filterLayerName)
+		vpcAddressRange := config.VPC.AddressRange()
+		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err
@@ -44,7 +44,7 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 			}
 			if !relevantBlock.Equal(ipblock.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
 				if !relevantBlock.ContainedIn(vpcAddressRange) {
-					res = append(res, ruleNonRelevantCIDR{rule: rules[i], vpcResource: configs[uid].VPC,
+					res = append(res, ruleNonRelevantCIDR{rule: rules[i], vpcResource: config.VPC,
 						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
 				}
 			}

@@ -39,11 +39,11 @@ func (lint *overlappingSubnetsLint) lintDescription() string {
 
 func (lint *overlappingSubnetsLint) check() error {
 	allSubnets := []vpcmodel.Subnet{}
-	for i := range lint.configs {
-		if lint.configs[i].IsMultipleVPCsConfig {
+	for _, config := range lint.configs {
+		if config.IsMultipleVPCsConfig {
 			continue
 		}
-		allSubnets = append(allSubnets, lint.configs[i].Subnets...)
+		allSubnets = append(allSubnets, config.Subnets...)
 	}
 	for i, subnet1 := range allSubnets {
 		subnet1IPBlock := subnet1.AddressRange()

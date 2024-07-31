@@ -42,18 +42,18 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		&blockedTCPResponseLint{connectionLinter: connLint},
 	}
 	strPerLint := []string{}
-	for i := range linters {
+	for _, thisLinter := range linters {
 		thisLintStr := ""
-		err := linters[i].check()
+		err := thisLinter.check()
 		if err != nil {
 			return false, "", err
 		}
-		lintFindings := linters[i].getFindings()
+		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) == 0 {
-			thisLintStr = fmt.Sprintf("no lint %q issues\n", linters[i].lintDescription())
+			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
 		} else {
 			issueFound = true
-			thisLintStr = linters[i].string(linters[i].lintDescription())
+			thisLintStr = thisLinter.string(thisLinter.lintDescription())
 		}
 		strPerLint = append(strPerLint, thisLintStr)
 	}

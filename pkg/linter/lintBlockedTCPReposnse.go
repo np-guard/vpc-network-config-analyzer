@@ -41,12 +41,11 @@ func (lint *blockedTCPResponseLint) lintDescription() string {
 }
 
 func (lint *blockedTCPResponseLint) check() error {
-	for i := range lint.nodesConn {
-		for i2 := range lint.nodesConn[i].GroupedConnectivity.GroupedLines {
-			tcpRspDisable := lint.nodesConn[i].GroupedConnectivity.GroupedLines[i2].CommonProperties.Conn.TCPRspDisable
+	for _, nodesConn := range lint.nodesConn {
+		for _, line := range nodesConn.GroupedConnectivity.GroupedLines {
+			tcpRspDisable := line.CommonProperties.Conn.TCPRspDisable
 			if !tcpRspDisable.IsEmpty() {
-				lint.addFinding(&blockedTCPResponseConn{src: lint.nodesConn[i].GroupedConnectivity.GroupedLines[i2].Src,
-					dst: lint.nodesConn[i].GroupedConnectivity.GroupedLines[i2].Dst, tcpRspDisable: tcpRspDisable})
+				lint.addFinding(&blockedTCPResponseConn{src: line.Src, dst: line.Dst, tcpRspDisable: tcpRspDisable})
 			}
 		}
 	}
