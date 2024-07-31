@@ -31,8 +31,8 @@ func (lint *filterRuleSplitSubnetLintNACL) check() error {
 	if err != nil {
 		return err
 	}
-	for _, ruleSplitSubnetsFound := range rulesSplitSubnetsFound {
-		lint.addFinding(&ruleSplitSubnetsFound)
+	for i := range rulesSplitSubnetsFound {
+		lint.addFinding(&rulesSplitSubnetsFound[i])
 	}
 	return nil
 }
