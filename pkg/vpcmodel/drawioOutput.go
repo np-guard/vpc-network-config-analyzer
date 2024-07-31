@@ -257,7 +257,8 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations(), cConfigs.Provider())
+	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets,
+		d.drawioFormat(), d.createExplanations(), cConfigs.Provider())
 	if err != nil {
 		return "", err
 	}
