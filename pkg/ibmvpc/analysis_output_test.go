@@ -200,6 +200,14 @@ var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		format:      vpcmodel.HTML,
+	},
+}
+
+var tests2 = []*vpcGeneralTest{
+	{
+		inputConfig: "acl_testing5",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		format:      vpcmodel.MD,
 	},
 	{

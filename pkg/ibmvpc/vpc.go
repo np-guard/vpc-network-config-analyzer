@@ -480,6 +480,10 @@ type FloatingIP struct {
 func (fip *FloatingIP) Sources() []vpcmodel.Node {
 	return fip.src
 }
+func (fip *FloatingIP) SourcesSubnets() []vpcmodel.Subnet {
+	return nil
+}
+
 func (fip *FloatingIP) Destinations() []vpcmodel.Node {
 	return fip.destinations
 }
@@ -527,6 +531,8 @@ type PublicGateway struct {
 	cidr         string
 	src          []vpcmodel.Node
 	destinations []vpcmodel.Node
+	// todo - the following should be []vpcmodel.Subnet, however, I can not do this fix now, since it involve a big fix in the parser.
+	// and the parser has 2 PRs on it 
 	srcSubnets   []*commonvpc.Subnet
 	subnetCidr   []string
 	vpc          *commonvpc.VPC
@@ -539,6 +545,14 @@ func (pgw *PublicGateway) Zone() (*commonvpc.Zone, error) {
 func (pgw *PublicGateway) Sources() []vpcmodel.Node {
 	return pgw.src
 }
+func (pgw *PublicGateway) SourcesSubnets() []vpcmodel.Subnet {
+	res := make([]vpcmodel.Subnet, len(pgw.srcSubnets))
+	for i,s := range pgw.srcSubnets{
+		res[i] = s
+	}
+	return res
+}
+
 func (pgw *PublicGateway) Destinations() []vpcmodel.Node {
 	return pgw.destinations
 }
@@ -638,6 +652,10 @@ func (tgw *TransitGateway) Sources() (res []vpcmodel.Node) {
 func (tgw *TransitGateway) Destinations() (res []vpcmodel.Node) {
 	return tgw.destNodes
 }
+func (tgw *TransitGateway) SourcesSubnets() []vpcmodel.Subnet {
+	return nil
+}
+
 func (tgw *TransitGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
 }
 
