@@ -34,24 +34,24 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 		if err != nil {
 			return nil, err
 		}
-		for _, rule := range rules {
+		for i := range rules {
 			subnetsSplitByRule := []vpcmodel.Subnet{}
 			for _, subnet := range config.Subnets {
-				splitSubnet := ruleSplitSubnet(subnet, rule.IPBlocks)
+				splitSubnet := ruleSplitSubnet(subnet, [2]*ipblock.IPBlock{rules[i].SrcCidr, rules[i].DstCidr})
 				if splitSubnet {
 					subnetsSplitByRule = append(subnetsSplitByRule, subnet)
 				}
 			}
 			if len(subnetsSplitByRule) > 0 {
-				res = append(res, splitRuleSubnet{rule: rule, splitSubnets: subnetsSplitByRule})
+				res = append(res, splitRuleSubnet{rule: rules[i], splitSubnets: subnetsSplitByRule})
 			}
 		}
 	}
 	return res, nil
 }
 
-// given a subnet and IPBlocks mentioned in a rule, returns the list
-func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks []*ipblock.IPBlock) bool {
+// given a subnet and IPBlocks mentioned in a rule, returns true if the rules split any of the blocks
+func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks [2]*ipblock.IPBlock) bool {
 	subnetCidrIPBlock := subnet.AddressRange()
 	for _, ruleIPBlock := range ruleIPBlocks {
 		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIPBlock) {

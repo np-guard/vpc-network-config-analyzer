@@ -102,8 +102,9 @@ type subnetJSON struct {
 
 func (finding *overlapSubnets) toJSON() any {
 	overlapsSubnetsJSON := make([]subnetJSON, 2)
-	for i, overlapSubnet := range finding.overlapSubnets {
-		overlapsSubnetsJSON[i] = subnetJSON{Name: overlapSubnet.Name(), VpcName: overlapSubnet.VPC().Name(), CIDR: overlapSubnet.CIDR()}
+	for i := range finding.overlapSubnets {
+		overlapsSubnetsJSON[i] = subnetJSON{Name: finding.overlapSubnets[i].Name(),
+			VpcName: finding.overlapSubnets[i].VPC().Name(), CIDR: finding.overlapSubnets[i].CIDR()}
 	}
 	res := overlapSubnetsJSON{OverlapSubnets: overlapsSubnetsJSON, OverlapCidr: finding.overlapIPBlocks.String()}
 	return res
