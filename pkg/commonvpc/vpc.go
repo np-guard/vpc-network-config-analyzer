@@ -270,21 +270,40 @@ func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
 }
 
 func (sgl *SecurityGroupLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRulesIngress, err1 := sgl.getIngressOrEgressRules(true)
+	if err1 != nil {
+		return nil, err1
+	}
+	resRulesEgress, err2 := sgl.getIngressOrEgressRules(false)
+	if err2 != nil {
+		return nil, err2
+	}
+	return append(resRulesIngress, resRulesEgress...), nil
+}
+
+func (sgl *SecurityGroupLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmodel.RuleOfFilter, error) {
 	resRules := []vpcmodel.RuleOfFilter{}
 	for sgIndex, sg := range sgl.SgList {
-		sgRules := sg.Analyzer.egressRules
-		sgRules = append(sgRules, sg.Analyzer.ingressRules...)
+		var sgRules []*SGRule
+		if isIngress {
+			sgRules = sg.Analyzer.ingressRules
+		} else {
+			sgRules = sg.Analyzer.egressRules
+		}
 		if sg.Analyzer.SgAnalyzer.Name() == nil {
 			return nil, fmt.Errorf(EmptyNameError, securityGroup, sgIndex)
 		}
 		sgName := *sg.Analyzer.SgAnalyzer.Name()
-		for _, rule := range sgRules {
-			ruleBlocks := []*ipblock.IPBlock{rule.Remote.Cidr}
-			if rule.Local != nil {
-				ruleBlocks = append(ruleBlocks, rule.Local)
+		for _, ruleOfSG := range sgRules {
+			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(ruleOfSG.Index)
+			var srcBlock, dstBlock *ipblock.IPBlock
+			if isIngress {
+				srcBlock, dstBlock = ruleOfSG.Remote.Cidr, ruleOfSG.Local
+			} else {
+				srcBlock, dstBlock = ruleOfSG.Local, ruleOfSG.Remote.Cidr
 			}
-			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(rule.Index)
-			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, rule.Index, ruleBlocks))
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, ruleOfSG.Index,
+				isIngress, srcBlock, dstBlock))
 		}
 	}
 	return resRules, nil
