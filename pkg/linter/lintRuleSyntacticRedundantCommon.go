@@ -66,11 +66,12 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			// gathers atomic blocks within rule's src and dst
 			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].SrcCidr)
 			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].DstCidr)
-			connOfOthers := connection.None()
-			containRules := map[int]string{}
 			// iterates over cartesian product of atomic blocks within rule's src and dst
+			ruleIsRedundant := true
+			containRules := map[int]string{}
 			for _, srcAtomicBlock := range srcBlocks {
 				for _, dstAtomicBlock := range dstBlocks {
+					connOfOthers := connection.None()
 					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
 					for otherRule := range tableToRules[tableIndex] {
 						// needs to be "other" rule always, for nacl needs to be higher priority rule
@@ -80,6 +81,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 								isRedundantRuleIndex <= otherRuleIndex) {
 							continue
 						}
+						// otherRule contains src, dst and has a relevant connection?
 						if rules[isRedundantRule].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
 							srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
 							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) &&
@@ -89,19 +91,20 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							if !connOfOthersOld.Equal(connOfOthers) {
 								if _, ok := containRules[otherRuleIndex]; !ok {
 									containRules[otherRuleIndex] = tableToRules[tableIndex][otherRule].RuleDesc
-									fmt.Println("added!!!", otherRuleIndex, tableToRules[tableIndex][otherRule].RuleDesc)
 								}
 							}
 						}
 					}
+					// is <src, dst> shadowed/implied by other rules?
+					if !rules[isRedundantRule].Conn.ContainedIn(connOfOthers) {
+						ruleIsRedundant = false
+					}
+				}
+				if ruleIsRedundant {
+					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule], containRules: containRules})
 				}
 			}
-			// is rule redundant?
-			if rules[isRedundantRule].Conn.ContainedIn(connOfOthers) {
-				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule]})
-			}
 		}
-
 	}
 	return res, nil
 }
