@@ -242,7 +242,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		}
 		d.init(cConfigs, conn, gConn, uc)
 	case AllSubnets:
-		gConfigs := NewMultipleVPCConfigs(cConfigs.provider)
+		gConfigs := NewMultipleVPCConfigs(cConfigs.Provider())
 		gConn := map[string]*GroupConnLines{}
 		if subnetsConn != nil {
 			for id, vpcConn := range subnetsConn {
@@ -257,7 +257,7 @@ func (d *DrawioOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs,
 		return "", errors.New("use case is not currently supported for draw.io format")
 	}
 	d.createDrawioTree()
-	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations(), cConfigs.provider)
+	res, err := drawio.CreateDrawioConnectivityMap(d.gen.Network(), d.uc == AllSubnets, d.drawioFormat(), d.createExplanations(), cConfigs.Provider())
 	if err != nil {
 		return "", err
 	}

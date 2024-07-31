@@ -58,6 +58,9 @@ func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig
 func (c *MultipleVPCConfigs) CloudName() string {
 	return string(c.provider) + " Cloud"
 }
+func (c *MultipleVPCConfigs) Provider() collector_common.Provider {
+	return c.provider
+}
 
 func (c *MultipleVPCConfigs) AddConfig(config *VPCConfig) {
 	if config == nil {
