@@ -100,9 +100,9 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 						ruleIsRedundant = false
 					}
 				}
-				if ruleIsRedundant {
-					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule], containRules: containRules})
-				}
+			}
+			if ruleIsRedundant {
+				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule], containRules: containRules})
 			}
 		}
 	}
