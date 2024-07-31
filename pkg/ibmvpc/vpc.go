@@ -352,7 +352,7 @@ func (nl *NaclLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmodel.RuleOfF
 		for _, rule := range naclRules {
 			ruleDesc, _, _, _ := nacl.analyzer.getNACLRule(rule.index)
 			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.index,
-				isIngress, rule.src, rule.dst))
+				isIngress, rule.src, rule.dst, rule.connections))
 		}
 	}
 	return resRules, nil

@@ -296,7 +296,7 @@ func (sgl *SecurityGroupLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmod
 				srcBlock, dstBlock = ruleOfSG.Local, ruleOfSG.Remote.Cidr
 			}
 			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, ruleOfSG.Index,
-				isIngress, srcBlock, dstBlock))
+				isIngress, srcBlock, dstBlock, ruleOfSG.Connections))
 		}
 	}
 	return resRules, nil
