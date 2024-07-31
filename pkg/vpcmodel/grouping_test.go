@@ -69,6 +69,9 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
+func (m *mockNetIntf) ResourceNameFromConfig() string {
+	return m.name
+}
 func (m *mockNetIntf) ExtendedName(c *VPCConfig) string {
 	return m.name
 }
@@ -106,6 +109,9 @@ func (m *mockSubnet) UID() string {
 	return m.name
 }
 func (m *mockSubnet) Name() string {
+	return m.name
+}
+func (m *mockSubnet) ResourceNameFromConfig() string {
 	return m.name
 }
 func (m *mockSubnet) ExtendedName(c *VPCConfig) string {

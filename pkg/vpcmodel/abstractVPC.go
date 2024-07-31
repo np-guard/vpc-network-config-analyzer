@@ -31,6 +31,7 @@ type VPCResourceIntf interface {
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
 	RegionName() string
+	ResourceNameFromConfig() string // used for synthesis output
 
 	DrawioResourceIntf
 }
@@ -55,6 +56,10 @@ func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
 }
 
 func (n *VPCResource) Name() string {
+	return n.ResourceName
+}
+
+func (n *VPCResource) ResourceNameFromConfig() string {
 	return n.ResourceName
 }
 
