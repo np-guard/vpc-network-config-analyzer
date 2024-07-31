@@ -21,8 +21,8 @@ const delimBetweenLintsChars = 200
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
-	for uid := range configs {
-		nodesConnThisCfg, err := configs[uid].GetVPCNetworkConnectivity(false, true)
+	for uid, vpcConfig := range configs {
+		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
 		if err != nil {
 			return false, "", err
 		}
