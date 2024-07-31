@@ -250,7 +250,7 @@ func getRoutingTableVPCResource(rt *datamodel.RoutingTable, vpcConfig *vpcmodel.
 	return &vpcmodel.VPCResource{
 		ResourceName: *rt.Name,
 		ResourceUID:  *rt.ID,
-		ResourceType: commonvpc.ResourceTypeRoutingTable,
+		ResourceType: vpcmodel.ResourceTypeRoutingTable,
 		VPCRef:       vpcConfig.VPC,
 	}
 }
@@ -440,7 +440,7 @@ func newPGW(pgwName, pgwCRN, pgwZone string, pgwToSubnet map[string][]*commonvpc
 			ResourceName: pgwName,
 			ResourceUID:  pgwCRN,
 			Zone:         pgwZone,
-			ResourceType: commonvpc.ResourceTypePublicGateway,
+			ResourceType: vpcmodel.ResourceTypePublicGateway,
 			VPCRef:       vpc,
 		},
 		cidr:       "",
@@ -497,7 +497,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, src
 			ResourceName: fipName,
 			ResourceUID:  fipCRN,
 			Zone:         fipZone,
-			ResourceType: commonvpc.ResourceTypeFloatingIP,
+			ResourceType: vpcmodel.ResourceTypeFloatingIP,
 			VPCRef:       vpc,
 			Region:       vpc.RegionName(),
 		},
@@ -724,7 +724,7 @@ func (rc *IBMresourcesContainer) getNACLconfig(
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *nacl.Name,
 				ResourceUID:  *nacl.CRN,
-				ResourceType: commonvpc.ResourceTypeNACL,
+				ResourceType: vpcmodel.ResourceTypeNACL,
 				VPCRef:       vpc,
 				Region:       vpc.RegionName(),
 			},
@@ -773,7 +773,7 @@ func newTGW(name, uid, region string, regionToStructMap map[string]*commonvpc.Re
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  uid,
-			ResourceType: commonvpc.ResourceTypeTGW,
+			ResourceType: vpcmodel.ResourceTypeTGW,
 			Region:       region,
 		},
 		vpcs:                []*commonvpc.VPC{},
@@ -1007,7 +1007,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: vpcPrefix + tgw.ResourceName,
 			ResourceUID:  vpcPrefix + tgw.ResourceUID,
-			ResourceType: commonvpc.ResourceTypeVPC,
+			ResourceType: vpcmodel.ResourceTypeVPC,
 		},
 		InternalAddressRange: vpcsAddressRanges,
 		VPCnodes:             internalNodes,
@@ -1066,7 +1066,7 @@ func (rc *IBMresourcesContainer) getVPEconfig(
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *vpe.Name,
 				ResourceUID:  *vpe.CRN,
-				ResourceType: commonvpc.ResourceTypeVPE,
+				ResourceType: vpcmodel.ResourceTypeVPE,
 				VPCRef:       vpc,
 				Region:       vpc.RegionName(),
 			},
@@ -1079,7 +1079,7 @@ func (rc *IBMresourcesContainer) getVPEconfig(
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: *rIP.Name,
 					ResourceUID:  *rIP.ID,
-					ResourceType: commonvpc.ResourceTypeReservedIP,
+					ResourceType: vpcmodel.ResourceTypeReservedIP,
 					Zone:         "",
 					VPCRef:       vpc,
 					Region:       vpc.RegionName(),
@@ -1190,7 +1190,7 @@ func (rc *IBMresourcesContainer) getIKSnodesConfig(res *vpcmodel.MultipleVPCConf
 				VPCResource: vpcmodel.VPCResource{
 					ResourceName: "iks-node",
 					ResourceUID:  *iksNode.ID,
-					ResourceType: commonvpc.ResourceTypeIKSNode,
+					ResourceType: vpcmodel.ResourceTypeIKSNode,
 					VPCRef:       vpc,
 					Region:       vpc.RegionName(),
 				},
@@ -1247,7 +1247,7 @@ func (rc *IBMresourcesContainer) getLoadBalancersConfig(
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *loadBalancerObj.Name,
 				ResourceUID:  *loadBalancerObj.CRN,
-				ResourceType: commonvpc.ResourceTypeLoadBalancer,
+				ResourceType: vpcmodel.ResourceTypeLoadBalancer,
 				VPCRef:       vpc,
 			},
 		}
@@ -1433,7 +1433,7 @@ func createPrivateIP(name, id, address, publicAddress string,
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  id,
-			ResourceType: commonvpc.ResourceTypePrivateIP,
+			ResourceType: vpcmodel.ResourceTypePrivateIP,
 			Zone:         "",
 			VPCRef:       vpc,
 		}, // the zone gets updated later
@@ -1459,7 +1459,7 @@ func createPrivateIP(name, id, address, publicAddress string,
 				ResourceName: "fip-name-of-" + privateIP.Name(),
 				ResourceUID:  "fip-uid-of-" + privateIP.UID(),
 				Zone:         privateIP.ZoneName(),
-				ResourceType: commonvpc.ResourceTypeFloatingIP,
+				ResourceType: vpcmodel.ResourceTypeFloatingIP,
 				VPCRef:       vpc,
 			},
 			cidr: publicAddress, src: []vpcmodel.Node{privateIP}}
