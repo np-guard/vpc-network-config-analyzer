@@ -8,6 +8,7 @@ package vpcmodel
 import (
 	"fmt"
 
+	collector_common "github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -17,11 +18,11 @@ import (
 type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
 	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
-	cloudName        string
+	provider         collector_common.Provider
 }
 
-func NewMultipleVPCConfigs(cloudName string) *MultipleVPCConfigs {
-	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, cloudName}
+func NewMultipleVPCConfigs(provider collector_common.Provider) *MultipleVPCConfigs {
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, provider}
 }
 
 func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {
@@ -55,7 +56,10 @@ func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig
 	c.toCompareConfigs = toCompare
 }
 func (c *MultipleVPCConfigs) CloudName() string {
-	return c.cloudName
+	return string(c.provider) + " Cloud"
+}
+func (c *MultipleVPCConfigs) Provider() collector_common.Provider {
+	return c.provider
 }
 
 func (c *MultipleVPCConfigs) AddConfig(config *VPCConfig) {
