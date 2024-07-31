@@ -23,7 +23,7 @@ func (lint *ruleRedundantNACLLint) lintName() string {
 }
 
 func (lint *ruleRedundantNACLLint) lintDescription() string {
-	return "rules of network ACLs that are overruled by higher priority rules"
+	return "rules of network ACLs that are shadowed by higher priority rules"
 }
 
 func (lint *ruleRedundantNACLLint) check() error {
