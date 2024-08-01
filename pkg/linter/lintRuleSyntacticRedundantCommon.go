@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
@@ -193,6 +194,7 @@ func (finding *ruleRedundant) string() string {
 	for _, ruleStr := range finding.containRules {
 		containingRulesSlice = append(containingRulesSlice, ruleStr)
 	}
+	sort.Strings(containingRulesSlice)
 	return strResPrefix + strings.Join(containingRulesSlice, "\t\t")
 }
 
