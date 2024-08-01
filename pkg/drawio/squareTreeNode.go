@@ -272,6 +272,7 @@ func (tn *SubnetTreeNode) nonGroupingIcons() []IconTreeNodeInterface {
 	}
 	return nis
 }
+func (tn *SubnetTreeNode) IsPublic() bool { return true }
 
 // /////////////////////////////////////////////////////////////////////////////////////
 // GroupSquareTreeNode is a tree node that represents a group of icons that share the same connectivity
