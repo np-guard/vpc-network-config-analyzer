@@ -78,16 +78,30 @@ var miniImages = map[reflect.Type]string{
 	reflect.TypeOf(NITreeNode{}):    niImage,
 	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
 }
-var colors = map[reflect.Type]string{
-	reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
-	reflect.TypeOf(RegionTreeNode{}):             "#878d96", // #232f3e
-	reflect.TypeOf(CloudTreeNode{}):              "#1192E8", // #232f3e
-	reflect.TypeOf(VpcTreeNode{}):                "#1192E8", // #8c4fff
-	reflect.TypeOf(ZoneTreeNode{}):               "#878d96", // #147eba, stroke-dasharray="3 3"
-	reflect.TypeOf(SubnetTreeNode{}):             "#1192E8", //#f2f6e8, #e6f6f7
-	reflect.TypeOf(PartialSGTreeNode{}):          "#FA4D56", // #dd3522
-	reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
-	reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
+var colors = map[common.Provider]map[reflect.Type]string{
+	common.IBM: {
+		reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
+		reflect.TypeOf(RegionTreeNode{}):             "#878d96",
+		reflect.TypeOf(CloudTreeNode{}):              "#1192E8",
+		reflect.TypeOf(VpcTreeNode{}):                "#1192E8",
+		reflect.TypeOf(ZoneTreeNode{}):               "#878d96",
+		reflect.TypeOf(SubnetTreeNode{}):             "#1192E8",
+		reflect.TypeOf(PartialSGTreeNode{}):          "#FA4D56",
+		reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
+		reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
+	},
+	common.AWS: {
+		reflect.TypeOf(PublicNetworkTreeNode{}):      "#1192E8",
+		reflect.TypeOf(RegionTreeNode{}):             "#e6f6f7",
+		reflect.TypeOf(CloudTreeNode{}):              "#232f3e",
+		reflect.TypeOf(VpcTreeNode{}):                "#8c4fff",
+		reflect.TypeOf(ZoneTreeNode{}):               "#147eba", // stroke-dasharray="3 3"
+		reflect.TypeOf(publicSubnetTreeNode{}):       "#f2f6e8",
+		reflect.TypeOf(privateSubnetTreeNode{}):      "#e6f6f7",
+		reflect.TypeOf(PartialSGTreeNode{}):          "#dd3522",
+		reflect.TypeOf(GroupSquareTreeNode{}):        "#82b366",
+		reflect.TypeOf(GroupSubnetsSquareTreeNode{}): "#82b366",
+	},
 }
 
 type tnFamily int
@@ -193,12 +207,12 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
-	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}){
+	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}) {
 		return reflect.TypeOf(tn).Elem()
 	}
-	if tn.(*SubnetTreeNode).IsPublic(){
+	if tn.(*SubnetTreeNode).IsPublic() {
 		return reflect.TypeOf(publicSubnetTreeNode{})
-	}else{
+	} else {
 		return reflect.TypeOf(privateSubnetTreeNode{})
 	}
 }
@@ -217,7 +231,7 @@ func (stl *templateStyles) FIPImage() string {
 	return fipImage
 }
 func (stl *templateStyles) Color(tn TreeNodeInterface) string {
-	return colors[stl.representingType(tn)]
+	return colors[stl.provider][stl.representingType(tn)]
 }
 func (stl *templateStyles) Opacity(tn TreeNodeInterface) string {
 	if pip, ok := tn.(*PrivateIPTreeNode); ok {
