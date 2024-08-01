@@ -34,7 +34,7 @@ type ruleRedundant struct {
 // Rule is syntactically redundant in NACL if it is shadowed by higher priority rules
 // A rule in a table has 3 dimensions: source, destination and connection
 // SG rule is redundant if the 3-dimensions union of the other rules contains it, thus rule is implied by others
-// NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules shadows it
+// NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules contains it
 // The above 3 dimensions containment is checked as follows:
 // in the below a "point" is a point in the src x dst x conn 3-dimensions
 // If each point in the rule is contained in the others/higher priority rules then it is redundant
@@ -42,7 +42,7 @@ type ruleRedundant struct {
 // For each table:
 //  1. partition the IPBlock to maximal atomic blocks w.r.t. the table
 //  2. For each rule r:
-//     2.1. Iterate over the cartesian product of src and dst atomic blocks
+//     2.1. Iterate over the cartesian product of r's src and dst atomic blocks
 //     For each item <src_atomic, dst_atomic>
 //     compute the union of the connection of the other/higher priority rules whose <src, dst> contains <src_atomic, dst_atomic>
 //     If the resulting conn does not contain the connection of the rule r then the block is not redundant
