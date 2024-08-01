@@ -859,7 +859,8 @@ func createNetworkAws() SquareTreeNodeInterface {
 	network := NewNetworkTreeNode()
 	cloud := NewCloudTreeNode(network, "AWS Cloud")
 	region := NewRegionTreeNode(cloud, "north")
-	nis := make([]IconTreeNodeInterface, 5)
+	tgw1 := NewTransitGatewayTreeNode(region, "tgw1")
+	nis := make([]IconTreeNodeInterface, 6)
 	vpc := NewVpcTreeNode(region, "vpc1")
 	sg := NewSGTreeNode(vpc, "sg12")
 	for i := 0; i < len(nis); i++ {
@@ -871,10 +872,16 @@ func createNetworkAws() SquareTreeNodeInterface {
 	}
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
+	vpc2 := NewVpcTreeNode(region, "vpc2")
+	zone := NewZoneTreeNode(vpc2, "zone1")
+	subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
+	ni := NewNITreeNode(subnet, "ni20")
 
 	igw1 := NewInternetGatewayTreeNode(vpc, "igw1")
 	NewConnectivityLineTreeNode(network, nis[0], i2, true, "").SetRouter(igw1)
 	NewConnectivityLineTreeNode(network, nis[1], i2, true, "").SetRouter(igw1)
+	NewConnectivityLineTreeNode(network, nis[5], ni, true, "").SetRouter(tgw1)
+
 	lb := newLoadBalancerTreeNode(vpc, "lb", nil)
 	NewConnectivityLineTreeNode(network, nis[2], lb, true, "")
 	NewConnectivityLineTreeNode(network, nis[3], lb, true, "")
