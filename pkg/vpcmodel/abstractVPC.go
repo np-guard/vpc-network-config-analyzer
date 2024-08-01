@@ -305,6 +305,7 @@ type FilterTrafficResource interface {
 type RoutingResource interface {
 	VPCResourceIntf
 	Sources() []Node
+	SourcesSubnets() []Subnet
 	Destinations() []Node
 	SetExternalDestinations([]Node)
 	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
