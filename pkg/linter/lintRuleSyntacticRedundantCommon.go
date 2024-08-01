@@ -41,11 +41,11 @@ type ruleRedundant struct {
 // This we check as follows:
 // For each table:
 //  1. partition the IPBlock to maximal atomic blocks w.r.t. the table
-//  2. For each rule:
-//     2.1. For each couple of atomic block in the src and atomic block in the dest, compute the union of the connection
-//     of the other/higher priority blocks that refers to it
-//     If the resulting conn does not contain the connection of the rule then the block is not redundant
-//     otherwise, continue to the next couple
+//  2. For each rule r:
+//     2.1. Iterate over the cartesian product of src and dst atomic blocks
+//     For each item <src_atomic, dst_atomic>
+//     compute the union of the connection of the other/higher priority rules whose <src, dst> contains <src_atomic, dst_atomic>
+//     If the resulting conn does not contain the connection of the rule r then the block is not redundant
 //     Done? Rule is redundant
 //
 //nolint:gocyclo // better not split into two function
