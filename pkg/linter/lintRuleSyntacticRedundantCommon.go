@@ -197,15 +197,20 @@ func (finding *ruleRedundant) string() string {
 
 // for json:
 type ruleRedundantJSON struct {
-	Rule    vpcmodel.RuleOfFilter `json:"vpc_name"`
-	VpcName string                `json:"rule_details"`
+	Rule         vpcmodel.RuleOfFilter `json:"vpc_name"`
+	VpcName      string                `json:"rule_details"`
+	ContainRules []string              // rules because of which this rule is redundant to their description
 }
 
 func (finding *ruleRedundant) toJSON() any {
 	rule := finding.rule
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
+	containRules := make([]string, len(finding.containRules))
+	for i, rule := range finding.containRules {
+		containRules[i] = rule
+	}
 	res := ruleRedundantJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
-		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}}
+		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}, ContainRules: containRules}
 	return res
 }
