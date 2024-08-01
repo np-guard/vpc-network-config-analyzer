@@ -46,7 +46,16 @@ func zoneFromVPCResource(r vpcmodel.VPCResourceIntf) (*Zone, error) {
 type NetworkInterface struct {
 	vpcmodel.VPCResource
 	vpcmodel.InternalNode
-	Vsi string `json:"-"`
+	Vsi               string `json:"-"`
+	numberOfNifsInVsi int
+}
+
+// used for synthesis output, if number of nifs is > 1 we use vsi name and return number of nifs
+func (ni *NetworkInterface) DetailedResourceForSynthesisOut() (name string, details int) {
+	if ni.numberOfNifsInVsi == 1 {
+		return ni.VsiName(), 1
+	}
+	return ni.ResourceName, ni.numberOfNifsInVsi
 }
 
 func (ni *NetworkInterface) VsiName() string {

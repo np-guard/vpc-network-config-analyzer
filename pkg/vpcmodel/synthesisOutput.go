@@ -71,7 +71,7 @@ func handleNameAndType(resource VPCResourceIntf, externalsMap map[string]string,
 	resourceName string,
 	resourceType spec.ResourceType,
 	err error) {
-	resourceName = resource.ResourceNameFromConfig()
+	resourceName, nifNumber := resource.DetailedResourceForSynthesisOut() // for synthesis output return two
 	if resource.IsExternal() {
 		resourceType = spec.ResourceTypeExternal
 		if structObj, ok := resource.(*ExternalNetwork); ok {
@@ -85,7 +85,12 @@ func handleNameAndType(resource VPCResourceIntf, externalsMap map[string]string,
 			return
 		}
 	}
-	// todo; handle nif, replace it with instance type if there is just one nif for it's vsi
+
+	// if this nif's vsi has only one nif, we convert it to instance type with name of the instance
+	// because the name of the nif will be meaningless for the user if there is one generated nif.
+	if resourceType == spec.ResourceTypeNif && nifNumber == 1 {
+		resourceType = spec.ResourceTypeInstance
+	}
 	return
 }
 

@@ -67,8 +67,8 @@ func (exn *ExternalNetwork) Name() string {
 	return exn.ResourceType + " [" + exn.CidrStr + "]"
 }
 
-func (exn *ExternalNetwork) ResourceNameFromConfig() string {
-	return exn.Name()
+func (exn *ExternalNetwork) DetailedResourceForSynthesisOut() (name string, details int) {
+	return exn.Name(), 0
 }
 
 func (exn *ExternalNetwork) ExtendedName(c *VPCConfig) string {

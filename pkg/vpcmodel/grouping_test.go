@@ -69,8 +69,8 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
-func (m *mockNetIntf) ResourceNameFromConfig() string {
-	return m.name
+func (m *mockNetIntf) DetailedResourceForSynthesisOut() (name string, details int) {
+	return m.name, 0
 }
 func (m *mockNetIntf) ExtendedName(c *VPCConfig) string {
 	return m.name
@@ -111,8 +111,8 @@ func (m *mockSubnet) UID() string {
 func (m *mockSubnet) Name() string {
 	return m.name
 }
-func (m *mockSubnet) ResourceNameFromConfig() string {
-	return m.name
+func (m *mockSubnet) DetailedResourceForSynthesisOut() (name string, details int) {
+	return m.name, 0
 }
 func (m *mockSubnet) ExtendedName(c *VPCConfig) string {
 	return m.ExtendedPrefix(c) + m.name
