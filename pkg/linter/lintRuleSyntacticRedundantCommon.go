@@ -61,6 +61,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			return nil, err
 		}
 		tableToRules, tableToAtomicBlocks := getTableToAtomicBlocks(rules)
+		// iterates over rules, finds those that are redundant (shadowed/implied)
 		for i := range rules {
 			tableIndex := rules[i].Filter.FilterIndex
 			isRedundantRuleIndex := rules[i].RuleIndex
