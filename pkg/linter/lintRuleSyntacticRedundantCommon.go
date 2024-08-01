@@ -8,10 +8,11 @@ package linter
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"strings"
 )
 
 const NetworkACL = "network ACL" // todo: https://github.com/np-guard/vpc-network-config-analyzer/issues/724
@@ -30,23 +31,24 @@ type ruleRedundant struct {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // Rule is syntactically redundant in SG if other rules in the table implies it
-// and if other, higher priority rules, overrules it in NACL
+// Rule is syntactically redundant in NACL if it is shadowed by higher priority rules
 // A rule in a table has 3 dimensions: source, destination and connection
-// SG rule is redundant if the 3-dimensions union of the other rules contain it
-// NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules contain it
+// SG rule is redundant if the 3-dimensions union of the other rules contains it, thus rule is implied by others
+// NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules shadows it
 // The above 3 dimensions containment is checked as follows:
-// in the below a "point" is a point in the src, dst, conn 3-dimensions
+// in the below a "point" is a point in the src x dst x conn 3-dimensions
 // If each point in the rule is contained in the others/higher priority rules then it is redundant
 // This we check as follows:
 // For each table:
-// 1. partition the IPBlock to maximal atomic blocks w.r.t. the table
-// 2. For each rule:
-//    2.1. For each couple of atomic block in the src and atomic block in the dest, compute the union of the connection
-//         of the other/higher priority blocks that refers to it
-//         If the resulting conn does not contain the connection of the rule then the block is not redundant
-//         otherwise, continue to the next couple
-//   Done? Rule is redundant
-
+//  1. partition the IPBlock to maximal atomic blocks w.r.t. the table
+//  2. For each rule:
+//     2.1. For each couple of atomic block in the src and atomic block in the dest, compute the union of the connection
+//     of the other/higher priority blocks that refers to it
+//     If the resulting conn does not contain the connection of the rule then the block is not redundant
+//     otherwise, continue to the next couple
+//     Done? Rule is redundant
+//
+//nolint:gocyclo // better not split into two function
 func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 	filterLayerName string) (res []ruleRedundant, err error) {
 	for _, config := range configs {
@@ -59,14 +61,15 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			return nil, err
 		}
 		tableToRules, tableToAtomicBlocks := getTableToAtomicBlocks(rules)
-		for isRedundantRule := range rules {
-			tableIndex := rules[isRedundantRule].Filter.FilterIndex
-			isRedundantRuleIndex := rules[isRedundantRule].RuleIndex
+		for i := range rules {
+			tableIndex := rules[i].Filter.FilterIndex
+			isRedundantRuleIndex := rules[i].RuleIndex
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
 			// gathers atomic blocks within rule's src and dst
-			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].SrcCidr)
-			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[isRedundantRule].DstCidr)
-			// iterates over cartesian product of atomic blocks within rule's src and dst
+			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].SrcCidr)
+			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].DstCidr)
+			// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
+			// items in the cartesian product are shadowed/implies
 			ruleIsRedundant := true
 			containRules := map[int]string{}
 			for _, srcAtomicBlock := range srcBlocks {
@@ -82,10 +85,10 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							continue
 						}
 						// otherRule contains src, dst and has a relevant connection?
-						if rules[isRedundantRule].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
+						if rules[i].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
 							srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
 							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) &&
-							!rules[isRedundantRule].Conn.Intersect(tableToRules[tableIndex][otherRule].Conn).IsEmpty() {
+							!rules[i].Conn.Intersect(tableToRules[tableIndex][otherRule].Conn).IsEmpty() {
 							connOfOthersOld := connOfOthers
 							connOfOthers = connOfOthers.Union(tableToRules[tableIndex][otherRule].Conn)
 							if !connOfOthersOld.Equal(connOfOthers) {
@@ -96,13 +99,13 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 						}
 					}
 					// is <src, dst> shadowed/implied by other rules?
-					if !rules[isRedundantRule].Conn.ContainedIn(connOfOthers) {
+					if !rules[i].Conn.ContainedIn(connOfOthers) {
 						ruleIsRedundant = false
 					}
 				}
 			}
 			if ruleIsRedundant {
-				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[isRedundantRule], containRules: containRules})
+				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[i], containRules: containRules})
 			}
 		}
 	}
