@@ -32,7 +32,7 @@ type ruleRedundant struct {
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 // Rule is syntactically redundant in SG if other rules in the table implies it
-// Rule is syntactically redundant in NACL if it is shadowed by higher priority rules
+// Rule is syntactically redundant in NACL if it is shadowed by higher priority rules of the table
 // A rule in a table has 3 dimensions: source, destination and connection
 // SG rule is redundant if the 3-dimensions union of the other rules contains it, thus rule is implied by others
 // NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules contains it
