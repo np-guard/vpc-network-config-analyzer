@@ -168,22 +168,22 @@ func (finding *ruleRedundant) string() string {
 		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex)
 	if rule.Filter.LayerName == NetworkACL {
 		if len(finding.containRules) == 1 {
-			strResPrefix += fmt.Sprintf("It is shadowed by an higher priority rule")
+			strResPrefix += "It is shadowed by an higher priority rule"
 		} else { // >1
-			strResPrefix += fmt.Sprintf("It is shadowed by higher priority rules")
+			strResPrefix += "It is shadowed by higher priority rules"
 		}
 	} else {
 		if len(finding.containRules) == 1 {
-			strResPrefix += fmt.Sprintf("It is implied by another rule")
+			strResPrefix += "It is implied by another rule"
 		} else { // >1
-			strResPrefix += fmt.Sprintf("It is implied by other rules")
+			strResPrefix += "It is implied by other rules"
 		}
 	}
 	strResPrefix = strResPrefix + "\n\tRule's details: " + rule.RuleDesc
 	if rule.Filter.LayerName == NetworkACL {
-		strResPrefix += fmt.Sprintf("\t\tShadowing rule")
+		strResPrefix += "\t\tShadowing rule"
 	} else {
-		strResPrefix += fmt.Sprintf("\t\tImplying rule")
+		strResPrefix += "\t\tImplying rule"
 	}
 	if len(finding.containRules) > 1 {
 		strResPrefix += "s:\n\t\t"
