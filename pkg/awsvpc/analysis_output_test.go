@@ -17,7 +17,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -377,7 +376,7 @@ func runTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc], common.AWS)
+	actualOutput, err := og.Generate(tt.format, tt.actualOutput[uc])
 	if err != nil {
 		return err
 	}
