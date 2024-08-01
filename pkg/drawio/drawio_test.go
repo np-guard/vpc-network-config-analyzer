@@ -859,10 +859,12 @@ func createNetworkAws() SquareTreeNodeInterface {
 	region := NewRegionTreeNode(cloud, "north")
 	nis := make([]IconTreeNodeInterface, 5)
 	vpc := NewVpcTreeNode(region, "vpc1")
+	sg := NewSGTreeNode(vpc, "sg12")
 	for i := 0; i < len(nis); i++ {
 		zone := NewZoneTreeNode(vpc, "zone1")
 		subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
 		nis[i] = NewNITreeNode(subnet, "ni20")
+		sg.AddIcon(nis[i])
 	}
 	publicNetwork := NewPublicNetworkTreeNode(network)
 	i2 := NewInternetTreeNode(publicNetwork, "Internet2")
