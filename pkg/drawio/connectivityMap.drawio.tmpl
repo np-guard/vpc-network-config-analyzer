@@ -21,7 +21,11 @@
                 </mxCell>
             {{if $data.HasImage $node}} 
                 <mxCell id="{{$data.IDsPrefix}}-{{$node.TagID}}" value="" style="{{$imagePrefix}}{{$data.Image $node}}" parent="{{$data.IDsPrefix}}-{{$node.ID}}" vertex="1">
-                <mxGeometry x="19" y="6.5" width="22" height="19.73" as="geometry" />
+                {{if $data.HasDecore}} 
+                    <mxGeometry x="19" y="6.5" width="22" height="19.73" as="geometry" />
+                {{else}}
+                    <mxGeometry x="0" y="0" width="30" height="30" as="geometry" />
+                {{end}}
                 </mxCell>
             {{end}}
             {{if $data.HasDecore}} 
