@@ -56,6 +56,8 @@ func TestWithParsing(t *testing.T) {
 	createFileFromNetwork(n, "tgws.drawio", false, FileDRAWIO, common.IBM)
 	n = createNetworkAws()
 	createFileFromNetwork(n, "aws.drawio", false, FileDRAWIO, common.AWS)
+	n = createNetworkAws()
+	createFileFromNetwork(n, "aws.html", false, FileHTML, common.AWS)
 	n = createNetworkMultiSG()
 	createFileFromNetwork(n, "multiSG.html", false, FileHTML, common.IBM)
 }
