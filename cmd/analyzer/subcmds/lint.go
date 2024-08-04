@@ -59,16 +59,17 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 		return err
 	}
 
-	enableLintsStrings := strings.ReplaceAll(args.enableLints, " ", "")
-	disableLintsStrings := strings.ReplaceAll(args.disableLints, " ", "")
-	enableLintersList := strings.Split(enableLintsStrings, ",")
-	disableLintersList := strings.Split(disableLintsStrings, ",")
+	enableLintersList := strings.Split(args.enableLints, ",")
+	disableLintersList := strings.Split(args.disableLints, ",")
 	validLintersNames := linter.GetLintersNames()
 	if errEnable := validLintersName(enableLintersList, validLintersNames, "enable"); errEnable != nil {
 		return errEnable
 	}
 	if errDisable := validLintersName(disableLintersList, validLintersNames, "disable"); errDisable != nil {
 		return errDisable
+	}
+	if errBothEnableDisable := bothDisableAndEnable(enableLintersList, disableLintersList); errBothEnableDisable != nil {
+		return errBothEnableDisable
 	}
 	return nil
 }
@@ -91,4 +92,15 @@ func getListLintersName(lintersNames map[string]bool) string {
 		i++
 	}
 	return strings.Join(legalNamesSlice, ",")
+}
+
+func bothDisableAndEnable(enableLintersList, disableLintersList []string) error {
+	for _, enable := range enableLintersList {
+		for _, disable := range disableLintersList {
+			if enable == disable {
+				return fmt.Errorf("lint %s specified both as enable and disable. only one is possible", enable)
+			}
+		}
+	}
+	return nil
 }
