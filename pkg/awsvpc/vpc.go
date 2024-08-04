@@ -28,6 +28,14 @@ func (igw *InternetGateway) Sources() []vpcmodel.Node {
 func (igw *InternetGateway) Destinations() []vpcmodel.Node {
 	return igw.destinations
 }
+func (igw *InternetGateway) SourcesSubnets() []vpcmodel.Subnet {
+	// todo - rewrite with issue #740
+	res := make([]vpcmodel.Subnet, len(igw.srcSubnets))
+	for i, s := range igw.srcSubnets {
+		res[i] = s
+	}
+	return res
+}
 func (igw *InternetGateway) VPC() vpcmodel.VPCResourceIntf {
 	return igw.vpc
 }
