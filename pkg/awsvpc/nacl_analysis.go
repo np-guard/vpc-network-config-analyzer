@@ -17,13 +17,13 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-type IBMNACLAnalyzer struct {
+type AWSNACLAnalyzer struct {
 	naclResource       *types.NetworkAcl
 	referencedIPblocks []*ipblock.IPBlock
 }
 
-func NewIBMNACLAnalyzer(nacl *types.NetworkAcl) *IBMNACLAnalyzer {
-	res := &IBMNACLAnalyzer{naclResource: nacl}
+func NewAWSNACLAnalyzer(nacl *types.NetworkAcl) *AWSNACLAnalyzer {
+	res := &AWSNACLAnalyzer{naclResource: nacl}
 	return res
 }
 
@@ -31,19 +31,19 @@ func getPortsStr(minPort, maxPort int64) string {
 	return fmt.Sprintf("%d-%d", minPort, maxPort)
 }
 
-func (na *IBMNACLAnalyzer) GetNumberOfRules() int {
+func (na *AWSNACLAnalyzer) GetNumberOfRules() int {
 	return len(na.naclResource.Entries)
 }
 
-func (na *IBMNACLAnalyzer) Name() *string {
+func (na *AWSNACLAnalyzer) Name() *string {
 	return na.naclResource.NetworkAclId
 }
 
-func (na *IBMNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return na.referencedIPblocks
 }
 
-func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
+func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
 	var action, direction string
 	var connStr string
@@ -88,7 +88,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func (na *IBMNACLAnalyzer) GetNACLRules() (ingressRules, egressRules []*commonvpc.NACLRule, err error) {
+func (na *AWSNACLAnalyzer) GetNACLRules() (ingressRules, egressRules []*commonvpc.NACLRule, err error) {
 	ingressRules = []*commonvpc.NACLRule{}
 	egressRules = []*commonvpc.NACLRule{}
 	for index := range na.naclResource.Entries {

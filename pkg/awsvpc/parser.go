@@ -305,7 +305,7 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 		if skipByVPC[*nacl.VpcId] {
 			continue
 		}
-		naclAnalyzer, err := commonvpc.NewNACLAnalyzer(NewIBMNACLAnalyzer(nacl))
+		naclAnalyzer, err := commonvpc.NewNACLAnalyzer(NewAWSNACLAnalyzer(nacl))
 		if err != nil {
 			return err
 		}
