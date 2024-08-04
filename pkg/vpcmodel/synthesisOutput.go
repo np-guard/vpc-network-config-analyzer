@@ -32,9 +32,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = getSpec(conn.AllowedConnsCombinedResponsive)
+		all = GetSpec(conn.GroupedConnectivity.GroupedLines)
 	case AllSubnets:
-		all = getSpec(subnetsConn.AllowedConnsCombinedResponsive)
+		all = GetSpec(subnetsConn.GroupedConnectivity.GroupedLines)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -67,14 +67,14 @@ func handleTypes(kind string) (spec.ResourceType, error) {
 	}
 }
 
-func handleNameAndType(resource VPCResourceIntf, externalsMap map[string]string, externals spec.SpecExternals) (
+func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals) (
 	resourceName string,
 	resourceType spec.ResourceType,
 	err error) {
 	resourceName, nifNumber := resource.DetailedResourceForSynthesisOut() // for synthesis output return two
 	if resource.IsExternal() {
 		resourceType = spec.ResourceTypeExternal
-		if structObj, ok := resource.(*ExternalNetwork); ok {
+		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external
 			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), externalsMap, externals)
 		}
@@ -94,45 +94,43 @@ func handleNameAndType(resource VPCResourceIntf, externalsMap map[string]string,
 	return
 }
 
-func getSpec(allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap) spec.Spec {
+func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
 	externalsMap := make(map[string]string)
 
-	for src, srcMap := range allowedConnsCombinedResponsive {
-		srcName, srcType, err := handleNameAndType(src, externalsMap, externals)
+	for _, groupedLine := range groupedLines {
+		srcName, srcType, err := handleNameAndType(groupedLine.Src, externalsMap, externals)
 		if err != nil {
 			continue
 		}
-		for dst, extConn := range srcMap {
-			if extConn.isEmpty() {
-				continue
-			}
-			dstName, dstType, err := handleNameAndType(dst, externalsMap, externals)
-			if err != nil {
-				continue
-			}
-			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
-			if !extConn.TCPRspDisable.IsEmpty() {
-				connLines = append(connLines, spec.SpecRequiredConnectionsElem{
+		dstName, dstType, err := handleNameAndType(groupedLine.Dst, externalsMap, externals)
+		if err != nil {
+			continue
+		}
+		if groupedLine.CommonProperties.Conn.isEmpty() {
+			continue
+		}
+		responsiveAndOther := groupedLine.CommonProperties.Conn.tcpRspEnable.Union(groupedLine.CommonProperties.Conn.nonTCP)
+		if !groupedLine.CommonProperties.Conn.TCPRspDisable.IsEmpty() {
+			connLines = append(connLines, spec.SpecRequiredConnectionsElem{
+				Src:              spec.Resource{Name: srcName, Type: srcType},
+				Dst:              spec.Resource{Name: dstName, Type: dstType},
+				AllowedProtocols: spec.ProtocolList(connection.ToJSON(responsiveAndOther))},
+				spec.SpecRequiredConnectionsElem{
 					Src:              spec.Resource{Name: srcName, Type: srcType},
 					Dst:              spec.Resource{Name: dstName, Type: dstType},
-					AllowedProtocols: spec.ProtocolList(connection.ToJSON(responsiveAndOther))},
-					spec.SpecRequiredConnectionsElem{
-						Src:              spec.Resource{Name: srcName, Type: srcType},
-						Dst:              spec.Resource{Name: dstName, Type: dstType},
-						AllowedProtocols: spec.ProtocolList(connection.ToJSON(extConn.TCPRspDisable))},
-					spec.SpecRequiredConnectionsElem{
-						Src:              spec.Resource{Name: dstName, Type: dstType},
-						Dst:              spec.Resource{Name: srcName, Type: srcType},
-						AllowedProtocols: spec.ProtocolList(connection.ToJSON(extConn.TCPRspDisable))})
-			} else {
-				connLines = append(connLines, spec.SpecRequiredConnectionsElem{
-					Src:              spec.Resource{Name: srcName, Type: srcType},
-					Dst:              spec.Resource{Name: dstName, Type: dstType},
-					AllowedProtocols: spec.ProtocolList(connection.ToJSON(extConn.allConn))})
-			}
+					AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable))},
+				spec.SpecRequiredConnectionsElem{
+					Src:              spec.Resource{Name: dstName, Type: dstType},
+					Dst:              spec.Resource{Name: srcName, Type: srcType},
+					AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable))})
+		} else {
+			connLines = append(connLines, spec.SpecRequiredConnectionsElem{
+				Src:              spec.Resource{Name: srcName, Type: srcType},
+				Dst:              spec.Resource{Name: dstName, Type: dstType},
+				AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))})
 		}
 	}
 	sortRequiredConnections(connLines)

@@ -143,6 +143,10 @@ type EndpointElem interface {
 	UID() string
 	IsExternal() bool
 	DrawioResourceIntf
+	// used for synthesis output.
+	// first out will be the name of the resource from the config,
+	// overridden in nif resource (if the vsi of the nif has one nif we return name of the vsi and number of nifs)
+	DetailedResourceForSynthesisOut() (name string, details int)
 }
 
 type groupedConnLine struct {
@@ -215,6 +219,10 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) DetailedResourceForSynthesisOut() (name string, details int) {
+	return g.Name(), 0
+}
+
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
 		return g.Name()
@@ -253,6 +261,18 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+func (g *groupedExternalNodes) DetailedResourceForSynthesisOut() (name string, details int) {
+	return g.Name(), 0
+}
+
+func (g *groupedExternalNodes) CidrOrAddress() string {
+	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	if err == nil && isAllInternetRange {
+		return "0.0.0.0/0"
+	}
+	return g.String()
 }
 
 func (g *groupedExternalNodes) ExtendedName(c *VPCConfig) string {
