@@ -30,6 +30,10 @@ var lintTests = []*vpcGeneralTest{
 		inputConfig: "acl_testing3_with_redundant_rules",
 	},
 	{
+		name:        "acl3_3rd",
+		inputConfig: "acl_testing3_3rd",
+	},
+	{
 		name:        "basic_sg1",
 		inputConfig: "sg_testing1_new",
 	},
