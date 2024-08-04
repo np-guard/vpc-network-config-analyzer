@@ -27,7 +27,7 @@ const (
 	arrowEndEdge = "block"
 	noneEndEdge  = "none"
 )
-
+// these two types are declared to be used as keys at the image map 
 type publicSubnetTreeNode SubnetTreeNode
 type privateSubnetTreeNode SubnetTreeNode
 
