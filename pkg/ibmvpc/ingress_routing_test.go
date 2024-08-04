@@ -14,6 +14,7 @@ import (
 	tgw "github.com/IBM/networking-go-sdk/transitgatewayapisv1"
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
@@ -105,7 +106,7 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	vpcConfEnterprise := genConfig(vpcEnterprise, []*commonvpc.Subnet{workerSubnetEnterprise},
 		[]*commonvpc.NetworkInterface{enterpriseTestInstance}, nil, nil)
 
-	globalConfig := vpcmodel.NewMultipleVPCConfigs("")
+	globalConfig := vpcmodel.NewMultipleVPCConfigs(common.IBM)
 	globalConfig.AddConfig(vpcConfTransit)
 	globalConfig.AddConfig(vpcConfSpoke)
 	globalConfig.AddConfig(vpcConfEnterprise)
