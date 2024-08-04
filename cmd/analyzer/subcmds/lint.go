@@ -60,7 +60,7 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 	}
 
 	enableLintsStrings := strings.ReplaceAll(args.enableLints, " ", "")
-	disableLintsStrings := strings.ReplaceAll(args.enableLints, " ", "")
+	disableLintsStrings := strings.ReplaceAll(args.disableLints, " ", "")
 	enableLintersList := strings.Split(enableLintsStrings, ",")
 	disableLintersList := strings.Split(disableLintsStrings, ",")
 	validLintersNames := linter.GetLintersNames()
