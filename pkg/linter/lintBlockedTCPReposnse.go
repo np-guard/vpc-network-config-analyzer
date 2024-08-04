@@ -69,14 +69,20 @@ func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
 }
 
 func (finding *blockedTCPResponseConn) string() string {
-	vpcSrcName := finding.vpc()[0].Name()
-	vpcDstName := finding.vpc()[1].Name()
-
-	srcToDstStr := fmt.Sprintf("from %v%s%s to %v%s%s",
-		vpcSrcName, deliminator, finding.src.Name(), vpcDstName, deliminator, finding.dst.Name())
+	vpcSrcName := finding.getVpcName(0)
+	vpcDstName := finding.getVpcName(1)
+	srcToDstStr := fmt.Sprintf("from %v%s to %v%s",
+		vpcSrcName, finding.src.Name(), vpcDstName, finding.dst.Name())
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
 		strings.ReplaceAll(finding.tcpRspDisable.String(), "protocol: ", ""))
+}
+
+func (finding *blockedTCPResponseConn) getVpcName(i int) string {
+	if finding.vpc()[i] != nil { // nil if external address
+		return finding.vpc()[i].Name() + deliminator
+	}
+	return ""
 }
 
 // TCP connection with no response
