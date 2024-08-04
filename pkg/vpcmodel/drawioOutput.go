@@ -129,6 +129,11 @@ func (d *DrawioOutputFormatter) createRouters() {
 							d.nodeRouters[nTn] = rTn.(drawio.IconTreeNodeInterface)
 						}
 					}
+					if d.uc == AllSubnets {
+						for _, s := range r.SourcesSubnets() {
+							d.nodeRouters[d.gen.TreeNode(s)] = rTn.(drawio.IconTreeNodeInterface)
+						}
+					}
 				}
 			}
 		}
