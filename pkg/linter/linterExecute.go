@@ -20,6 +20,13 @@ const delimBetweenLintsChars = 200
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {
+	enableLinters := // mechanism for enabling and disabling linters
+		// todo: tmp until connected to the cli
+		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, splitRuleSubnetSGName: true,
+			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
+			ruleNonRelevantCIDRSGName: true}
+	{
+	}
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
 	for uid, vpcConfig := range configs {
 		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
@@ -43,6 +50,10 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
+		if !enableLinters[thisLinter.lintName()] {
+			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
+			continue
+		}
 		thisLintStr := ""
 		err := thisLinter.check()
 		if err != nil {
