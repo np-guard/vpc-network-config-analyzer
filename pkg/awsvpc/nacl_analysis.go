@@ -17,11 +17,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-const (
-	ALLOW string = "allow"
-	DENY  string = "deny"
-)
-
 type IBMNACLAnalyzer struct {
 	naclResource       *types.NetworkAcl
 	referencedIPblocks []*ipblock.IPBlock
@@ -54,26 +49,24 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	var connStr string
 	ruleObj := na.naclResource.Entries[index]
 	switch *ruleObj.Protocol {
-	case "-1":
+	case allProtocols:
 		conns = connection.All()
 		connStr = *ruleObj.Protocol
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
-		dstPortMin := commonvpc.GetProperty(&minPort, connection.MinPort)
-		dstPortMax := commonvpc.GetProperty(&maxPort, connection.MaxPort)
 		conns = commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
 			connection.MinPort,
 			connection.MaxPort,
-			dstPortMin,
-			dstPortMax,
+			minPort,
+			maxPort,
 		)
-		dstPorts := getPortsStr(dstPortMin, dstPortMax)
+		dstPorts := getPortsStr(minPort, maxPort)
 		connStr = fmt.Sprintf("protocol: %s, dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	case protocolICMP:
 		icmpType := int64(*ruleObj.IcmpTypeCode.Type)
 		icmpCode := int64(*ruleObj.IcmpTypeCode.Code)
-		conns = commonvpc.GetICMPconn(&icmpType, &icmpCode)
+		conns = connection.ICMPConnection(icmpType, icmpType, icmpCode, icmpCode)
 		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)

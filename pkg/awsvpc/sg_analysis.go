@@ -83,9 +83,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	dstPortMin := commonvpc.GetProperty(&minPort, connection.MinPort)
-	dstPortMax := commonvpc.GetProperty(&maxPort, connection.MaxPort)
-	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
+	dstPorts := fmt.Sprintf("%d-%d", minPort, maxPort)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.IpProtocol, dstPorts)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
@@ -96,8 +94,8 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 		Connections: commonvpc.GetTCPUDPConns(*ruleObj.IpProtocol,
 			connection.MinPort,
 			connection.MaxPort,
-			dstPortMin,
-			dstPortMax,
+			minPort,
+			maxPort,
 		),
 		Remote: &commonvpc.RuleTarget{Cidr: remote, SgName: ""},
 	}
@@ -112,9 +110,9 @@ func getRuleStr(direction, connStr, ipRanges string) string {
 // getProtocolICMPRule returns rule results corresponding to the provided rule obj with icmp connection
 func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
-	minPort := int64(*ruleObj.FromPort)
-	maxPort := int64(*ruleObj.ToPort)
-	conns := commonvpc.GetICMPconn(&minPort, &maxPort)
+	icmpType := int64(*ruleObj.FromPort)
+	icmpCode := int64(*ruleObj.ToPort)
+	conns := connection.ICMPConnection(icmpType, icmpType, icmpCode, icmpCode)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {

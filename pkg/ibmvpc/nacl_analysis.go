@@ -17,11 +17,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-const (
-	ALLOW string = "allow"
-	DENY  string = "deny"
-)
-
 type IBMNACLAnalyzer struct {
 	naclResource       *vpc1.NetworkACL
 	referencedIPblocks []*ipblock.IPBlock
