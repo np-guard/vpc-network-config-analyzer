@@ -27,7 +27,8 @@ const (
 	arrowEndEdge = "block"
 	noneEndEdge  = "none"
 )
-// these two types are declared to be used as keys at the image map 
+
+// these two types are declared to be used as keys at the image map
 type publicSubnetTreeNode SubnetTreeNode
 type privateSubnetTreeNode SubnetTreeNode
 
@@ -213,9 +214,8 @@ func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
 	}
 	if tn.(*SubnetTreeNode).IsPublic() {
 		return reflect.TypeOf(publicSubnetTreeNode{})
-	} else {
-		return reflect.TypeOf(privateSubnetTreeNode{})
 	}
+	return reflect.TypeOf(privateSubnetTreeNode{})
 }
 
 func (stl *templateStyles) Image(tn TreeNodeInterface) string {
