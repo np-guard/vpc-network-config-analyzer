@@ -17,6 +17,12 @@ import (
 const issues = "issues:"
 const delimBetweenLintsChars = 200
 
+func GetLintersNames() map[string]bool {
+	return map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, splitRuleSubnetSGName: true,
+		overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
+		ruleNonRelevantCIDRSGName: true}
+}
+
 // LinterExecute executes linters one by one
 // todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, resString string, err error) {

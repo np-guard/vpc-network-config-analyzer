@@ -65,6 +65,8 @@ type inArgs struct {
 	quiet                 bool
 	verbose               bool
 	explanationArgs       *vpcmodel.ExplanationArgs
+	enableLints           string
+	disableLints          string
 }
 
 func NewRootCommand() *cobra.Command {
