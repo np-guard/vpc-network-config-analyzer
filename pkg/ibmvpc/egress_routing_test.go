@@ -175,7 +175,8 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 	}
 }
 
-func newNetIntForTest(vsi, address, nodeName string, numberOfNifs int) *commonvpc.NetworkInterface {
+func newNetIntForTest(vsi, address, nodeName string,
+	numberOfNifs int) *commonvpc.NetworkInterface { //nolint:unparam // numberOfNifs is param
 	res, _ := commonvpc.NewNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, numberOfNifs, &commonvpc.VPC{})
 	return res
 }
