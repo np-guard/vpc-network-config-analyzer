@@ -7,12 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package ibmvpc
 
 import (
-	_ "embed"
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const synthesisOut = "synthesis_out"
