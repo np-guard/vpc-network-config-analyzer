@@ -103,6 +103,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					// is <src, dst> shadowed/implied by other rules?
 					if !rules[i].Conn.ContainedIn(connOfOthers) {
 						ruleIsRedundant = false
+						break
 					}
 				}
 			}
