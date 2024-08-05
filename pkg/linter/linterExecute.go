@@ -24,7 +24,6 @@ func GetLintersNames() map[string]bool {
 }
 
 // LinterExecute executes linters one by one
-// todo: mechanism for disabling/enabling lint checks
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
 	enableLinters := // mechanism for enabling and disabling linters
