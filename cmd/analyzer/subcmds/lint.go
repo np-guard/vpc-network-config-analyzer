@@ -92,7 +92,7 @@ func validLintersName(inputLinters []string, enableOrDisable string) error {
 	}
 	for _, name := range inputLinters {
 		if !validLintersNames[name] {
-			return fmt.Errorf("%s in %s linters list does not exists.\t\nLegal linters: %s\n", name,
+			return fmt.Errorf("%s in %s linters list does not exists.\t\nLegal linters: %s", name,
 				enableOrDisable, getListLintersName(validLintersNames))
 		}
 	}
