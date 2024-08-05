@@ -51,6 +51,7 @@ func TestAllSynthesis(t *testing.T) {
 		tt := synthesisTests[testIdx]
 		tt.mode = outputComparison
 		tt.name = tt.inputConfig
+		tt.format = vpcmodel.Synthesis
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTestSynthesis(t)
@@ -67,35 +68,10 @@ func (tt *vpcGeneralTest) runTestSynthesis(t *testing.T) {
 	vpcConfigs := getVPCConfigs(t, tt, true)
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.useCases {
-		err := runTestPerUseCaseSynthesis(t, tt, vpcConfigs, uc, tt.mode, synthesisOut)
+		err := runTestPerUseCase(t, tt, vpcConfigs, uc, tt.mode, synthesisOut, nil)
 		require.Equal(t, tt.errPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.actualOutput {
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.name, uc, outFile)
 	}
-}
-
-// runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
-func runTestPerUseCaseSynthesis(t *testing.T,
-	tt *vpcGeneralTest,
-	cConfigs *vpcmodel.MultipleVPCConfigs,
-	uc vpcmodel.OutputUseCase,
-	mode testMode,
-	outDir string) error {
-	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
-		return err
-	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, false, uc, false,
-		nil, vpcmodel.Synthesis, !tt.noLbAbstract)
-	if err != nil {
-		return err
-	}
-	actualOutput, err := og.Generate(vpcmodel.Synthesis, tt.actualOutput[uc])
-	if err != nil {
-		return err
-	}
-	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, synthesisOut, tt, uc); err != nil {
-		return err
-	}
-	return nil
 }

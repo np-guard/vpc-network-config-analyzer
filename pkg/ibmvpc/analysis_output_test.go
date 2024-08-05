@@ -160,6 +160,8 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
 		return jsonOutSuffix, nil
+	case vpcmodel.Synthesis:
+		return jsonOutSuffix, nil
 	case vpcmodel.DRAWIO:
 		return drawioOutSuffix, nil
 	case vpcmodel.ARCHDRAWIO:
@@ -953,7 +955,7 @@ func runTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, analysisOut, tt, uc); err != nil {
+	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, outDir, tt, uc); err != nil {
 		return err
 	}
 	return nil
