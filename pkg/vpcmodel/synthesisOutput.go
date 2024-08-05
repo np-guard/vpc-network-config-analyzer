@@ -99,6 +99,7 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
 	externalsMap := make(map[string]string)
+	sortGroupedLines(groupedLines)
 
 	for _, groupedLine := range groupedLines {
 		srcName, srcType, err := handleNameAndType(groupedLine.Src, externalsMap, externals)
@@ -133,19 +134,18 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 				AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))})
 		}
 	}
-	sortRequiredConnections(connLines)
 	s.Externals = externals
 	s.RequiredConnections = connLines
 	return s
 }
 
-func sortRequiredConnections(connLines []spec.SpecRequiredConnectionsElem) {
-	sort.Slice(connLines, func(i, j int) bool {
-		if connLines[i].Src.Name != connLines[j].Src.Name {
-			return connLines[i].Src.Name < connLines[j].Src.Name
-		} else if connLines[i].Dst.Name != connLines[j].Dst.Name {
-			return connLines[i].Dst.Name < connLines[j].Dst.Name
+func sortGroupedLines(g []*groupedConnLine) {
+	sort.Slice(g, func(i, j int) bool {
+		if g[i].Src.Name() != g[j].Src.Name() {
+			return g[i].Src.Name() > g[j].Src.Name()
+		} else if g[i].Dst.Name() != g[j].Dst.Name() {
+			return g[i].Dst.Name() > g[j].Dst.Name()
 		}
-		return len(connLines[i].AllowedProtocols) < len(connLines[j].AllowedProtocols)
+		return g[i].CommonProperties.Conn.string() > g[j].CommonProperties.Conn.string()
 	})
 }

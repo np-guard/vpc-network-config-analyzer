@@ -895,7 +895,7 @@ func getVPCConfigs(t *testing.T, tt *vpcGeneralTest, firstCfg bool) *vpcmodel.Mu
 
 func compareOrRegenerateOutputPerTest(t *testing.T,
 	mode testMode,
-	actualOutput string,
+	actualOutput, testDirOut string,
 	tt *vpcGeneralTest,
 	uc vpcmodel.OutputUseCase) error {
 	if mode == outputComparison {
@@ -905,7 +905,7 @@ func compareOrRegenerateOutputPerTest(t *testing.T,
 		}
 		expectedOutputStr := string(expectedOutput)
 		if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
-			compareTextualResult(expectedOutputStr, actualOutput)
+			compareTextualResult(expectedOutputStr, actualOutput, testDirOut)
 			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", tt.name, uc)
 		}
 	} else if mode == outputGeneration {
@@ -953,7 +953,7 @@ func runTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, tt, uc); err != nil {
+	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, analysisOut, tt, uc); err != nil {
 		return err
 	}
 	return nil
@@ -965,10 +965,10 @@ func cleanStr(str string) string {
 }
 
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
-func compareTextualResult(expected, actual string) {
+func compareTextualResult(expected, actual, testsDirOut string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDirOut(analysisOut), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDirOut(analysisOut), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDirOut(testsDirOut), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDirOut(testsDirOut), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
