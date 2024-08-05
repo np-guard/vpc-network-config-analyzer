@@ -168,7 +168,7 @@ func (finding *ruleRedundant) string() string {
 		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex)
 	if rule.Filter.LayerName == NetworkACL {
 		if len(finding.containRules) == 1 {
-			strResPrefix += "It is shadowed by an higher priority rule"
+			strResPrefix += "It is shadowed by a higher priority rule"
 		} else { // >1
 			strResPrefix += "It is shadowed by higher priority rules"
 		}
