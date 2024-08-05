@@ -172,7 +172,7 @@ func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
 		// both are icmp
 		s1, _ := g[i].(spec.Icmp)
 		// must be ok
-		s2, _ := g[i].(spec.Icmp)
+		s2, _ := g[j].(spec.Icmp)
 		if *s1.Code != *s2.Code {
 			return *s1.Code > *s2.Code
 		}
