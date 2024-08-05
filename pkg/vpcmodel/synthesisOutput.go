@@ -127,7 +127,6 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 				Src:              spec.Resource{Name: dstName, Type: dstType},
 				Dst:              spec.Resource{Name: srcName, Type: srcType},
 				AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable)))})
-
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
@@ -147,16 +146,19 @@ func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
 		if s1, ok := g[i].(spec.TcpUdp); ok {
 			// the other struct can be tcp, udp or icmp
 			if s2, ok := g[j].(spec.TcpUdp); ok {
-				if s1.Protocol != s2.Protocol {
+				switch {
+				case s1.Protocol != s2.Protocol:
 					return s1.Protocol > s2.Protocol
-				} else if s1.MinSourcePort != s2.MinSourcePort {
+
+				case s1.MinSourcePort != s2.MinSourcePort:
 					return s1.MinSourcePort > s2.MinSourcePort
-				} else if s1.MinDestinationPort != s2.MinDestinationPort {
+				case s1.MinDestinationPort != s2.MinDestinationPort:
 					return s1.MinDestinationPort > s2.MinDestinationPort
-				} else if s1.MaxSourcePort != s2.MaxSourcePort {
+				case s1.MaxSourcePort != s2.MaxSourcePort:
 					return s1.MaxSourcePort > s2.MaxSourcePort
+				default:
+					return s1.MaxDestinationPort > s2.MaxDestinationPort
 				}
-				return s1.MaxDestinationPort > s2.MaxDestinationPort
 			}
 			// the other struct is icmp
 			return true
