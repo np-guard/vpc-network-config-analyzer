@@ -78,24 +78,24 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				for _, dstAtomicBlock := range dstBlocks {
 					connOfOthers := connection.None()
 					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-					for otherRule := range tableToRules[tableIndex] {
+					for _, otherRule := range tableToRules[tableIndex] {
 						// needs to be "other" rule always, for nacl needs to be higher priority rule
-						otherRuleIndex := tableToRules[tableIndex][otherRule].RuleIndex
+						otherRuleIndex := otherRule.RuleIndex
 						if isRedundantRuleIndex == otherRuleIndex ||
 							(filterLayerName == vpcmodel.NaclLayer &&
 								isRedundantRuleIndex <= otherRuleIndex) {
 							continue
 						}
 						// otherRule contains src, dst and has a relevant connection?
-						if rules[i].IsIngress == tableToRules[tableIndex][otherRule].IsIngress &&
-							srcAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].SrcCidr) &&
-							dstAtomicBlock.ContainedIn(tableToRules[tableIndex][otherRule].DstCidr) &&
-							!rules[i].Conn.Intersect(tableToRules[tableIndex][otherRule].Conn).IsEmpty() {
+						if rules[i].IsIngress == otherRule.IsIngress &&
+							srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
+							dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
+							!rules[i].Conn.Intersect(otherRule.Conn).IsEmpty() {
 							connOfOthersOld := connOfOthers
-							connOfOthers = connOfOthers.Union(tableToRules[tableIndex][otherRule].Conn)
+							connOfOthers = connOfOthers.Union(otherRule.Conn)
 							if !connOfOthersOld.Equal(connOfOthers) {
 								if _, ok := containRules[otherRuleIndex]; !ok {
-									containRules[otherRuleIndex] = tableToRules[tableIndex][otherRule].RuleDesc
+									containRules[otherRuleIndex] = otherRule.RuleDesc
 								}
 							}
 						}
@@ -126,17 +126,17 @@ func getAtomicBlocksOfSrcOrDst(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipbloc
 
 // Creates a map from tables of layer (their indexes) to slice of the atomic blocks of the table
 // return also a map from a table indexes to its rules
-func getTableToAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]vpcmodel.RuleOfFilter,
+func getTableToAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
 ) {
 	// 1. Creates a map from each table index to its rules
-	tableToRules = map[int][]vpcmodel.RuleOfFilter{}
+	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
 		if _, ok := tableToRules[filterIndex]; !ok {
-			tableToRules[filterIndex] = []vpcmodel.RuleOfFilter{}
+			tableToRules[filterIndex] = []*vpcmodel.RuleOfFilter{}
 		}
-		tableToRules[filterIndex] = append(tableToRules[filterIndex], rules[i])
+		tableToRules[filterIndex] = append(tableToRules[filterIndex], &(rules[i]))
 	}
 	// 2. For each table computes its atomic blocks and creates the above resulting map
 	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
