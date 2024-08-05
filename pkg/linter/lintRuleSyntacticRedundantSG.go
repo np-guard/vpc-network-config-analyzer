@@ -31,8 +31,8 @@ func (lint *ruleRedundantSGLint) check() error {
 	if err != nil {
 		return err
 	}
-	for _, ruleRedundantSGFound := range rulesRedundantSGFound {
-		lint.addFinding(&ruleRedundantSGFound)
+	for i := range rulesRedundantSGFound {
+		lint.addFinding(&rulesRedundantSGFound[i])
 	}
 	return nil
 }
