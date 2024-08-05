@@ -133,9 +133,6 @@ func getTableToAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int
 	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
-		if _, ok := tableToRules[filterIndex]; !ok {
-			tableToRules[filterIndex] = []*vpcmodel.RuleOfFilter{}
-		}
 		tableToRules[filterIndex] = append(tableToRules[filterIndex], &(rules[i]))
 	}
 	// 2. For each table computes its atomic blocks and creates the above resulting map
