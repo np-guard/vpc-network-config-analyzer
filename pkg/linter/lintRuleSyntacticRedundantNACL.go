@@ -31,8 +31,8 @@ func (lint *ruleRedundantNACLLint) check() error {
 	if err != nil {
 		return err
 	}
-	for _, ruleRedundantNACLFound := range rulesRedundantNACLFound {
-		lint.addFinding(&ruleRedundantNACLFound)
+	for i := range rulesRedundantNACLFound {
+		lint.addFinding(&rulesRedundantNACLFound[i])
 	}
 	return nil
 }
