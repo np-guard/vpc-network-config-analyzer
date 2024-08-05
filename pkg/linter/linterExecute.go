@@ -26,7 +26,7 @@ func GetLintersNames() map[string]bool {
 // LinterExecute executes linters one by one
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
-	enableLinters := // mechanism for enabling and disabling linters
+	enableLinters := // enabling and disabling linters defaults
 		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, splitRuleSubnetSGName: true,
 			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
 			ruleNonRelevantCIDRSGName: true}

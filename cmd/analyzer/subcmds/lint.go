@@ -62,27 +62,30 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 	if errFormat != nil {
 		return errFormat
 	}
-
-	enableList, errEnable1 := cmd.Flags().GetStringSlice(enable)
-	if errEnable1 != nil {
-		return errEnable1
+	enableList, errEnable := validateLintEnableOrDisable(cmd, enable)
+	if errEnable != nil {
+		return errEnable
 	}
-	disableList, errDisable1 := cmd.Flags().GetStringSlice(disable)
-	if errDisable1 != nil {
-		return errDisable1
-	}
-	errEnable2 := validLintersName(enableList, enable)
-	if errEnable2 != nil {
-		return errEnable2
-	}
-	errDisable2 := validLintersName(disableList, disable)
-	if errDisable2 != nil {
-		return errDisable2
+	disableList, errDisable := validateLintEnableOrDisable(cmd, disable)
+	if errDisable != nil {
+		return errDisable
 	}
 	if errBothEnableDisable := bothDisableAndEnable(enableList, disableList); errBothEnableDisable != nil {
 		return errBothEnableDisable
 	}
 	return nil
+}
+
+func validateLintEnableOrDisable(cmd *cobra.Command, enableOrDisable string) (list []string, err error) {
+	list, err = cmd.Flags().GetStringSlice(enableOrDisable)
+	if err != nil {
+		return nil, err
+	}
+	nameErr := validLintersName(list, enableOrDisable)
+	if nameErr != nil {
+		return nil, nameErr
+	}
+	return list, nil
 }
 
 func validLintersName(inputLinters []string, enableOrDisable string) error {
