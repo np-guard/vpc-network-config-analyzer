@@ -70,11 +70,11 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 	if errDisable1 != nil {
 		return errDisable1
 	}
-	errEnable2 := validLintersName(args.enableLinters, "enable") // todo.. use enableList
+	errEnable2 := validLintersName(enableList, "enable")
 	if errEnable2 != nil {
 		return errEnable2
 	}
-	errDisable2 := validLintersName(args.disableLinters, "disable")
+	errDisable2 := validLintersName(disableList, "disable")
 	if errDisable2 != nil {
 		return errDisable2
 	}
