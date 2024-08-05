@@ -114,29 +114,69 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 			continue
 		}
 		responsiveAndOther := groupedLine.CommonProperties.Conn.tcpRspEnable.Union(groupedLine.CommonProperties.Conn.nonTCP)
-		if !groupedLine.CommonProperties.Conn.TCPRspDisable.IsEmpty() {
-			connLines = append(connLines, spec.SpecRequiredConnectionsElem{
+
+		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
+			Src:              spec.Resource{Name: srcName, Type: srcType},
+			Dst:              spec.Resource{Name: dstName, Type: dstType},
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(responsiveAndOther)))},
+			spec.SpecRequiredConnectionsElem{
 				Src:              spec.Resource{Name: srcName, Type: srcType},
 				Dst:              spec.Resource{Name: dstName, Type: dstType},
-				AllowedProtocols: spec.ProtocolList(connection.ToJSON(responsiveAndOther))},
-				spec.SpecRequiredConnectionsElem{
-					Src:              spec.Resource{Name: srcName, Type: srcType},
-					Dst:              spec.Resource{Name: dstName, Type: dstType},
-					AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable))},
-				spec.SpecRequiredConnectionsElem{
-					Src:              spec.Resource{Name: dstName, Type: dstType},
-					Dst:              spec.Resource{Name: srcName, Type: srcType},
-					AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable))})
-		} else {
-			connLines = append(connLines, spec.SpecRequiredConnectionsElem{
-				Src:              spec.Resource{Name: srcName, Type: srcType},
-				Dst:              spec.Resource{Name: dstName, Type: dstType},
-				AllowedProtocols: spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))})
-		}
+				AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable)))},
+			spec.SpecRequiredConnectionsElem{
+				Src:              spec.Resource{Name: dstName, Type: dstType},
+				Dst:              spec.Resource{Name: srcName, Type: srcType},
+				AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable)))})
+
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
 	return s
+}
+
+func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
+	sort.Slice(g, func(i, j int) bool {
+		if _, ok := g[i].(spec.AnyProtocol); ok {
+			// the other struct can not have the same protocol
+			return true
+		}
+		if _, ok := g[j].(spec.AnyProtocol); ok {
+			// the other struct can not have the same protocol
+			return false
+		}
+		if s1, ok := g[i].(spec.TcpUdp); ok {
+			// the other struct can be tcp, udp or icmp
+			if s2, ok := g[j].(spec.TcpUdp); ok {
+				if s1.Protocol != s2.Protocol {
+					return s1.Protocol > s2.Protocol
+				} else if s1.MinSourcePort != s2.MinSourcePort {
+					return s1.MinSourcePort > s2.MinSourcePort
+				} else if s1.MinDestinationPort != s2.MinDestinationPort {
+					return s1.MinDestinationPort > s2.MinDestinationPort
+				} else if s1.MaxSourcePort != s2.MaxSourcePort {
+					return s1.MaxSourcePort > s2.MaxSourcePort
+				}
+				return s1.MaxDestinationPort > s2.MaxDestinationPort
+			}
+			// the other struct is icmp
+			return true
+		}
+
+		if _, ok := g[j].(spec.TcpUdp); ok {
+			// the other struct can be just icmp
+			return false
+		}
+
+		// both are icmp
+		s1, _ := g[i].(spec.Icmp)
+		// must be ok
+		s2, _ := g[i].(spec.Icmp)
+		if *s1.Code != *s2.Code {
+			return *s1.Code > *s2.Code
+		}
+		return *s1.Type > *s2.Type
+	})
+	return g
 }
 
 func sortGroupedLines(g []*groupedConnLine) {

@@ -36,6 +36,7 @@ func TestAllWithGeneration(t *testing.T) {
 		tt := synthesisTests[testIdx]
 		tt.mode = outputGeneration
 		tt.name = tt.inputConfig
+		tt.format = vpcmodel.Synthesis
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			tt.runTestSynthesis(t)
