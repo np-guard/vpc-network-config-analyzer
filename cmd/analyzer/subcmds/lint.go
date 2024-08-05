@@ -8,17 +8,18 @@ package subcmds
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"strings"
+
+	"github.com/spf13/cobra"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 )
 
 const (
-	enable  = "enable"
-	disable = "disable"
-
-	enableDisableUsage = "specified as linters names seperated by comma"
+	enable             = "enable"
+	disable            = "disable"
+	enableDisableUsage = "specified as linters names separated by comma"
+	space              = " "
 )
 
 func NewLintCommand(args *inArgs) *cobra.Command {
@@ -36,8 +37,8 @@ func NewLintCommand(args *inArgs) *cobra.Command {
 	}
 	validLintersNames := getListLintersName(linter.GetLintersNames())
 	usageStr := "specific linters " + enableDisableUsage + " linters: " + validLintersNames
-	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, "enable "+usageStr)
-	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, "disable "+usageStr)
+	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+space+usageStr)
+	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+space+usageStr)
 	return cmd
 }
 
@@ -50,8 +51,8 @@ func lintVPCConfigs(cmd *cobra.Command, args *inArgs) error {
 		return err1
 	}
 	// potential errors already handled
-	enableList, _ := cmd.Flags().GetStringSlice("enable")
-	disableList, _ := cmd.Flags().GetStringSlice("disable")
+	enableList, _ := cmd.Flags().GetStringSlice(enable)
+	disableList, _ := cmd.Flags().GetStringSlice(disable)
 	_, _, err2 := linter.LinterExecute(multiConfigs.Configs(), enableList, disableList)
 	return err2
 }
@@ -62,19 +63,19 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 		return errFormat
 	}
 
-	enableList, errEnable1 := cmd.Flags().GetStringSlice("enable")
+	enableList, errEnable1 := cmd.Flags().GetStringSlice(enable)
 	if errEnable1 != nil {
 		return errEnable1
 	}
-	disableList, errDisable1 := cmd.Flags().GetStringSlice("disable")
+	disableList, errDisable1 := cmd.Flags().GetStringSlice(disable)
 	if errDisable1 != nil {
 		return errDisable1
 	}
-	errEnable2 := validLintersName(enableList, "enable")
+	errEnable2 := validLintersName(enableList, enable)
 	if errEnable2 != nil {
 		return errEnable2
 	}
-	errDisable2 := validLintersName(disableList, "disable")
+	errDisable2 := validLintersName(disableList, disable)
 	if errDisable2 != nil {
 		return errDisable2
 	}

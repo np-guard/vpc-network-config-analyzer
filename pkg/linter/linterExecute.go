@@ -31,8 +31,6 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, splitRuleSubnetSGName: true,
 			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
 			ruleNonRelevantCIDRSGName: true}
-	{
-	}
 	for _, disable := range disableList {
 		enableLinters[disable] = false
 	}
