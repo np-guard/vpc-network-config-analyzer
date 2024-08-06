@@ -82,8 +82,8 @@ func (lint *basicLinter) toJSON() []any {
 
 type filterLinter struct {
 	basicLinter
-	layer string
-	filterFindings func(map[string]*vpcmodel.VPCConfig, string)([]finding, error)
+	layer          string
+	filterFindings func(map[string]*vpcmodel.VPCConfig, string) ([]finding, error)
 }
 
 func (fLint *filterLinter) check() error {

@@ -29,7 +29,6 @@ func newRedundantTablesLint(configs map[string]*vpcmodel.VPCConfig) *redundantTa
 		}}
 }
 
-
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
 	layerName  string
