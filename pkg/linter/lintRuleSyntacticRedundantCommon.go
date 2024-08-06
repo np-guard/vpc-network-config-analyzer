@@ -78,9 +78,8 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				for _, dstAtomicBlock := range dstBlocks {
 					connOfOthers := connection.None()
 					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-					for _, otherRule := range tableToRules[tableIndex] {
+					for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
 						// needs to be "other" rule always, for nacl needs to be higher priority rule
-						otherRuleIndex := otherRule.RuleIndex
 						if isRedundantRuleIndex == otherRuleIndex ||
 							(filterLayerName == vpcmodel.NaclLayer &&
 								isRedundantRuleIndex <= otherRuleIndex) {
