@@ -61,7 +61,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		tableToRules, tableToAtomicBlocks := getTableToAtomicBlocks(rules)
+		tableToRules, tableToAtomicBlocks := getTableOrientedStructs(rules)
 		// iterates over rules, finds those that are redundant (shadowed/implied)
 		for i := range rules {
 			tableIndex := rules[i].Filter.FilterIndex
@@ -125,17 +125,36 @@ func getAtomicBlocksOfSrcOrDst(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipbloc
 	return res
 }
 
-// Creates a map from tables of layer (their indexes) to slice of the atomic blocks of the table
-// return also a map from a table indexes to its rules
-func getTableToAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
+// Generates and returns two maps from tables of layer (their indexes):
+// 1. To a slice of its rules, where the location in the slice is the index of the rule
+// 2. To slice of the atomic blocks of the table
+func getTableOrientedStructs(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
 ) {
-	// 1. Creates a map from each table index to its rules
-	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
+	// 1.1 Computes the number of rules in each table, to determine the size of each slice in the map tableToRules
+	tableToSize := map[int]int{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
-		tableToRules[filterIndex] = append(tableToRules[filterIndex], &(rules[i]))
+		tableToSize[filterIndex]++
 	}
+	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
+	// 1.2 Initialize tableToRules with the above computed sizes
+	for i, size := range tableToSize {
+		tableToRules[i] = make([]*vpcmodel.RuleOfFilter, size)
+	}
+	// 1.3 Populates tableToRules
+	for i := range rules {
+		filterIndex := rules[i].Filter.FilterIndex
+		tableToRules[filterIndex][rules[i].RuleIndex] = &rules[i]
+	}
+	// todo tmp print for testing
+	for i1, rules := range tableToRules {
+		fmt.Printf("table %d %s\n", i1, tableToRules[i1][0].Filter.FilterName)
+		for i2 := range rules {
+			fmt.Printf("\t %d %s", i2, rules[i2].RuleDesc)
+		}
+	}
+
 	// 2. For each table computes its atomic blocks and creates the above resulting map
 	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for tableIndex := range tableToRules {
