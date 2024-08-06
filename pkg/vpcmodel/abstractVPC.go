@@ -209,8 +209,6 @@ type VPC interface {
 type Subnet interface {
 	NodeSet
 	CIDR() string
-	IsPublic() bool
-	SetIsPublic(bool)
 }
 
 // LoadBalancer is elaboration of a NodeSet - the nodes are the private IPs of the load balancer
