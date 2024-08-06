@@ -68,6 +68,14 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		for tableIndex, rules := range tableToRules {
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
 			for redundantRuleIndex := range rules {
+				// nacl - redundant if shadowed by over higher priority rules; sg - redundant if implied by "other" rule
+				// these are the rules to iterate over in the inner loop
+				var rulesToIterate []*vpcmodel.RuleOfFilter
+				if filterLayerName == vpcmodel.NaclLayer {
+					rulesToIterate = tableToRules[tableIndex][:redundantRuleIndex]
+				} else {
+					rulesToIterate = tableToRules[tableIndex]
+				}
 				// gathers atomic blocks within rule's src and dst
 				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
 				dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].DstCidr)
@@ -79,13 +87,14 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					for _, dstAtomicBlock := range dstBlocks {
 						connOfOthers := connection.None()
 						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-						for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
+						for otherRuleIndex, otherRule := range rulesToIterate {
 							if redundantRuleIndex == otherRuleIndex {
 								if filterLayerName == vpcmodel.NaclLayer {
 									break // shadow only by higher priority rules
 								} else { // security group
 									continue // do not consider the rule checked for redundancy
 								}
+								//continue // relevant only to SG
 							}
 							// otherRule contributes to the shadowing/implication?
 							// namely, it contains src, dst and has a relevant connection?
