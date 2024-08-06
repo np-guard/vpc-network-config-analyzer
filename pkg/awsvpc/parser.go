@@ -318,6 +318,7 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		}
 		vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
 		subnets := vpc.Subnets()
+		// only public subnets can be a subnet of igw:
 		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
 			return !s.IsPublic()
 		})

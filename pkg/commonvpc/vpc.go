@@ -123,6 +123,7 @@ type Subnet struct {
 	VPCnodes []vpcmodel.Node  `json:"-"`
 	Cidr     string           `json:"-"`
 	IPblock  *ipblock.IPBlock `json:"-"`
+	// isPublic is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)  
 	isPublic bool             `json:"-"`
 }
 
