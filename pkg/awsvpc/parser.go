@@ -322,7 +322,7 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
 			return !s.IsPublic()
 		})
-	
+
 		if len(subnets) == 0 {
 			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
 			continue
