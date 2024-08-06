@@ -134,7 +134,10 @@ func TestMain(t *testing.T) {
 			name: "help",
 			args: "report -h",
 		},
-
+		{
+			name: "help-sub",
+			args: "report endpoints -h",
+		},
 		// resource group and region filter
 		{
 			name: "txt_resource_group_filter_multi_resource_groups",
