@@ -33,6 +33,8 @@ type ruleRedundant struct {
 
 // Rule is syntactically redundant in SG if other rules in the table implies it
 // Rule is syntactically redundant in NACL if it is shadowed by higher priority rules of the table
+// A rule is shadowed in NACL if the rule will never determine the actual allow/deny status
+// (of any connection in any configuration)
 // A rule in a table has 3 dimensions: source, destination and connection
 // SG rule is redundant if the 3-dimensions union of the other rules contains it, thus rule is implied by others
 // NACL rule  is redundant if the 3-dimensions union of the higher priority (allow or deny) rules contains it
@@ -81,12 +83,13 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
 						if isRedundantRuleIndex == otherRuleIndex {
 							if filterLayerName == vpcmodel.NaclLayer {
-								break
+								break // shadow only by higher priority rules
 							} else { // security group
-								continue
+								continue // do not consider the rule checked for redundancy
 							}
 						}
-						// otherRule contains src, dst and has a relevant connection?
+						// otherRule contributes to the shadowing/implication?
+						// namely, it contains src, dst and has a relevant connection?
 						if rules[i].IsIngress == otherRule.IsIngress &&
 							srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
 							dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
