@@ -69,7 +69,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
 			for redundantRuleIndex := range rules {
 				// nacl - redundant if shadowed by over higher priority rules; sg - redundant if implied by "other" rule
-				// these are the rules to iterate over in the inner loop
+				// in the former case iterates only over relevant slice; in the latter skip the "myself" rule
 				var rulesToIterate []*vpcmodel.RuleOfFilter
 				if filterLayerName == vpcmodel.NaclLayer {
 					rulesToIterate = tableToRules[tableIndex][:redundantRuleIndex]
@@ -89,12 +89,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
 						for otherRuleIndex, otherRule := range rulesToIterate {
 							if redundantRuleIndex == otherRuleIndex {
-								if filterLayerName == vpcmodel.NaclLayer {
-									break // shadow only by higher priority rules
-								} else { // security group
-									continue // do not consider the rule checked for redundancy
-								}
-								//continue // relevant only to SG
+								continue // relevant only to SG
 							}
 							// otherRule contributes to the shadowing/implication?
 							// namely, it contains src, dst and has a relevant connection?
