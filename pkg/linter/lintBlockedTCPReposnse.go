@@ -44,14 +44,6 @@ type blockedTCPResponseConn struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for overlapSubnets
 // ////////////////////////////////////////////////////////
-func (lint *blockedTCPResponseLint) lintName() string {
-	return blockedTCPResponse
-}
-
-func (lint *blockedTCPResponseLint) lintDescription() string {
-	return "Blocked TCP response"
-}
-
 func (lint *blockedTCPResponseLint) check() error {
 	for _, nodesConn := range lint.nodesConn {
 		for _, line := range nodesConn.GroupedConnectivity.GroupedLines {

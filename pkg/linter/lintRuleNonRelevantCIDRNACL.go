@@ -27,21 +27,13 @@ func newRuleNonRelevantCIDRNACLLint(configs map[string]*vpcmodel.VPCConfig) *rul
 // /////////////////////////////////////////////////////////
 // lint interface implementation for ruleNonRelevantCIDRSGLint
 // ////////////////////////////////////////////////////////
-func (lint *ruleNonRelevantCIDRNACLLint) lintName() string {
-	return ruleNonRelevantCIDRNACLName
-}
-
-func (lint *ruleNonRelevantCIDRNACLLint) lintDescription() string {
-	return "rules of network ACLs that references CIDRs not in the relevant VPC address range"
-}
-
 func (lint *ruleNonRelevantCIDRNACLLint) check() error {
 	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.NaclLayer)
 	if err != nil {
 		return err
 	}
-	for i := range rulesNonRelevantCIDRFound {
-		lint.addFinding(&rulesNonRelevantCIDRFound[i])
+	for _,f := range rulesNonRelevantCIDRFound {
+		lint.addFinding(f)
 	}
 	return nil
 }

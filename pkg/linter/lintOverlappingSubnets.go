@@ -21,7 +21,6 @@ type overlappingSubnetsLint struct {
 	basicLinter
 }
 
-
 func newOverlappingSubnetsLint(configs map[string]*vpcmodel.VPCConfig) *overlappingSubnetsLint {
 	return &overlappingSubnetsLint{
 		basicLinter{

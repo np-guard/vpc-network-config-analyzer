@@ -23,7 +23,6 @@ func newRuleNonRelevantCIDRSGLint(configs map[string]*vpcmodel.VPCConfig) *ruleN
 		}}
 }
 
-
 // /////////////////////////////////////////////////////////
 // lint interface implementation for ruleNonRelevantCIDRSGLint
 // ////////////////////////////////////////////////////////
@@ -33,8 +32,8 @@ func (lint *ruleNonRelevantCIDRSGLint) check() error {
 	if err != nil {
 		return err
 	}
-	for i := range rulesNonRelevantCIDRFound {
-		lint.addFinding(&rulesNonRelevantCIDRFound[i])
+	for _, f := range rulesNonRelevantCIDRFound {
+		lint.addFinding(f)
 	}
 	return nil
 }
