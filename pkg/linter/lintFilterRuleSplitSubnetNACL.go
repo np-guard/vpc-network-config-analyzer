@@ -11,11 +11,11 @@ import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 // filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
 func newFilterRuleSplitSubnetLintNACL(configs map[string]*vpcmodel.VPCConfig) *filterLinter {
 	return &filterLinter{
-		basicLinter{
+		basicLinter: basicLinter{
 			configs:     configs,
 			name:        "rules-splitting-subnets-NACLS",
 			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
 		},
-		vpcmodel.NaclLayer,
-		findSplitRulesSubnet}
+		layer:          vpcmodel.NaclLayer,
+		filterFindings: findSplitRulesSubnet}
 }

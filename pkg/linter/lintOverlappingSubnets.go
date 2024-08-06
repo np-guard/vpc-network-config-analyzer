@@ -20,7 +20,7 @@ type overlappingSubnetsLint struct {
 
 func newOverlappingSubnetsLint(configs map[string]*vpcmodel.VPCConfig) *overlappingSubnetsLint {
 	return &overlappingSubnetsLint{
-		basicLinter{
+		basicLinter: basicLinter{
 			configs:     configs,
 			name:        "overlapping-subnets",
 			description: "Overlapping CIDR ranges between different subnets",

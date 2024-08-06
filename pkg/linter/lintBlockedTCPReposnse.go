@@ -24,13 +24,13 @@ type blockedTCPResponseLint struct {
 func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig,
 	nodesConn map[string]*vpcmodel.VPCConnectivity) *blockedTCPResponseLint {
 	return &blockedTCPResponseLint{
-		connectionLinter{
-			basicLinter{
+		connectionLinter: connectionLinter{
+			basicLinter: basicLinter{
 				configs:     configs,
 				name:        "blocked-TCP-response",
 				description: "Blocked TCP response",
 			},
-			nodesConn}}
+			nodesConn: nodesConn}}
 }
 
 // TCP connection with no response

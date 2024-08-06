@@ -19,7 +19,7 @@ type redundantTablesLint struct {
 
 func newRedundantTablesLint(configs map[string]*vpcmodel.VPCConfig) *redundantTablesLint {
 	return &redundantTablesLint{
-		basicLinter{
+		basicLinter: basicLinter{
 			configs:     configs,
 			name:        "redundant tables",
 			description: "Access control tables for which there are no resources attached to",
