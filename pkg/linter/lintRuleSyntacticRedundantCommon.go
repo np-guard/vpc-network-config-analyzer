@@ -147,14 +147,6 @@ func getTableOrientedStructs(rules []vpcmodel.RuleOfFilter) (tableToRules map[in
 		filterIndex := rules[i].Filter.FilterIndex
 		tableToRules[filterIndex][rules[i].RuleIndex] = &rules[i]
 	}
-	// todo tmp print for testing
-	for i1, rules := range tableToRules {
-		fmt.Printf("table %d %s\n", i1, tableToRules[i1][0].Filter.FilterName)
-		for i2 := range rules {
-			fmt.Printf("\t %d %s", i2, rules[i2].RuleDesc)
-		}
-	}
-
 	// 2. For each table computes its atomic blocks and creates the above resulting map
 	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for tableIndex := range tableToRules {
