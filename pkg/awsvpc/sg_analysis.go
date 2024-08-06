@@ -131,6 +131,8 @@ func convertProtocol(ipProtocol string) string {
 	// currently supports just tcp, udp and icmp
 	// todo remove hard coded numbers and support other protocol numbers
 	switch ipProtocol {
+	case allProtocols:
+		return allProtocols
 	case "6", protocolTCP:
 		return protocolTCP
 
@@ -139,7 +141,7 @@ func convertProtocol(ipProtocol string) string {
 	case "1", protocolICMP:
 		return protocolICMP
 	default:
-		return allProtocols
+		return ipProtocol
 	}
 }
 
