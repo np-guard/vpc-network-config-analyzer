@@ -12,9 +12,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const redundantTablesName = "redundant tables"
-const redundantTablesDescription = "Access control tables for which there are no resources attached to"
-
 // redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
 type redundantTablesLint struct {
 	basicLinter
@@ -24,8 +21,8 @@ func newRedundantTablesLint(configs map[string]*vpcmodel.VPCConfig) *redundantTa
 	return &redundantTablesLint{
 		basicLinter{
 			configs:     configs,
-			name:        redundantTablesName,
-			description: redundantTablesDescription,
+			name:        "redundant tables",
+			description: "Access control tables for which there are no resources attached to",
 		}}
 }
 

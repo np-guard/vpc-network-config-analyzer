@@ -14,8 +14,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const blockedTCPResponse = "blocked-TCP-response"
-const blockedTCPResponseDescription = "Blocked TCP response"
 const deliminator = "/"
 
 // overlapSubnets: overlapping subnet ranges (relevant mostly for the multiple VPCs use case)
@@ -29,8 +27,8 @@ func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig,
 		connectionLinter{
 			basicLinter{
 				configs:     configs,
-				name:        blockedTCPResponse,
-				description: blockedTCPResponseDescription,
+				name:        "blocked-TCP-response",
+				description: "Blocked TCP response",
 			},
 			nodesConn}}
 }
