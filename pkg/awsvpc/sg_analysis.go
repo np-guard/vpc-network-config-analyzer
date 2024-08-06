@@ -157,7 +157,8 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 		isIngress = false
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
-	switch convertProtocol(*ruleObj.IpProtocol) {
+	*ruleObj.IpProtocol = convertProtocol(*ruleObj.IpProtocol)
+	switch *ruleObj.IpProtocol {
 	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
 	case protocolTCP, protocolUDP:

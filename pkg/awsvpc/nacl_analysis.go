@@ -48,27 +48,27 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	var action, direction string
 	var connStr string
 	ruleObj := na.naclResource.Entries[index]
-	protocol := convertProtocol(*ruleObj.Protocol)
-	switch protocol {
+	*ruleObj.Protocol = convertProtocol(*ruleObj.Protocol)
+	switch *ruleObj.Protocol {
 	case allProtocols:
 		conns = connection.All()
-		connStr = protocol
+		connStr = *ruleObj.Protocol
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
-		conns = commonvpc.GetTCPUDPConns(protocol,
+		conns = commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
 			connection.MinPort,
 			connection.MaxPort,
 			minPort,
 			maxPort,
 		)
 		dstPorts := getPortsStr(minPort, maxPort)
-		connStr = fmt.Sprintf("protocol: %s, dstPorts: %s", protocol, dstPorts)
+		connStr = fmt.Sprintf("protocol: %s, dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	case protocolICMP:
 		icmpType := int64(*ruleObj.IcmpTypeCode.Type)
 		icmpCode := int64(*ruleObj.IcmpTypeCode.Code)
 		conns = connection.ICMPConnection(icmpType, icmpType, icmpCode, icmpCode)
-		connStr = fmt.Sprintf("protocol: %s", protocol)
+		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)
 		return "", nil, false, err
