@@ -8,20 +8,14 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const ruleNonRelevantCIDRSGName = "rules-referring-non-relevant-CIDRs-SG"
-const ruleNonRelevantCIDRSGDescription = "rules of security groups that references CIDRs not in the relevant VPC address range"
 // ruleNonRelevantCIDRSGLint: SG rules that are references CIDRs not in the vpc
-type ruleNonRelevantCIDRSGLint struct {
-	filterLinter
-}
-func newRuleNonRelevantCIDRSGLint(configs map[string]*vpcmodel.VPCConfig) *ruleNonRelevantCIDRSGLint {
-	return &ruleNonRelevantCIDRSGLint{
-		filterLinter{
+func newRuleNonRelevantCIDRSGLint(configs map[string]*vpcmodel.VPCConfig) *filterLinter {
+	return &filterLinter{
 			basicLinter{
 			configs:     configs,
-			name:        ruleNonRelevantCIDRSGName,
-			description: ruleNonRelevantCIDRSGDescription,
+			name:        "rules-referring-non-relevant-CIDRs-SG",
+			description: "rules of security groups that references CIDRs not in the relevant VPC address range",
 		},
 		vpcmodel.SecurityGroupLayer,
-		findRuleNonRelevantCIDR}}
+		findRuleNonRelevantCIDR}
 }
