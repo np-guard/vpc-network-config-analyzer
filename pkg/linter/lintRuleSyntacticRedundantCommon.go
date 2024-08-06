@@ -67,11 +67,10 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		// iterates over tables, in each table iterates over rules finds those that are redundant (shadowed/implied)
 		for tableIndex, rules := range tableToRules {
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
-			for i := range rules {
-				isRedundantRuleIndex := rules[i].RuleIndex
+			for redundantRuleIndex := range rules {
 				// gathers atomic blocks within rule's src and dst
-				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].SrcCidr)
-				dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].DstCidr)
+				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
+				dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].DstCidr)
 				// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
 				// items in the cartesian product are shadowed/implies
 				ruleIsRedundant := true
@@ -81,7 +80,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 						connOfOthers := connection.None()
 						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
 						for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
-							if isRedundantRuleIndex == otherRuleIndex {
+							if redundantRuleIndex == otherRuleIndex {
 								if filterLayerName == vpcmodel.NaclLayer {
 									break // shadow only by higher priority rules
 								} else { // security group
@@ -90,10 +89,10 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							}
 							// otherRule contributes to the shadowing/implication?
 							// namely, it contains src, dst and has a relevant connection?
-							if rules[i].IsIngress == otherRule.IsIngress &&
+							if rules[redundantRuleIndex].IsIngress == otherRule.IsIngress &&
 								srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
 								dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
-								!rules[i].Conn.Intersect(otherRule.Conn).IsEmpty() {
+								!rules[redundantRuleIndex].Conn.Intersect(otherRule.Conn).IsEmpty() {
 								connOfOthers = connOfOthers.Union(otherRule.Conn)
 								if _, ok := containRules[otherRuleIndex]; !ok {
 									containRules[otherRuleIndex] = otherRule.RuleDesc
@@ -101,14 +100,14 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							}
 						}
 						// is <src, dst> shadowed/implied by other rules?
-						if !rules[i].Conn.ContainedIn(connOfOthers) {
+						if !rules[redundantRuleIndex].Conn.ContainedIn(connOfOthers) {
 							ruleIsRedundant = false
 							break
 						}
 					}
 				}
 				if ruleIsRedundant {
-					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: *rules[i], containRules: containRules})
+					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: *rules[redundantRuleIndex], containRules: containRules})
 				}
 			}
 		}
