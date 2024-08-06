@@ -322,7 +322,6 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 			continue
 		}
 		routerIgw := newIGW(igwName, igwID, subnets, vpc)
-		// TODO - where to put this resource?
 		res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
 		res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 	}
