@@ -31,13 +31,17 @@ In VPC test-vpc1-ky security group sg2-ky's rule 6 is redundant. It is implied b
 		index: 0, direction: outbound,  conns: protocol: all, remote: 10.240.20.0/24, local: 0.0.0.0/0
 		index: 5, direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0
 
-In VPC test-vpc1-ky security group sg3-ky's rule 2 is redundant. It is implied by another rule
+In VPC test-vpc1-ky security group sg3-ky's rule 2 is redundant. It is implied by other rules
 	Rule's details: index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
-		Implying rule: index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		Implying rules:
+		index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
-In VPC test-vpc1-ky security group sg3-ky's rule 3 is redundant. It is implied by another rule
+In VPC test-vpc1-ky security group sg3-ky's rule 3 is redundant. It is implied by other rules
 	Rule's details: index: 3, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
-		Implying rule: index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		Implying rules:
+		index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+		index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

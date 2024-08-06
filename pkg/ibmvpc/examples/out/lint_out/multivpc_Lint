@@ -29,13 +29,17 @@ ________________________________________________________________________________
 
 "rules of network ACLs that are shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC test-vpc0-ky network ACL acl2-ky's rule 2 is redundant. It is shadowed by a higher priority rule
+In VPC test-vpc0-ky network ACL acl2-ky's rule 2 is redundant. It is shadowed by higher priority rules
 	Rule's details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
-		Shadowing rule: index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
+		Shadowing rules:
+		index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
+		index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
 
-In VPC test-vpc0-ky network ACL acl2-ky's rule 5 is redundant. It is shadowed by a higher priority rule
+In VPC test-vpc0-ky network ACL acl2-ky's rule 5 is redundant. It is shadowed by higher priority rules
 	Rule's details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
-		Shadowing rule: index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
+		Shadowing rules:
+		index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
+		index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

@@ -91,12 +91,9 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
 							dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
 							!rules[i].Conn.Intersect(otherRule.Conn).IsEmpty() {
-							connOfOthersOld := connOfOthers
 							connOfOthers = connOfOthers.Union(otherRule.Conn)
-							if !connOfOthersOld.Equal(connOfOthers) {
-								if _, ok := containRules[otherRuleIndex]; !ok {
-									containRules[otherRuleIndex] = otherRule.RuleDesc
-								}
+							if _, ok := containRules[otherRuleIndex]; !ok {
+								containRules[otherRuleIndex] = otherRule.RuleDesc
 							}
 						}
 					}
