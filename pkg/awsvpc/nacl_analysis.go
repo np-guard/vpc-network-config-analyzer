@@ -48,7 +48,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	var action, direction string
 	var connStr string
 	ruleObj := na.naclResource.Entries[index]
-	switch *ruleObj.Protocol {
+	switch convertProtocol(*ruleObj.Protocol) {
 	case allProtocols:
 		conns = connection.All()
 		connStr = *ruleObj.Protocol

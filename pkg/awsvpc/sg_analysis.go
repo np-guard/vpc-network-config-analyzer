@@ -126,6 +126,23 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 	return
 }
 
+// convertProtocol used to convert protocol numbers to string
+func convertProtocol(ipProtocol string) string {
+	// currently supports just tcp, udp and icmp
+	// todo remove hard coded numbers and support other protocol numbers
+	switch ipProtocol {
+	case "6", protocolTCP:
+		return protocolTCP
+
+	case "17", protocolUDP:
+		return protocolUDP
+	case "1", protocolICMP:
+		return protocolICMP
+	default:
+		return allProtocols
+	}
+}
+
 func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
@@ -138,7 +155,7 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 		isIngress = false
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
-	switch *ruleObj.IpProtocol {
+	switch convertProtocol(*ruleObj.IpProtocol) {
 	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
 	case protocolTCP, protocolUDP:

@@ -1012,7 +1012,7 @@
                         "From": 443,
                         "To": 443
                     },
-                    "Protocol": "tcp",
+                    "Protocol": "6",
                     "RuleAction": "allow",
                     "RuleNumber": 10
                 },
@@ -1055,7 +1055,7 @@
                         "From": 443,
                         "To": 443
                     },
-                    "Protocol": "tcp",
+                    "Protocol": "6",
                     "RuleAction": "allow",
                     "RuleNumber": 10
                 },
