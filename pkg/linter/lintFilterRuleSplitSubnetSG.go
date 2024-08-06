@@ -11,11 +11,11 @@ import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 // filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
 func newFilterRuleSplitSubnetLintSG(configs map[string]*vpcmodel.VPCConfig) *filterLinter {
 	return &filterLinter{
-		basicLinter:basicLinter{
+		basicLinter: basicLinter{
 			configs:     configs,
 			name:        "rules-splitting-subnets-SecurityGroups",
 			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
 		},
-		layer: vpcmodel.SecurityGroupLayer,
+		layer:          vpcmodel.SecurityGroupLayer,
 		filterFindings: findSplitRulesSubnet}
 }
