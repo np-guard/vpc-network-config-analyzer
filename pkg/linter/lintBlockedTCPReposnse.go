@@ -23,7 +23,8 @@ type blockedTCPResponseLint struct {
 	connectionLinter
 }
 
-func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig, nodesConn map[string]*vpcmodel.VPCConnectivity) *blockedTCPResponseLint {
+func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) *blockedTCPResponseLint {
 	return &blockedTCPResponseLint{
 		connectionLinter{
 			basicLinter{
