@@ -13,11 +13,22 @@ import (
 )
 
 const redundantTablesName = "redundant tables"
+const redundantTablesDescription = "Access control tables for which there are no resources attached to"
 
 // redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
 type redundantTablesLint struct {
 	basicLinter
 }
+
+func newRedundantTablesLint(configs map[string]*vpcmodel.VPCConfig) *redundantTablesLint {
+	return &redundantTablesLint{
+		basicLinter{
+			configs:     configs,
+			name:        redundantTablesName,
+			description: redundantTablesDescription,
+		}}
+}
+
 
 // a rule with the list of subnets it splits
 type nonConnectedTable struct {
@@ -29,13 +40,6 @@ type nonConnectedTable struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for filterRuleSplitSubnetLint
 // ////////////////////////////////////////////////////////
-func (lint *redundantTablesLint) lintName() string {
-	return redundantTablesName
-}
-
-func (lint *redundantTablesLint) lintDescription() string {
-	return "Access control tables for which there are no resources attached to"
-}
 
 // todo: followup https://github.com/np-guard/vpc-network-config-analyzer/issues/718
 func (lint *redundantTablesLint) check() error {

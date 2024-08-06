@@ -9,22 +9,24 @@ package linter
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 const ruleNonRelevantCIDRSGName = "rules-referring-non-relevant-CIDRs-SG"
-
+const ruleNonRelevantCIDRSGDescription = "rules of security groups that references CIDRs not in the relevant VPC address range"
 // ruleNonRelevantCIDRSGLint: SG rules that are references CIDRs not in the vpc
 type ruleNonRelevantCIDRSGLint struct {
 	basicLinter
 }
+func newRuleNonRelevantCIDRSGLint(configs map[string]*vpcmodel.VPCConfig) *ruleNonRelevantCIDRSGLint {
+	return &ruleNonRelevantCIDRSGLint{
+		basicLinter{
+			configs:     configs,
+			name:        ruleNonRelevantCIDRSGName,
+			description: ruleNonRelevantCIDRSGDescription,
+		}}
+}
+
 
 // /////////////////////////////////////////////////////////
 // lint interface implementation for ruleNonRelevantCIDRSGLint
 // ////////////////////////////////////////////////////////
-func (lint *ruleNonRelevantCIDRSGLint) lintName() string {
-	return ruleNonRelevantCIDRSGName
-}
-
-func (lint *ruleNonRelevantCIDRSGLint) lintDescription() string {
-	return "rules of security groups that references CIDRs not in the relevant VPC address range"
-}
 
 func (lint *ruleNonRelevantCIDRSGLint) check() error {
 	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.SecurityGroupLayer)

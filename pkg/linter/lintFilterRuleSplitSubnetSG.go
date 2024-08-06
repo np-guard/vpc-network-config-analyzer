@@ -9,22 +9,24 @@ package linter
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 const splitRuleSubnetSGName = "rules-splitting-subnets-SecurityGroups"
-
+const splitRuleSubnetSGDescription = "rules of security groups implying different connectivity for different endpoints within a subnet"
 // filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnetLintSG struct {
 	basicLinter
 }
 
+func newFilterRuleSplitSubnetLintSG(configs map[string]*vpcmodel.VPCConfig) *filterRuleSplitSubnetLintSG {
+	return &filterRuleSplitSubnetLintSG{
+		basicLinter{
+			configs:     configs,
+			name:        splitRuleSubnetSGName,
+			description: splitRuleSubnetSGDescription,
+		}}
+}
+
 // //////////////////////////////////////////////////////////////
 // lint interface implementation for filterRuleSplitSubnetLintSG
 // /////////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnetLintSG) lintName() string {
-	return splitRuleSubnetSGName
-}
-
-func (lint *filterRuleSplitSubnetLintSG) lintDescription() string {
-	return "rules of security groups implying different connectivity for different endpoints within a subnet"
-}
 
 func (lint *filterRuleSplitSubnetLintSG) check() error {
 	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.SecurityGroupLayer)

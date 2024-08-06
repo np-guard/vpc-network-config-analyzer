@@ -15,11 +15,23 @@ import (
 )
 
 const blockedTCPResponse = "blocked-TCP-response"
+const blockedTCPResponseDescription = "Blocked TCP response"
 const deliminator = "/"
 
 // overlapSubnets: overlapping subnet ranges (relevant mostly for the multiple VPCs use case)
 type blockedTCPResponseLint struct {
 	connectionLinter
+}
+
+func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig, nodesConn map[string]*vpcmodel.VPCConnectivity) *blockedTCPResponseLint {
+	return &blockedTCPResponseLint{
+		connectionLinter{
+			basicLinter{
+				configs:     configs,
+				name:        blockedTCPResponse,
+				description: blockedTCPResponseDescription,
+			},
+			nodesConn}}
 }
 
 // TCP connection with no response

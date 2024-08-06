@@ -31,13 +31,23 @@ type finding interface {
 }
 
 type basicLinter struct {
-	configs  map[string]*vpcmodel.VPCConfig
-	findings []finding
+	configs     map[string]*vpcmodel.VPCConfig
+	findings    []finding
+	name        string
+	description string
 }
 
 type connectionLinter struct {
 	basicLinter
 	nodesConn map[string]*vpcmodel.VPCConnectivity
+}
+
+func (lint *basicLinter) lintName() string {
+	return lint.name
+}
+
+func (lint *basicLinter) lintDescription() string {
+	return lint.description
 }
 
 func (lint *basicLinter) addFinding(f finding) {

@@ -14,10 +14,21 @@ import (
 )
 
 const overlappingSubnetsName = "overlapping-subnets"
+const overlappingSubnetsDescription = "Overlapping CIDR ranges between different subnets"
 
 // overlapSubnets: overlapping subnet ranges (relevant mostly for the multiple VPCs use case)
 type overlappingSubnetsLint struct {
 	basicLinter
+}
+
+
+func newOverlappingSubnetsLint(configs map[string]*vpcmodel.VPCConfig) *overlappingSubnetsLint {
+	return &overlappingSubnetsLint{
+		basicLinter{
+			configs:     configs,
+			name:        overlappingSubnetsName,
+			description: overlappingSubnetsDescription,
+		}}
 }
 
 // a couple of overlapping subnets
@@ -29,13 +40,6 @@ type overlapSubnets struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for overlapSubnets
 // ////////////////////////////////////////////////////////
-func (lint *overlappingSubnetsLint) lintName() string {
-	return overlappingSubnetsName
-}
-
-func (lint *overlappingSubnetsLint) lintDescription() string {
-	return "Overlapping CIDR ranges between different subnets"
-}
 
 func (lint *overlappingSubnetsLint) check() error {
 	allSubnets := []vpcmodel.Subnet{}

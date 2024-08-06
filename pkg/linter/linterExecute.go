@@ -28,18 +28,14 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig) (issueFound bool, res
 		}
 		nodesConn[uid] = nodesConnThisCfg
 	}
-	basicLint := basicLinter{
-		configs: configs,
-	}
-	connLint := connectionLinter{basicLint, nodesConn}
 	linters := []linter{
-		&filterRuleSplitSubnetLintNACL{basicLinter: basicLint},
-		&filterRuleSplitSubnetLintSG{basicLinter: basicLint},
-		&overlappingSubnetsLint{basicLinter: basicLint},
-		&redundantTablesLint{basicLinter: basicLint},
-		&ruleNonRelevantCIDRSGLint{basicLinter: basicLint},
-		&ruleNonRelevantCIDRNACLLint{basicLinter: basicLint},
-		&blockedTCPResponseLint{connectionLinter: connLint},
+		newFilterRuleSplitSubnetLintNACL(configs),
+		newFilterRuleSplitSubnetLintSG(configs),
+		newOverlappingSubnetsLint(configs),
+		newRedundantTablesLint(configs),
+		newRuleNonRelevantCIDRSGLint(configs),
+		newRuleNonRelevantCIDRNACLLint(configs),
+		newBlockedTCPResponseLint(configs, nodesConn),
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
