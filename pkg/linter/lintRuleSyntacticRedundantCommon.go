@@ -23,7 +23,7 @@ const NetworkACL = "network ACL" // todo: https://github.com/np-guard/vpc-networ
 // sg rule - implied by other rules in the sg table
 type ruleRedundant struct {
 	rule         vpcmodel.RuleOfFilter
-	containRules map[int]string // indexes of rules because of which this rule is redundant to their description
+	containRules map[int]*vpcmodel.RuleOfFilter // indexes of rules because of which this rule is redundant to their description
 	vpcResource  vpcmodel.VPC
 }
 
@@ -82,7 +82,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
 				// items in the cartesian product are shadowed/implies
 				ruleIsRedundant := true
-				containRules := map[int]string{}
+				containRules := map[int]*vpcmodel.RuleOfFilter{}
 				for _, srcAtomicBlock := range srcBlocks {
 					for _, dstAtomicBlock := range dstBlocks {
 						connOfOthers := connection.None()
@@ -99,7 +99,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 								!rules[redundantRuleIndex].Conn.Intersect(otherRule.Conn).IsEmpty() {
 								connOfOthers = connOfOthers.Union(otherRule.Conn)
 								if _, ok := containRules[otherRuleIndex]; !ok {
-									containRules[otherRuleIndex] = otherRule.RuleDesc
+									containRules[otherRuleIndex] = otherRule
 								}
 							}
 						}
@@ -204,8 +204,8 @@ func (finding *ruleRedundant) string() string {
 		strResPrefix += ": "
 	}
 	containingRulesSlice := []string{}
-	for _, ruleStr := range finding.containRules {
-		containingRulesSlice = append(containingRulesSlice, ruleStr)
+	for _, rule := range finding.containRules {
+		containingRulesSlice = append(containingRulesSlice, rule.RuleDesc)
 	}
 	sort.Strings(containingRulesSlice)
 	return strResPrefix + strings.Join(containingRulesSlice, "\t\t")
@@ -213,18 +213,18 @@ func (finding *ruleRedundant) string() string {
 
 // for json:
 type ruleRedundantJSON struct {
-	Rule         vpcmodel.RuleOfFilter `json:"vpc_name"`
-	VpcName      string                `json:"rule_details"`
-	ContainRules []string              // rules because of which this rule is redundant to their description
+	Rule         vpcmodel.RuleOfFilter   `json:"vpc_name"`
+	VpcName      string                  `json:"rule_details"`
+	ContainRules []vpcmodel.RuleOfFilter // rules because of which this rule is redundant to their description
 }
 
 func (finding *ruleRedundant) toJSON() any {
 	rule := finding.rule
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
-	containRules := make([]string, len(finding.containRules))
+	containRules := make([]vpcmodel.RuleOfFilter, len(finding.containRules))
 	for i, rule := range finding.containRules {
-		containRules[i] = rule
+		containRules[i] = *rule
 	}
 	res := ruleRedundantJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
 		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}, ContainRules: containRules}
