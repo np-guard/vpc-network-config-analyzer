@@ -53,6 +53,9 @@ func (lint *basicLinter) lintDescription() string {
 func (lint *basicLinter) addFinding(f finding) {
 	lint.findings = append(lint.findings, f)
 }
+func (lint *basicLinter) addFindings(f []finding) {
+	lint.findings = append(lint.findings, f...)
+}
 
 func (lint *basicLinter) getFindings() []finding {
 	return lint.findings
@@ -75,4 +78,19 @@ func (lint *basicLinter) toJSON() []any {
 		res[i] = thisFinding.toJSON()
 	}
 	return res
+}
+
+type filterLinter struct {
+	basicLinter
+	layer string
+	getFindings func(map[string]*vpcmodel.VPCConfig, string)([]finding, error)
+}
+
+func (fLint *filterLinter) check() error {
+	findings, err := fLint.getFindings(fLint.configs, fLint.layer)
+	if err != nil {
+		return err
+	}
+	fLint.addFindings(findings)
+	return nil
 }

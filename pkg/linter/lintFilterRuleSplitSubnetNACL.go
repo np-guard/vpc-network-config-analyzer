@@ -13,29 +13,17 @@ const splitRuleSubnetNACLDescription = "rules of network ACLs implying different
 
 // filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnetLintNACL struct {
-	basicLinter
+	filterLinter
 }
 
 func newFilterRuleSplitSubnetLintNACL(configs map[string]*vpcmodel.VPCConfig) *filterRuleSplitSubnetLintNACL {
 	return &filterRuleSplitSubnetLintNACL{
-		basicLinter{
-			configs:     configs,
-			name:        splitRuleSubnetNACLName,
-			description: splitRuleSubnetNACLDescription,
-		}}
-}
-
-// /////////////////////////////////////////////////////////
-// lint interface implementation for filterRuleSplitSubnetLint
-// ////////////////////////////////////////////////////////
-
-func (lint *filterRuleSplitSubnetLintNACL) check() error {
-	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.NaclLayer)
-	if err != nil {
-		return err
-	}
-	for _,f := range rulesSplitSubnetsFound {
-		lint.addFinding(f)
-	}
-	return nil
+		filterLinter{
+			basicLinter{
+				configs:     configs,
+				name:        splitRuleSubnetNACLName,
+				description: splitRuleSubnetNACLDescription,
+			},
+			vpcmodel.NaclLayer,
+			findSplitRulesSubnet}}
 }
