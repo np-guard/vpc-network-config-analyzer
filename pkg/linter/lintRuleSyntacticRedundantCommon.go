@@ -64,51 +64,52 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 			return nil, err
 		}
 		tableToRules, tableToAtomicBlocks := getTableOrientedStructs(rules)
-		// iterates over rules, finds those that are redundant (shadowed/implied)
-		for i := range rules {
-			tableIndex := rules[i].Filter.FilterIndex
-			isRedundantRuleIndex := rules[i].RuleIndex
+		// iterates over tables, in each table iterates over rules finds those that are redundant (shadowed/implied)
+		for tableIndex, rules := range tableToRules {
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
-			// gathers atomic blocks within rule's src and dst
-			srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].SrcCidr)
-			dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].DstCidr)
-			// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
-			// items in the cartesian product are shadowed/implies
-			ruleIsRedundant := true
-			containRules := map[int]string{}
-			for _, srcAtomicBlock := range srcBlocks {
-				for _, dstAtomicBlock := range dstBlocks {
-					connOfOthers := connection.None()
-					// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-					for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
-						if isRedundantRuleIndex == otherRuleIndex {
-							if filterLayerName == vpcmodel.NaclLayer {
-								break // shadow only by higher priority rules
-							} else { // security group
-								continue // do not consider the rule checked for redundancy
+			for i := range rules {
+				isRedundantRuleIndex := rules[i].RuleIndex
+				// gathers atomic blocks within rule's src and dst
+				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].SrcCidr)
+				dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[i].DstCidr)
+				// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
+				// items in the cartesian product are shadowed/implies
+				ruleIsRedundant := true
+				containRules := map[int]string{}
+				for _, srcAtomicBlock := range srcBlocks {
+					for _, dstAtomicBlock := range dstBlocks {
+						connOfOthers := connection.None()
+						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
+						for otherRuleIndex, otherRule := range tableToRules[tableIndex] {
+							if isRedundantRuleIndex == otherRuleIndex {
+								if filterLayerName == vpcmodel.NaclLayer {
+									break // shadow only by higher priority rules
+								} else { // security group
+									continue // do not consider the rule checked for redundancy
+								}
+							}
+							// otherRule contributes to the shadowing/implication?
+							// namely, it contains src, dst and has a relevant connection?
+							if rules[i].IsIngress == otherRule.IsIngress &&
+								srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
+								dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
+								!rules[i].Conn.Intersect(otherRule.Conn).IsEmpty() {
+								connOfOthers = connOfOthers.Union(otherRule.Conn)
+								if _, ok := containRules[otherRuleIndex]; !ok {
+									containRules[otherRuleIndex] = otherRule.RuleDesc
+								}
 							}
 						}
-						// otherRule contributes to the shadowing/implication?
-						// namely, it contains src, dst and has a relevant connection?
-						if rules[i].IsIngress == otherRule.IsIngress &&
-							srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
-							dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
-							!rules[i].Conn.Intersect(otherRule.Conn).IsEmpty() {
-							connOfOthers = connOfOthers.Union(otherRule.Conn)
-							if _, ok := containRules[otherRuleIndex]; !ok {
-								containRules[otherRuleIndex] = otherRule.RuleDesc
-							}
+						// is <src, dst> shadowed/implied by other rules?
+						if !rules[i].Conn.ContainedIn(connOfOthers) {
+							ruleIsRedundant = false
+							break
 						}
-					}
-					// is <src, dst> shadowed/implied by other rules?
-					if !rules[i].Conn.ContainedIn(connOfOthers) {
-						ruleIsRedundant = false
-						break
 					}
 				}
-			}
-			if ruleIsRedundant {
-				res = append(res, ruleRedundant{vpcResource: config.VPC, rule: rules[i], containRules: containRules})
+				if ruleIsRedundant {
+					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: *rules[i], containRules: containRules})
+				}
 			}
 		}
 	}
