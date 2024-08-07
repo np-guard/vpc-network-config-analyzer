@@ -18,5 +18,5 @@ func newRuleNonRelevantCIDRNACLLint(configs map[string]*vpcmodel.VPCConfig) *fil
 			description: "rules of network ACLs that references CIDRs not in the relevant VPC address range",
 		},
 		layer:          vpcmodel.NaclLayer,
-		filterFindings: findRuleNonRelevantCIDR}
+		checkForFilter: findRuleNonRelevantCIDR}
 }

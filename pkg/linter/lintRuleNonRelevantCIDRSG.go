@@ -17,5 +17,5 @@ func newRuleNonRelevantCIDRSGLint(configs map[string]*vpcmodel.VPCConfig) *filte
 			description: "rules of security groups that references CIDRs not in the relevant VPC address range",
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
-		filterFindings: findRuleNonRelevantCIDR}
+		checkForFilter: findRuleNonRelevantCIDR}
 }
