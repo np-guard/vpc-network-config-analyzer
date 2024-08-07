@@ -19,10 +19,23 @@ import (
 const issues = "issues:"
 const delimBetweenLintsChars = 200
 
+// linterGenerator is a function that generate a linter.
+// we need a list of generators, and their names, so we holds a map from a linter name to its generator.
+// when creating a new linter, this is the list of linters that should be updated:
+type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
+var linterGenerators = map[string]linterGenerator{
+	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
+	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
+	"overlapping-subnets":                      newOverlappingSubnetsLint,
+	"redundant tables":                         newRedundantTablesLint,
+	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
+	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
+	"blocked-TCP-response":                     newBlockedTCPResponseLint,
+}
+
 func ValidLintersNames() string {
 	return strings.Join(common.MapKeys(linterGenerators), ",")
 }
-
 func IsValidLintersNames(name string) bool {
 	_, ok := linterGenerators[name]
 	return ok
@@ -36,19 +49,7 @@ func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string
 	}
 	return res
 }
-
-type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
-
-var linterGenerators = map[string]linterGenerator{
-	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
-	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
-	"overlapping-subnets":                      newOverlappingSubnetsLint,
-	"redundant tables":                         newRedundantTablesLint,
-	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
-	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
-	"blocked-TCP-response":                     newBlockedTCPResponseLint,
-}
-
+////////////////////////////////////////////////////////////////////////////////////////////////
 // LinterExecute executes linters one by one
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
