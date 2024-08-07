@@ -59,12 +59,10 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
-		rules, err := filterLayer.GetRules()
+		tableToRules, tableToAtomicBlocks, err := getTablesRulesAndAtomicBlocks(config, filterLayerName)
 		if err != nil {
 			return nil, err
 		}
-		tableToRules, tableToAtomicBlocks := getTablesRulesAndAtomicBlocks(rules)
 		// iterates over tables, in each table iterates over rules and finds those that are redundant (shadowed/implied)
 		for tableIndex, rules := range tableToRules {
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
@@ -133,9 +131,13 @@ func getAtomicBlocks(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock)
 // Generates and returns two maps from tables of layer (their indexes):
 // 1. To a slice of its rules, where the location in the slice is the index of the rule
 // 2. To slice of the atomic blocks of the table
-func getTablesRulesAndAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
-	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
-) {
+func getTablesRulesAndAtomicBlocks(config *vpcmodel.VPCConfig, filterLayerName string) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
+	tableToAtomicBlocks map[int][]*ipblock.IPBlock, err error) {
+	filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+	rules, err := filterLayer.GetRules()
+	if err != nil {
+		return nil, nil, err
+	}
 	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
 	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for i := range rules {
@@ -154,7 +156,7 @@ func getTablesRulesAndAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules 
 		})
 		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(tableToAtomicBlocks[tableIndex], nil)
 	}
-	return tableToRules, tableToAtomicBlocks
+	return tableToRules, tableToAtomicBlocks, err
 }
 
 /////////////////////////////////////////////////////////////
