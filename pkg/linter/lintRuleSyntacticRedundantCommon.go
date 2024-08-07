@@ -75,9 +75,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				if filterLayerName == vpcmodel.NaclLayer {
 					rulesToIterate = tableToRules[tableIndex][:redundantRuleIndex]
 				} else { // SG
-
 					rulesToIterate = tableToRules[tableIndex]
-				//	rulesToIterate = append(tableToRules[tableIndex][:redundantRuleIndex], tableToRules[tableIndex][redundantRuleIndex+1:]...) 
 				}
 				// gathers atomic blocks within rule's src and dst
 				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
@@ -154,7 +152,7 @@ func getTableOrientedStructs(rules []vpcmodel.RuleOfFilter) (tableToRules map[in
 		slices.SortFunc(tableToRules[tableIndex], func(r1, r2 *vpcmodel.RuleOfFilter) int {
 			return r1.RuleIndex - r2.RuleIndex
 		})
-		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(tableToAtomicBlocks[tableIndex],nil)
+		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(tableToAtomicBlocks[tableIndex], nil)
 	}
 	return tableToRules, tableToAtomicBlocks
 }
