@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	enable             = "enable"
-	disable            = "disable"
+	enable  = "enable"
+	disable = "disable"
 )
 
 func NewLintCommand(args *inArgs) *cobra.Command {
