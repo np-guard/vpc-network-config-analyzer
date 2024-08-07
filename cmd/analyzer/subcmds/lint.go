@@ -8,6 +8,7 @@ package subcmds
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
