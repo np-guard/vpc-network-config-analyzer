@@ -23,6 +23,7 @@ const delimBetweenLintsChars = 200
 // we need a list of generators, and their names, so we holds a map from a linter name to its generator.
 // when creating a new linter, this is the list of linters that should be updated:
 type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
+
 var linterGenerators = map[string]linterGenerator{
 	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
 	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
@@ -40,15 +41,16 @@ func IsValidLintersNames(name string) bool {
 	_, ok := linterGenerators[name]
 	return ok
 }
-func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) []linter{
+func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) []linter {
 	res := make([]linter, len(linterGenerators))
-	i:= 0
-	for name, generator := range linterGenerators{
-		res [i] = generator(name,configs,nodeConn)
+	i := 0
+	for name, generator := range linterGenerators {
+		res[i] = generator(name, configs, nodeConn)
 		i++
 	}
 	return res
 }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 // LinterExecute executes linters one by one
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
@@ -61,7 +63,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		}
 		nodesConn[uid] = nodesConnThisCfg
 	}
-	linters := generateLinters(configs,nodesConn)
+	linters := generateLinters(configs, nodesConn)
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
 		name := thisLinter.lintName()

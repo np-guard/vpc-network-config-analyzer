@@ -29,7 +29,7 @@ func newBlockedTCPResponseLint(name string, configs map[string]*vpcmodel.VPCConf
 				configs:     configs,
 				name:        name,
 				description: "Blocked TCP response",
-				enable: true,
+				enable:      true,
 			},
 			nodesConn: nodesConn}}
 }

@@ -16,7 +16,7 @@ func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VP
 			configs:     configs,
 			name:        name,
 			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
-			enable: true,
+			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
 		checkForFilter: findSplitRulesSubnet}

@@ -24,7 +24,7 @@ func newRedundantTablesLint(name string, configs map[string]*vpcmodel.VPCConfig,
 			configs:     configs,
 			name:        name,
 			description: "Access control tables for which there are no resources attached to",
-			enable: true,
+			enable:      true,
 		}}
 }
 

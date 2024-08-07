@@ -25,7 +25,7 @@ func newOverlappingSubnetsLint(name string, configs map[string]*vpcmodel.VPCConf
 			configs:     configs,
 			name:        name,
 			description: "Overlapping CIDR ranges between different subnets",
-			enable: true,
+			enable:      true,
 		}}
 }
 

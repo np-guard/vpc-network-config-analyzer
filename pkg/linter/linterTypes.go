@@ -22,7 +22,7 @@ type linter interface {
 	lintDescription() string       // this string Name
 	string(lintDesc string) string // string with this lint's finding
 	toJSON() []any                 // this lint finding in JSON
-	enableByDefault() bool //
+	enableByDefault() bool         //
 }
 
 type finding interface {
@@ -36,7 +36,7 @@ type basicLinter struct {
 	findings    []finding
 	name        string
 	description string
-	enable bool
+	enable      bool
 }
 
 type connectionLinter struct {

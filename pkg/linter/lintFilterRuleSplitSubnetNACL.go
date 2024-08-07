@@ -16,7 +16,7 @@ func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.
 			configs:     configs,
 			name:        name,
 			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
-			enable: true,
+			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
 		checkForFilter: findSplitRulesSubnet}
