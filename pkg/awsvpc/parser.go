@@ -195,7 +195,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
-				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc)
+				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, len(instance.NetworkInterfaces), vpc)
 			if err != nil {
 				return err
 			}
@@ -243,7 +243,7 @@ func parseSGTargets(sgResources map[string]map[string]*commonvpc.SecurityGroup,
 	for vpcUID, sgs := range sgResources {
 		config := configs.Config(vpcUID)
 		for _, node := range config.Nodes {
-			if node.Kind() == commonvpc.ResourceTypeNetworkInterface {
+			if node.Kind() == vpcmodel.ResourceTypeNetworkInterface {
 				if intfNodeObj, ok := node.(*commonvpc.NetworkInterface); ok {
 					securityGroupIds := netIntfToSGs[intfNodeObj.ResourceUID]
 					for _, securityGroupID := range securityGroupIds {

@@ -33,6 +33,7 @@ const (
 	ARCHSVG
 	HTML
 	ARCHHTML
+	Synthesis
 )
 
 const (
@@ -145,7 +146,7 @@ type SingleAnalysisOutput struct {
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
-	case JSON, Text, MD:
+	case JSON, Text, MD, Synthesis:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
 		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
@@ -191,6 +192,8 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 		return &TextOutputFormatter{}
 	case MD:
 		return &MDoutputFormatter{}
+	case Synthesis:
+		return &SynthesisOutputFormatter{}
 	}
 	return nil
 }
@@ -293,6 +296,8 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 			all[o.VPC1Name] = o.jsonStruct
 		}
 		res, err = writeJSON(all, outFile)
+	case Synthesis:
+		res, err = writeJSON(outputList[0].jsonStruct, outFile)
 	}
 	return res, err
 }

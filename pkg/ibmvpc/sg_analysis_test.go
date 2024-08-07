@@ -93,7 +93,7 @@ func TestSGRule(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: *sg.Name,
 			ResourceUID:  *sg.CRN,
-			ResourceType: commonvpc.ResourceTypeSG,
+			ResourceType: vpcmodel.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},

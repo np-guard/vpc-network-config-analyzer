@@ -26,6 +26,7 @@ const (
 	archSVGFormat    formatSetting = "arch_svg"
 	htmlFormat       formatSetting = "html"
 	archHTMLFormat   formatSetting = "arch_html"
+	synthesisFormat  formatSetting = "synthesis"
 
 	stringType = "string"
 )
@@ -40,6 +41,7 @@ var allFormats = []string{
 	string(archSVGFormat),
 	string(htmlFormat),
 	string(archHTMLFormat),
+	string(synthesisFormat),
 }
 
 func (fs *formatSetting) String() string {
@@ -87,6 +89,8 @@ func (fs *formatSetting) ToModelFormat() vpcmodel.OutFormat {
 		return vpcmodel.HTML
 	case archHTMLFormat:
 		return vpcmodel.ARCHHTML
+	case synthesisFormat:
+		return vpcmodel.Synthesis
 	}
 	return vpcmodel.Text
 }

@@ -28,25 +28,6 @@ const (
 	lineSectionLen      = 41
 )
 
-// Resource types const strings, used in the generated resources of this pkg
-const (
-	ResourceTypeVSI              = "VSI"
-	ResourceTypeNetworkInterface = "NetworkInterface"
-	ResourceTypeSubnet           = "Subnet"
-	ResourceTypePublicGateway    = "PublicGateway"
-	ResourceTypeFloatingIP       = "FloatingIP"
-	ResourceTypeVPC              = "VPC"
-	ResourceTypeSG               = "SG"
-	ResourceTypeNACL             = "NACL"
-	ResourceTypeIKSNode          = "IKSNodeNetworkInterface"
-	ResourceTypeVPE              = "VPE"
-	ResourceTypeTGW              = "TGW"
-	ResourceTypeReservedIP       = "ReservedIP"
-	ResourceTypeLoadBalancer     = "LoadBalancer"
-	ResourceTypePrivateIP        = "PrivateIP"
-	ResourceTypeRoutingTable     = "RoutingTable"
-)
-
 type ResourcesContainer interface {
 	VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
@@ -55,12 +36,12 @@ type ResourcesContainer interface {
 	ParseResourcesFromFile(fileName string) error
 }
 
-func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+func NewNetworkInterface(name, uid, zone, address, vsi string, numberOfNifs int, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  uid,
-			ResourceType: ResourceTypeNetworkInterface,
+			ResourceType: vpcmodel.ResourceTypeNetworkInterface,
 			Zone:         zone,
 			VPCRef:       vpc,
 			Region:       vpc.RegionName(),
@@ -68,7 +49,8 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 		InternalNode: vpcmodel.InternalNode{
 			AddressStr: address,
 		},
-		Vsi: vsi,
+		Vsi:               vsi,
+		numberOfNifsInVsi: numberOfNifs,
 	}
 
 	if err := intfNode.SetIPBlockFromAddress(); err != nil {
@@ -83,7 +65,7 @@ func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.
 			ResourceName: name,
 			ResourceUID:  uid,
 			Zone:         zone,
-			ResourceType: ResourceTypeVSI,
+			ResourceType: vpcmodel.ResourceTypeVSI,
 			VPCRef:       vpc,
 			Region:       vpc.RegionName(),
 		},
@@ -140,7 +122,7 @@ func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyz
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  uid,
-			ResourceType: ResourceTypeSG,
+			ResourceType: vpcmodel.ResourceTypeSG,
 			VPCRef:       vpc,
 			Region:       vpc.RegionName(),
 		},
@@ -190,7 +172,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
 			ResourceUID:  uid,
-			ResourceType: ResourceTypeVPC,
+			ResourceType: vpcmodel.ResourceTypeVPC,
 			Region:       region,
 		},
 		Zones:     map[string]*Zone{},
@@ -254,7 +236,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 			ResourceName: name,
 			ResourceUID:  uid,
 			Zone:         zone,
-			ResourceType: ResourceTypeSubnet,
+			ResourceType: vpcmodel.ResourceTypeSubnet,
 			VPCRef:       vpc,
 			Region:       vpc.RegionName(),
 		},

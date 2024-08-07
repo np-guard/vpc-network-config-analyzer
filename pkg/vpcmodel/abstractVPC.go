@@ -31,6 +31,10 @@ type VPCResourceIntf interface {
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
 	RegionName() string
+	// used for synthesis output.
+	// first out will be the name of the resource from the config,
+	// overridden in nif resource (if the vsi of the nif has one nif we return name of the vsi and number of nifs)
+	DetailedResourceForSynthesisOut() (name string, details int)
 
 	DrawioResourceIntf
 }
@@ -56,6 +60,10 @@ func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
 
 func (n *VPCResource) Name() string {
 	return n.ResourceName
+}
+
+func (n *VPCResource) DetailedResourceForSynthesisOut() (name string, details int) {
+	return n.ResourceName, 0
 }
 
 func (n *VPCResource) ExtendedName(c *VPCConfig) string {
