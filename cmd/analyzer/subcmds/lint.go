@@ -19,8 +19,6 @@ import (
 const (
 	enable             = "enable"
 	disable            = "disable"
-	enableDisableUsage = "specified as linters names separated by comma"
-	space              = " "
 )
 
 func NewLintCommand(args *inArgs) *cobra.Command {
