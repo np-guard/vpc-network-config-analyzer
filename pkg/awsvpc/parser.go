@@ -153,6 +153,17 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	return res, nil
 }
 
+// get name from tags, if not fount return alternateName
+func getResourceName(tags []types.Tag, alternateName string) string {
+	name := alternateName
+	for _, tag := range tags {
+		if *tag.Key == resourceName {
+			name = *tag.Value
+		}
+	}
+	return name
+}
+
 func (rc *AWSresourcesContainer) getVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
@@ -161,12 +172,7 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 		if skipByVPC[*vpc.VpcId] {
 			continue // skip vpc not specified to analyze
 		}
-		vpcName := *vpc.VpcId
-		for _, tag := range vpc.Tags {
-			if *tag.Key == resourceName {
-				vpcName = *tag.Value
-			}
-		}
+		vpcName := getResourceName(vpc.Tags, *vpc.VpcId)
 		vpcNodeSet, err := commonvpc.NewVPC(vpcName, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
 		if err != nil {
 			return err
@@ -197,12 +203,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		instanceName := *instance.InstanceId
-		for _, tag := range instance.Tags {
-			if *tag.Key == resourceName {
-				instanceName = *tag.Value
-			}
-		}
+		instanceName := getResourceName(instance.Tags, *instance.InstanceId)
 		vsiNode, err := commonvpc.NewVSI(instanceName, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
 		if err != nil {
 			return err
@@ -244,12 +245,7 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 		if skipByVPC[*subnetObj.VpcId] {
 			continue
 		}
-		subnetName := *subnetObj.SubnetId
-		for _, tag := range subnetObj.Tags {
-			if *tag.Key == resourceName {
-				subnetName = *tag.Value
-			}
-		}
+		subnetName := getResourceName(subnetObj.Tags, *subnetObj.SubnetId)
 		subnet, err := commonvpc.UpdateConfigWithSubnet(subnetName,
 			*subnetObj.SubnetId, *subnetObj.AvailabilityZone, *subnetObj.CidrBlock,
 			*subnetObj.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
@@ -295,12 +291,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		sgName := *sg.GroupId
-		for _, tag := range sg.Tags {
-			if *tag.Key == resourceName {
-				sgName = *tag.Value
-			}
-		}
+		sgName := getResourceName(sg.Tags, *sg.GroupId)
 		commonvpc.NewSGResource(sgName, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
@@ -349,12 +340,7 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 		if err != nil {
 			return err
 		}
-		naclName := *nacl.NetworkAclId
-		for _, tag := range nacl.Tags {
-			if *tag.Key == resourceName {
-				naclName = *tag.Value
-			}
-		}
+		naclName := getResourceName(nacl.Tags, *nacl.NetworkAclId)
 		naclResource := &commonvpc.NACL{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: naclName,
@@ -400,12 +386,7 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 	skipByVPC map[string]bool) {
 	for _, igw := range rc.InternetGWList {
 		igwID := *igw.InternetGatewayId
-		igwName := igwID
-		for _, tag := range igw.Tags {
-			if *tag.Key == resourceName {
-				igwName = *tag.Value
-			}
-		}
+		igwName := getResourceName(igw.Tags, igwID)
 		if len(igw.Attachments) != 1 {
 			logging.Warnf("skipping internet gateway %s - it has %d vpcs attached\n", igwName, len(igw.Attachments))
 			continue
