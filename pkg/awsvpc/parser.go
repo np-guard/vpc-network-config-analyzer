@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -22,6 +23,9 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
+
+// todo - remove this when aws regions are supported:
+const defaultRegionName = "default-region"
 
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
@@ -97,14 +101,15 @@ func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 // containing the parsed resources in the relevant model objects
 func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
-	res := vpcmodel.NewMultipleVPCConfigs(common.AWS) // map from VPC UID to its config
+	res := vpcmodel.NewMultipleVPCConfigs(common.AWS)       // map from VPC UID to its config
+	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error
 
 	// map to filter resources, if certain VPC to analyze is specified,
 	// skip resources configured outside that VPC
 	shouldSkipVpcIds := rc.filterByVpc(vpcID)
 
-	err = rc.getVPCconfig(res, shouldSkipVpcIds)
+	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +136,11 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	if err != nil {
 		return nil, err
 	}
-
+	err = commonvpc.FilterVPCSAndAddExternalNodes(vpcInternalAddressRange, res)
+	if err != nil {
+		return nil, err
+	}
+	rc.getIgwConfig(res, shouldSkipVpcIds)
 	printVPCConfigs(res)
 
 	return res, nil
@@ -139,13 +148,14 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 func (rc *AWSresourcesContainer) getVPCconfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	skipByVPC map[string]bool) error {
+	skipByVPC map[string]bool,
+	regionToStructMap map[string]*commonvpc.Region) error {
 	for _, vpc := range rc.VpcsList {
 		if skipByVPC[*vpc.VpcId] {
 			continue // skip vpc not specified to analyze
 		}
 
-		vpcNodeSet, err := commonvpc.NewVPC(*vpc.VpcId, *vpc.VpcId, "", nil, nil)
+		vpcNodeSet, err := commonvpc.NewVPC(*vpc.VpcId, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
 		if err != nil {
 			return err
 		}
@@ -212,16 +222,17 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 	for vpcUID := range res.Configs() {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
-	for _, subnet := range rc.SubnetsList {
-		if skipByVPC[*subnet.VpcId] {
+	for _, subnetObj := range rc.SubnetsList {
+		if skipByVPC[*subnetObj.VpcId] {
 			continue
 		}
-		_, err := commonvpc.UpdateConfigWithSubnet(*subnet.SubnetId,
-			*subnet.SubnetId, *subnet.AvailabilityZone, *subnet.CidrBlock,
-			*subnet.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
+		subnet, err := commonvpc.UpdateConfigWithSubnet(*subnetObj.SubnetId,
+			*subnetObj.SubnetId, *subnetObj.AvailabilityZone, *subnetObj.CidrBlock,
+			*subnetObj.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
 		if err != nil {
 			return nil, err
 		}
+		subnet.SetIsPublic(*subnetObj.MapPublicIpOnLaunch)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -289,6 +300,52 @@ func (rc *AWSresourcesContainer) getSGconfig(
 	}
 
 	return nil
+}
+
+func (rc *AWSresourcesContainer) getIgwConfig(
+	res *vpcmodel.MultipleVPCConfigs,
+	skipByVPC map[string]bool) {
+	for _, igw := range rc.InternetGWList {
+		igwID := *igw.InternetGatewayId
+		igwName := igwID
+		if len(igw.Attachments) != 1 {
+			logging.Warnf("skipping internet gateway %s - it has %d vpcs attached\n", igwName, len(igw.Attachments))
+			continue
+		}
+		vpcUID := *igw.Attachments[0].VpcId
+		if skipByVPC[vpcUID] {
+			continue
+		}
+		vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
+		subnets := vpc.Subnets()
+		// only public subnets can be a subnet of igw:
+		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
+			return !s.IsPublic()
+		})
+
+		if len(subnets) == 0 {
+			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
+			continue
+		}
+		routerIgw := newIGW(igwName, igwID, subnets, vpc)
+		res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
+		res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
+	}
+}
+
+func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, vpc vpcmodel.VPC) *InternetGateway {
+	srcNodes := commonvpc.GetSubnetsNodes(subnets)
+	return &InternetGateway{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: igwName,
+			ResourceUID:  igwCRN,
+			ResourceType: commonvpc.ResourceTypePublicGateway,
+			Region:       vpc.RegionName(),
+		},
+		src:        srcNodes,
+		srcSubnets: subnets,
+		vpc:        vpc,
+	}
 }
 
 /********** Functions used in Debug mode ***************/
