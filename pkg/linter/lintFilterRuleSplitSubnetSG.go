@@ -8,7 +8,7 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const splitRuleSubnetSGName = "rules-splitting-subnets-SecurityGroups"
+const SplitRuleSubnetSGName = "rules-splitting-subnets-SecurityGroups"
 
 // filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
 type filterRuleSplitSubnetLintSG struct {
@@ -19,7 +19,7 @@ type filterRuleSplitSubnetLintSG struct {
 // lint interface implementation for filterRuleSplitSubnetLintSG
 // /////////////////////////////////////////////////////////////
 func (lint *filterRuleSplitSubnetLintSG) lintName() string {
-	return splitRuleSubnetSGName
+	return SplitRuleSubnetSGName
 }
 
 func (lint *filterRuleSplitSubnetLintSG) lintDescription() string {

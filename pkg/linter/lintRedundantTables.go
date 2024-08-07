@@ -12,7 +12,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const redundantTablesName = "redundant tables"
+const redundantTablesName = "redundant-tables"
 
 // redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
 type redundantTablesLint struct {

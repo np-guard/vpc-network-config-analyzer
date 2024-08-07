@@ -186,14 +186,6 @@ func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 
 func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (
 	vpcNodeSet *VPC, err error) {
-	var regionPointer *Region
-	if regionToStructMap != nil {
-		regionPointer = GetRegionByName(region, regionToStructMap)
-	} else {
-		// drawio needs regions. for now, creating a region for each vpc
-		// todo - remove this else when region is supported for aws
-		regionPointer = &Region{Name: name}
-	}
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -202,7 +194,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 			Region:       region,
 		},
 		Zones:     map[string]*Zone{},
-		VPCregion: regionPointer,
+		VPCregion: GetRegionByName(region, regionToStructMap),
 		VPCnodes:  []vpcmodel.Node{},
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
@@ -372,4 +364,12 @@ func PrintNACLRules(nacl *NACL) {
 		strRule, _, _, err := nacl.Analyzer.NaclAnalyzer.GetNACLRule(i)
 		PrintRule(strRule, i, err)
 	}
+}
+
+func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, s := range subnets {
+		res = append(res, s.Nodes()...)
+	}
+	return res
 }
