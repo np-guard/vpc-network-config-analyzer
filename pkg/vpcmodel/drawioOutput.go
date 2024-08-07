@@ -166,6 +166,10 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 	return nil
 }
 
+// createEdges() has three steps:
+// 1. union two edges with opposite direction and the same label to one edge
+// 2. union edges that have the same src/dst/direction with different label to one edge
+// 3. creating the TreeNodes, and set the routers
 func (d *DrawioOutputFormatter) createEdges() {
 	type edgeKeyForDirections struct {
 		src    EndpointElem
@@ -200,7 +204,6 @@ func (d *DrawioOutputFormatter) createEdges() {
 		k := edgeKeyForLabels{e.src, e.dst, e.router, directed}
 		edgeLabels[k] = append(edgeLabels[k],e.label)
 	}
-
 	for e, labels := range edgeLabels {
 		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";"), e.directed}
 		eTn := d.gen.TreeNode(ei)
