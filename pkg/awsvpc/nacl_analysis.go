@@ -59,9 +59,13 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		)
 		connStr = fmt.Sprintf("protocol: %s, dstPorts: %d-%d", *ruleObj.Protocol, minPort, maxPort)
 	case protocolICMP:
-		icmpType := int64(*ruleObj.IcmpTypeCode.Type)
-		icmpCode := int64(*ruleObj.IcmpTypeCode.Code)
-		conns = connection.ICMPConnection(icmpType, icmpType, icmpCode, icmpCode)
+		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
+			err := handleIcmpTypeCode(ruleObj.IcmpTypeCode.Type, ruleObj.IcmpTypeCode.Code)
+
+		if err != nil {
+			return "", nil, false, err
+		}
+		conns = connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)

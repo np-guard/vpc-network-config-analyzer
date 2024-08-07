@@ -106,12 +106,38 @@ func getRuleStr(direction, connStr, ipRanges string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, target: %s\n", direction, connStr, ipRanges)
 }
 
+func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeMax,
+	newIcmpCodeMin, newIcmpCodeMax int64, err error) {
+	if icmpCode == nil || icmpType == nil {
+		return 0, 0, 0, 0, fmt.Errorf("unexpected nil icmp type or code")
+	}
+	newIcmpTypeMin = int64(*icmpType)
+	newIcmpCodeMin = int64(*icmpCode)
+	newIcmpTypeMax = int64(*icmpType)
+	newIcmpCodeMax = int64(*icmpCode)
+
+	if newIcmpCodeMin == -1 {
+		newIcmpCodeMin = connection.MinICMPCode
+		newIcmpCodeMax = connection.MaxICMPCode
+	}
+	if newIcmpTypeMin == -1 {
+		newIcmpTypeMin = connection.MinICMPType
+		newIcmpTypeMax = connection.MaxICMPType
+	}
+
+	return
+}
+
 // getProtocolICMPRule returns rule results corresponding to the provided rule obj with icmp connection
 func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
-	icmpType := int64(*ruleObj.FromPort)
-	icmpCode := int64(*ruleObj.ToPort)
-	conns := connection.ICMPConnection(icmpType, icmpType, icmpCode, icmpCode)
+	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
+		err := handleIcmpTypeCode(ruleObj.FromPort, ruleObj.ToPort)
+
+	if err != nil {
+		return "", nil, err
+	}
+	conns := connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
