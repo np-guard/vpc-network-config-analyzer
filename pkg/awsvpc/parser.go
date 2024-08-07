@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -221,16 +222,17 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 	for vpcUID := range res.Configs() {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
-	for _, subnet := range rc.SubnetsList {
-		if skipByVPC[*subnet.VpcId] {
+	for _, subnetObj := range rc.SubnetsList {
+		if skipByVPC[*subnetObj.VpcId] {
 			continue
 		}
-		_, err := commonvpc.UpdateConfigWithSubnet(*subnet.SubnetId,
-			*subnet.SubnetId, *subnet.AvailabilityZone, *subnet.CidrBlock,
-			*subnet.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
+		subnet, err := commonvpc.UpdateConfigWithSubnet(*subnetObj.SubnetId,
+			*subnetObj.SubnetId, *subnetObj.AvailabilityZone, *subnetObj.CidrBlock,
+			*subnetObj.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
 		if err != nil {
 			return nil, err
 		}
+		subnet.SetIsPublic(*subnetObj.MapPublicIpOnLaunch)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -316,7 +318,11 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		}
 		vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
 		subnets := vpc.Subnets()
-		// todo - use only the public subnet:
+		// only public subnets can be a subnet of igw:
+		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
+			return !s.IsPublic()
+		})
+
 		if len(subnets) == 0 {
 			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
 			continue
