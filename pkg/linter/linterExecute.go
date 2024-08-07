@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -18,24 +19,12 @@ const issues = "issues:"
 const delimBetweenLintsChars = 200
 
 func GetLintersNames() map[string]bool {
-	return map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: true,
-		overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-		ruleNonRelevantCIDRSGName: true}
+	return nil //todo
 }
 
 // LinterExecute executes linters one by one
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
-	enableLinters := // enabling and disabling linters defaults
-		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: false,
-			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-			ruleNonRelevantCIDRSGName: true}
-	for _, disable := range disableList {
-		enableLinters[disable] = false
-	}
-	for _, enable := range enableList {
-		enableLinters[enable] = true
-	}
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
 	for uid, vpcConfig := range configs {
 		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
@@ -55,7 +44,11 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	}
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
-		if !enableLinters[thisLinter.lintName()] {
+		name := thisLinter.lintName()
+		// enable :=  slice.Contains(enableList,name) 
+		switch {
+		case slices.Contains(enableList,name):
+		case slices.Contains(disableList,name), !thisLinter.enableByDefault():
 			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
 			continue
 		}

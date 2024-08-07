@@ -22,6 +22,7 @@ type linter interface {
 	lintDescription() string       // this string Name
 	string(lintDesc string) string // string with this lint's finding
 	toJSON() []any                 // this lint finding in JSON
+	enableByDefault() bool //
 }
 
 type finding interface {
@@ -35,6 +36,7 @@ type basicLinter struct {
 	findings    []finding
 	name        string
 	description string
+	enable bool
 }
 
 type connectionLinter struct {
@@ -59,6 +61,10 @@ func (lint *basicLinter) addFindings(f []finding) {
 
 func (lint *basicLinter) getFindings() []finding {
 	return lint.findings
+}
+
+func (lint *basicLinter) enableByDefault() bool {
+	return lint.enable
 }
 
 func (lint *basicLinter) string(lintDesc string) string {
