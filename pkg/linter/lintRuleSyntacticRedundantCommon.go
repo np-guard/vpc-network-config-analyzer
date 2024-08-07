@@ -215,8 +215,10 @@ func (finding *ruleRedundant) toJSON() any {
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
 	containRules := make([]vpcmodel.RuleOfFilter, len(finding.containRules))
-	for i, rule := range finding.containRules {
+	i := 0
+	for _, rule := range finding.containRules {
 		containRules[i] = *rule
+		i++
 	}
 	res := ruleRedundantJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
 		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}, ContainRules: containRules}
