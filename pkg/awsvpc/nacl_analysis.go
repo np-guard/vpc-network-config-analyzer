@@ -76,12 +76,15 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	if err != nil {
 		return "", nil, false, err
 	}
-	ruleRes = &commonvpc.NACLRule{Src: ipblock.GetCidrAll(), Dst: ip, Connections: conns, Action: action}
 	isIngress = !*ruleObj.Egress
+	src := ipblock.GetCidrAll()
+	dst := ipblock.GetCidrAll()
 	direction := commonvpc.Outbound
 	if isIngress {
+		src = ip
 		direction = commonvpc.Inbound
 	}
+	ruleRes = &commonvpc.NACLRule{Src: src, Dst: dst, Connections: conns, Action: action}
 	ruleStr = fmt.Sprintf("index: %d, direction: %s ,cidr: %s, conn: %s, action: %s\n",
 		index, direction, ip, connStr, action)
 	return ruleStr, ruleRes, isIngress, nil
