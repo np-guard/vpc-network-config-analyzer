@@ -27,10 +27,6 @@ func NewAWSNACLAnalyzer(nacl *types.NetworkAcl) *AWSNACLAnalyzer {
 	return res
 }
 
-func getPortsStr(minPort, maxPort int64) string {
-	return fmt.Sprintf("%d-%d", minPort, maxPort)
-}
-
 func (na *AWSNACLAnalyzer) GetNumberOfRules() int {
 	return len(na.naclResource.Entries)
 }
@@ -45,7 +41,6 @@ func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 
 func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
-	var action, direction string
 	var connStr string
 	ruleObj := na.naclResource.Entries[index]
 	*ruleObj.Protocol = convertProtocol(*ruleObj.Protocol)
@@ -62,8 +57,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 			minPort,
 			maxPort,
 		)
-		dstPorts := getPortsStr(minPort, maxPort)
-		connStr = fmt.Sprintf("protocol: %s, dstPorts: %s", *ruleObj.Protocol, dstPorts)
+		connStr = fmt.Sprintf("protocol: %s, dstPorts: %d-%d", *ruleObj.Protocol, minPort, maxPort)
 	case protocolICMP:
 		icmpType := int64(*ruleObj.IcmpTypeCode.Type)
 		icmpCode := int64(*ruleObj.IcmpTypeCode.Code)
@@ -73,14 +67,14 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)
 		return "", nil, false, err
 	}
-	action = string(ruleObj.RuleAction)
+	action := string(ruleObj.RuleAction)
 	ip, err := ipblock.FromCidr(*ruleObj.CidrBlock)
 	if err != nil {
 		return "", nil, false, err
 	}
 	ruleRes = &commonvpc.NACLRule{Src: ipblock.GetCidrAll(), Dst: ip, Connections: conns, Action: action}
 	isIngress = !*ruleObj.Egress
-	direction = commonvpc.Outbound
+	direction := commonvpc.Outbound
 	if isIngress {
 		direction = commonvpc.Inbound
 	}

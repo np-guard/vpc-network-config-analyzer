@@ -83,8 +83,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	dstPorts := fmt.Sprintf("%d-%d", minPort, maxPort)
-	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.IpProtocol, dstPorts)
+	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", *ruleObj.IpProtocol, minPort, maxPort)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err

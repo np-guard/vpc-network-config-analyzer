@@ -301,8 +301,7 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 	skipByVPC map[string]bool,
 ) error {
 	naclLists := map[string][]*commonvpc.NACL{} // map from vpc uid to its nacls
-	for i := range rc.NetworkACLsList {
-		nacl := rc.NetworkACLsList[i]
+	for _, nacl := range rc.NetworkACLsList {
 		if skipByVPC[*nacl.VpcId] {
 			continue
 		}
@@ -326,7 +325,8 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 			},
 			Analyzer: naclAnalyzer, Subnets: map[string]*commonvpc.Subnet{}}
 		naclLists[vpcUID] = append(naclLists[vpcUID], naclResource)
-		for _, subnetRef := range nacl.Associations {
+		for i := range nacl.Associations {
+			subnetRef := &nacl.Associations[i]
 			subnetCRN := *subnetRef.SubnetId
 			if subnetResource, ok := res.Config(vpcUID).UIDToResource[subnetCRN]; ok {
 				if subnet, ok := subnetResource.(*commonvpc.Subnet); ok {

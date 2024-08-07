@@ -66,7 +66,7 @@ type NACLRule struct {
 	Dst         *ipblock.IPBlock
 	Connections *connection.Set
 	Action      string
-	Index       int // index of original rule in *vpc1.NetworkACL
+	Index       int // index of original rule in it's NetworkACL
 	// add ingress/egress ?
 }
 
