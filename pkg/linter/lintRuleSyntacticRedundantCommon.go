@@ -64,7 +64,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 		if err != nil {
 			return nil, err
 		}
-		tableToRules, tableToAtomicBlocks := getTableOrientedStructs(rules)
+		tableToRules, tableToAtomicBlocks := getTablesRulesAndAtomicBlocks(rules)
 		// iterates over tables, in each table iterates over rules and finds those that are redundant (shadowed/implied)
 		for tableIndex, rules := range tableToRules {
 			tableAtomicBlocks := tableToAtomicBlocks[tableIndex]
@@ -78,8 +78,8 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					rulesToIterate = tableToRules[tableIndex]
 				}
 				// gathers atomic blocks within rule's src and dst
-				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
-				dstBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].DstCidr)
+				srcBlocks := getAtomicBlocks(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
+				dstBlocks := getAtomicBlocks(tableAtomicBlocks, rules[redundantRuleIndex].DstCidr)
 				// iterates over cartesian product of atomic blocks within rule's src and dst; rule is redundant if all
 				// items in the cartesian product are shadowed/implies
 				ruleIsRedundant := true
@@ -120,7 +120,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 	return res, nil
 }
 
-func getAtomicBlocksOfSrcOrDst(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock) []*ipblock.IPBlock {
+func getAtomicBlocks(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock) []*ipblock.IPBlock {
 	res := []*ipblock.IPBlock{}
 	for _, block := range atomicBlocks {
 		if block.ContainedIn(srcOrdst) {
@@ -133,7 +133,7 @@ func getAtomicBlocksOfSrcOrDst(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipbloc
 // Generates and returns two maps from tables of layer (their indexes):
 // 1. To a slice of its rules, where the location in the slice is the index of the rule
 // 2. To slice of the atomic blocks of the table
-func getTableOrientedStructs(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
+func getTablesRulesAndAtomicBlocks(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
 ) {
 	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
