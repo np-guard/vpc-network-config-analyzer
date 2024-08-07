@@ -114,10 +114,8 @@ func getListLintersName(lintersNames map[string]bool) string {
 
 func bothDisableAndEnable(enableLintersList, disableLintersList []string) error {
 	for _, enable := range enableLintersList {
-		for _, disable := range disableLintersList {
-			if enable == disable {
-				return fmt.Errorf("lint %s specified both as enable and disable. only one is possible", enable)
-			}
+		if slices.Contains(disableLintersList, enable) {
+			return fmt.Errorf("lint %s specified both as enable and disable. only one is possible", enable)
 		}
 	}
 	return nil
