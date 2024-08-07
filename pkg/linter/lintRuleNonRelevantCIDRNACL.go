@@ -10,12 +10,14 @@ import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 // ruleNonRelevantCIDRNACLLint: NACL rules that are references CIDRs not in the vpc
 
-func newRuleNonRelevantCIDRNACLLint(configs map[string]*vpcmodel.VPCConfig) *filterLinter {
+func newRuleNonRelevantCIDRNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
 			configs:     configs,
-			name:        "rules-referring-non-relevant-CIDRs-NACLs",
+			name:        name,
 			description: "rules of network ACLs that references CIDRs not in the relevant VPC address range",
+			enable: true,
 		},
 		layer:          vpcmodel.NaclLayer,
 		checkForFilter: findRuleNonRelevantCIDR}

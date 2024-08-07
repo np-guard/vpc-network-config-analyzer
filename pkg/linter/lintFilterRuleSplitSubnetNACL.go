@@ -9,12 +9,14 @@ package linter
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
 // filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
-func newFilterRuleSplitSubnetLintNACL(configs map[string]*vpcmodel.VPCConfig) *filterLinter {
+func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
 			configs:     configs,
-			name:        "rules-splitting-subnets-NACLS",
+			name:        name,
 			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
+			enable: true,
 		},
 		layer:          vpcmodel.NaclLayer,
 		checkForFilter: findSplitRulesSubnet}

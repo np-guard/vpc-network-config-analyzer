@@ -18,12 +18,14 @@ type overlappingSubnetsLint struct {
 	basicLinter
 }
 
-func newOverlappingSubnetsLint(configs map[string]*vpcmodel.VPCConfig) *overlappingSubnetsLint {
+func newOverlappingSubnetsLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
 	return &overlappingSubnetsLint{
 		basicLinter: basicLinter{
 			configs:     configs,
-			name:        "overlapping-subnets",
+			name:        name,
 			description: "Overlapping CIDR ranges between different subnets",
+			enable: true,
 		}}
 }
 

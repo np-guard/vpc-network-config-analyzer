@@ -12,14 +12,41 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const issues = "issues:"
 const delimBetweenLintsChars = 200
 
-func GetLintersNames() map[string]bool {
-	return nil //todo
+func ValidLintersNames() string {
+	return strings.Join(common.MapKeys(linterGenerators), ",")
+}
+
+func IsValidLintersNames(name string) bool {
+	_, ok := linterGenerators[name]
+	return ok
+}
+func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) []linter{
+	res := make([]linter, len(linterGenerators))
+	i:= 0
+	for name, generator := range linterGenerators{
+		res [i] = generator(name,configs,nodeConn)
+		i++
+	}
+	return res
+}
+
+type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
+
+var linterGenerators = map[string]linterGenerator{
+	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
+	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
+	"overlapping-subnets":                      newOverlappingSubnetsLint,
+	"redundant tables":                         newRedundantTablesLint,
+	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
+	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
+	"blocked-TCP-response":                     newBlockedTCPResponseLint,
 }
 
 // LinterExecute executes linters one by one
@@ -33,22 +60,14 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		}
 		nodesConn[uid] = nodesConnThisCfg
 	}
-	linters := []linter{
-		newFilterRuleSplitSubnetLintNACL(configs),
-		newFilterRuleSplitSubnetLintSG(configs),
-		newOverlappingSubnetsLint(configs),
-		newRedundantTablesLint(configs),
-		newRuleNonRelevantCIDRSGLint(configs),
-		newRuleNonRelevantCIDRNACLLint(configs),
-		newBlockedTCPResponseLint(configs, nodesConn),
-	}
+	linters := generateLinters(configs,nodesConn)
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
 		name := thisLinter.lintName()
-		// enable :=  slice.Contains(enableList,name) 
+		// enable :=  slice.Contains(enableList,name)
 		switch {
-		case slices.Contains(enableList,name):
-		case slices.Contains(disableList,name), !thisLinter.enableByDefault():
+		case slices.Contains(enableList, name):
+		case slices.Contains(disableList, name), !thisLinter.enableByDefault():
 			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
 			continue
 		}

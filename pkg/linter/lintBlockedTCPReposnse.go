@@ -21,14 +21,15 @@ type blockedTCPResponseLint struct {
 	connectionLinter
 }
 
-func newBlockedTCPResponseLint(configs map[string]*vpcmodel.VPCConfig,
-	nodesConn map[string]*vpcmodel.VPCConnectivity) *blockedTCPResponseLint {
+func newBlockedTCPResponseLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
 	return &blockedTCPResponseLint{
 		connectionLinter: connectionLinter{
 			basicLinter: basicLinter{
 				configs:     configs,
-				name:        "blocked-TCP-response",
+				name:        name,
 				description: "Blocked TCP response",
+				enable: true,
 			},
 			nodesConn: nodesConn}}
 }

@@ -17,12 +17,14 @@ type redundantTablesLint struct {
 	basicLinter
 }
 
-func newRedundantTablesLint(configs map[string]*vpcmodel.VPCConfig) *redundantTablesLint {
+func newRedundantTablesLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
 	return &redundantTablesLint{
 		basicLinter: basicLinter{
 			configs:     configs,
-			name:        "redundant tables",
+			name:        name,
 			description: "Access control tables for which there are no resources attached to",
+			enable: true,
 		}}
 }
 
