@@ -51,7 +51,7 @@ func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string
 	return res
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////////
 // LinterExecute executes linters one by one
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
@@ -67,10 +67,10 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
 		name := thisLinter.lintName()
-		// enable :=  slice.Contains(enableList,name)
-		switch {
-		case slices.Contains(enableList, name):
-		case slices.Contains(disableList, name), !thisLinter.enableByDefault():
+		enable := thisLinter.enableByDefault()
+		enable = enable || slices.Contains(enableList, name)
+		enable = enable && !slices.Contains(disableList, name)
+		if !enable {
 			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
 			continue
 		}
