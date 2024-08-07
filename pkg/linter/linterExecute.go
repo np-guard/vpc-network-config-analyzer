@@ -20,7 +20,7 @@ const delimBetweenLintsChars = 200
 func GetLintersNames() map[string]bool {
 	return map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: true,
 		overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-		ruleNonRelevantCIDRSGName: true}
+		ruleNonRelevantCIDRSGName: true, ruleRedundantNACLName: true, ruleRedundantSGName: true}
 }
 
 // LinterExecute executes linters one by one
@@ -29,7 +29,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 	enableLinters := // enabling and disabling linters defaults
 		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: false,
 			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-			ruleNonRelevantCIDRSGName: true}
+			ruleNonRelevantCIDRSGName: true, ruleRedundantNACLName: true, ruleRedundantSGName: true}
 	for _, disable := range disableList {
 		enableLinters[disable] = false
 	}
