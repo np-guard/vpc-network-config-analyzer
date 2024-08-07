@@ -205,7 +205,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 		edgeLabels[k] = append(edgeLabels[k],e.label)
 	}
 	for e, labels := range edgeLabels {
-		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";"), e.directed}
+		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";  "), e.directed}
 		eTn := d.gen.TreeNode(ei)
 		if eTn != nil && e.router != nil {
 			eTn.(*drawio.ConnectivityTreeNode).SetRouter(e.router)
