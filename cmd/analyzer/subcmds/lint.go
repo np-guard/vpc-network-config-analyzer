@@ -37,9 +37,9 @@ func NewLintCommand(args *inArgs) *cobra.Command {
 		},
 	}
 	validLintersNames := getListLintersName(linter.GetLintersNames())
-	usageStr := "specific linters " + enableDisableUsage + " linters: " + validLintersNames
-	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+space+usageStr)
-	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+space+usageStr)
+	usageStr := " specific linters, specified as linter names separated by comma.\nlinters: " + validLintersNames
+	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+usageStr)
+	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+usageStr)
 	return cmd
 }
 
