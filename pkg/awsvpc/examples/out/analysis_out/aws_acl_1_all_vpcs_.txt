@@ -2,29 +2,7 @@ Endpoint connectivity for VPC VpcId:41
 <nothing to report>
 
 Endpoint connectivity for VPC VpcId:5
-InstanceId:18[10.240.2.4] => InstanceId:22[10.240.3.161] : protocol: TCP dst-ports: 443 * 
-InstanceId:18[10.240.2.4] => InstanceId:7[10.240.3.177] : protocol: TCP dst-ports: 443 * 
 InstanceId:22[10.240.3.161] => InstanceId:7[10.240.3.177] : All Connections
-InstanceId:28[10.240.0.40] => InstanceId:22[10.240.3.161] : protocol: ICMP,UDP
-InstanceId:28[10.240.0.40] => InstanceId:22[10.240.3.161] : protocol: TCP * 
-InstanceId:28[10.240.0.40] => InstanceId:7[10.240.3.177] : protocol: ICMP,UDP
-InstanceId:28[10.240.0.40] => InstanceId:7[10.240.3.177] : protocol: TCP * 
-InstanceId:33[10.240.1.220] => InstanceId:18[10.240.2.4] : protocol: TCP dst-ports: 443 * 
-InstanceId:33[10.240.1.220] => InstanceId:22[10.240.3.161] : protocol: ICMP,UDP
-InstanceId:33[10.240.1.220] => InstanceId:22[10.240.3.161] : protocol: TCP * 
-InstanceId:33[10.240.1.220] => InstanceId:28[10.240.0.40] : protocol: ICMP,UDP
-InstanceId:33[10.240.1.220] => InstanceId:28[10.240.0.40] : protocol: TCP * 
 InstanceId:33[10.240.1.220] => InstanceId:37[10.240.1.180] : All Connections
-InstanceId:33[10.240.1.220] => InstanceId:7[10.240.3.177] : protocol: ICMP,UDP
-InstanceId:33[10.240.1.220] => InstanceId:7[10.240.3.177] : protocol: TCP * 
-InstanceId:37[10.240.1.180] => InstanceId:18[10.240.2.4] : protocol: TCP dst-ports: 443 * 
-InstanceId:37[10.240.1.180] => InstanceId:22[10.240.3.161] : protocol: ICMP,UDP
-InstanceId:37[10.240.1.180] => InstanceId:22[10.240.3.161] : protocol: TCP * 
-InstanceId:37[10.240.1.180] => InstanceId:28[10.240.0.40] : protocol: ICMP,UDP
-InstanceId:37[10.240.1.180] => InstanceId:28[10.240.0.40] : protocol: TCP * 
 InstanceId:37[10.240.1.180] => InstanceId:33[10.240.1.220] : All Connections
-InstanceId:37[10.240.1.180] => InstanceId:7[10.240.3.177] : protocol: ICMP,UDP
-InstanceId:37[10.240.1.180] => InstanceId:7[10.240.3.177] : protocol: TCP * 
 InstanceId:7[10.240.3.177] => InstanceId:22[10.240.3.161] : All Connections
-
-TCP connections for which response is not permitted are marked with * 
