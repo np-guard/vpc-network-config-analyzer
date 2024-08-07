@@ -131,14 +131,14 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
-	subnetIdToNetIntf := map[string][]*commonvpc.NetworkInterface{}
-	err = rc.getInstancesConfig(subnetIdToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
+	err = rc.getInstancesConfig(subnetIDToNetIntf, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*commonvpc.Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetIdToNetIntf, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetIDToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filter
 }
 
 func (rc *IBMresourcesContainer) getInstancesConfig(
-	subnetIdToNetIntf map[string][]*commonvpc.NetworkInterface,
+	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
@@ -378,11 +378,11 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
 			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
-			subnetId := *netintf.Subnet.ID
-			if _, ok := subnetIdToNetIntf[subnetId]; !ok {
-				subnetIdToNetIntf[subnetId] = []*commonvpc.NetworkInterface{}
+			subnetUID := *netintf.Subnet.CRN
+			if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
+				subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
 			}
-			subnetIdToNetIntf[subnetId] = append(subnetIdToNetIntf[subnetId], intfNode)
+			subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
 		}
 	}
 	return nil
@@ -391,7 +391,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 func (rc *IBMresourcesContainer) getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
-	subnetIdToNetIntf map[string][]*commonvpc.NetworkInterface,
+	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
@@ -404,7 +404,7 @@ func (rc *IBMresourcesContainer) getSubnetsConfig(
 		}
 		subnetNode, err := commonvpc.UpdateConfigWithSubnet(*subnet.Name,
 			*subnet.CRN, *subnet.Zone.Name, *subnet.Ipv4CIDRBlock,
-			*subnet.VPC.CRN, res, vpcInternalAddressRange, subnetIdToNetIntf)
+			*subnet.VPC.CRN, res, vpcInternalAddressRange, subnetIDToNetIntf)
 		if err != nil {
 			return nil, err
 		}

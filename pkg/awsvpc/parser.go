@@ -26,6 +26,7 @@ import (
 
 // todo - remove this when aws regions are supported:
 const defaultRegionName = "default-region"
+const resourceName = "Name"
 
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
@@ -116,13 +117,13 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
-	subnetIdToNetIntf := map[string][]*commonvpc.NetworkInterface{}
+	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
 	netIntfToSGs := map[string][]types.GroupIdentifier{}
-	err = rc.getInstancesConfig(subnetIdToNetIntf, netIntfToSGs, res, shouldSkipVpcIds)
+	err = rc.getInstancesConfig(subnetIDToNetIntf, netIntfToSGs, res, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
-	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, subnetIdToNetIntf, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, subnetIDToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +163,7 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 		}
 		vpcName := *vpc.VpcId
 		for _, tag := range vpc.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				vpcName = *tag.Value
 			}
 		}
@@ -198,7 +199,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		}
 		instanceName := *instance.InstanceId
 		for _, tag := range instance.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				instanceName = *tag.Value
 			}
 		}
@@ -245,7 +246,7 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 		}
 		subnetName := *subnetObj.SubnetId
 		for _, tag := range subnetObj.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				subnetName = *tag.Value
 			}
 		}
@@ -296,7 +297,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		}
 		sgName := *sg.GroupId
 		for _, tag := range sg.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				sgName = *tag.Value
 			}
 		}
@@ -350,7 +351,7 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 		}
 		naclName := *nacl.NetworkAclId
 		for _, tag := range nacl.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				naclName = *tag.Value
 			}
 		}
@@ -401,7 +402,7 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		igwID := *igw.InternetGatewayId
 		igwName := igwID
 		for _, tag := range igw.Tags {
-			if *tag.Key == "Name" {
+			if *tag.Key == resourceName {
 				igwName = *tag.Value
 			}
 		}
