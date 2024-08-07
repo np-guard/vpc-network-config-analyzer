@@ -196,17 +196,17 @@ func (d *DrawioOutputFormatter) createEdges() {
 	}
 	// 2. union for different labels:
 	type edgeKeyForLabels struct {
-		src    EndpointElem
-		dst    EndpointElem
-		router drawio.IconTreeNodeInterface
-		directed  bool
+		src      EndpointElem
+		dst      EndpointElem
+		router   drawio.IconTreeNodeInterface
+		directed bool
 	}
 	edgeLabels := map[edgeKeyForLabels][]string{}
 	for e, directed := range isEdgeDirected {
 		k := edgeKeyForLabels{e.src, e.dst, e.router, directed}
-		edgeLabels[k] = append(edgeLabels[k],e.label)
+		edgeLabels[k] = append(edgeLabels[k], e.label)
 	}
-	// 3. create TreeNodes: 
+	// 3. create TreeNodes:
 	for e, labels := range edgeLabels {
 		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";  "), e.directed}
 		eTn := d.gen.TreeNode(ei)
