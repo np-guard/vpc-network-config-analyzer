@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -74,7 +75,9 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				if filterLayerName == vpcmodel.NaclLayer {
 					rulesToIterate = tableToRules[tableIndex][:redundantRuleIndex]
 				} else { // SG
+
 					rulesToIterate = tableToRules[tableIndex]
+				//	rulesToIterate = append(tableToRules[tableIndex][:redundantRuleIndex], tableToRules[tableIndex][redundantRuleIndex+1:]...) 
 				}
 				// gathers atomic blocks within rule's src and dst
 				srcBlocks := getAtomicBlocksOfSrcOrDst(tableAtomicBlocks, rules[redundantRuleIndex].SrcCidr)
@@ -87,8 +90,8 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					for _, dstAtomicBlock := range dstBlocks {
 						connOfOthers := connection.None()
 						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
-						for otherRuleIndex, otherRule := range rulesToIterate {
-							if redundantRuleIndex == otherRuleIndex {
+						for _, otherRule := range rulesToIterate {
+							if redundantRuleIndex == otherRule.RuleIndex {
 								continue // relevant only to SG
 							}
 							// otherRule contributes to the shadowing/implication?
@@ -98,8 +101,8 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 								dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
 								!rules[redundantRuleIndex].Conn.Intersect(otherRule.Conn).IsEmpty() {
 								connOfOthers = connOfOthers.Union(otherRule.Conn)
-								if _, ok := containRules[otherRuleIndex]; !ok {
-									containRules[otherRuleIndex] = otherRule
+								if _, ok := containRules[otherRule.RuleIndex]; !ok {
+									containRules[otherRule.RuleIndex] = otherRule
 								}
 							}
 						}
@@ -135,31 +138,23 @@ func getAtomicBlocksOfSrcOrDst(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipbloc
 func getTableOrientedStructs(rules []vpcmodel.RuleOfFilter) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock,
 ) {
-	// 1.1 Computes the number of rules in each table, to determine the size of each slice in the map tableToRules
-	tableToSize := map[int]int{}
-	for i := range rules {
-		filterIndex := rules[i].Filter.FilterIndex
-		tableToSize[filterIndex]++
-	}
 	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
-	// 1.2 Initialize tableToRules with the above computed sizes
-	for i, size := range tableToSize {
-		tableToRules[i] = make([]*vpcmodel.RuleOfFilter, size)
-	}
-	// 1.3 Populates tableToRules
+	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
-		tableToRules[filterIndex][rules[i].RuleIndex] = &rules[i]
-	}
-	// 2. For each table computes its atomic blocks and creates the above resulting map
-	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
-	srcIPBlocks, dstIPBlocks := []*ipblock.IPBlock{}, []*ipblock.IPBlock{}
-	for tableIndex := range tableToRules {
-		for i := range tableToRules[tableIndex] {
-			srcIPBlocks = append(srcIPBlocks, tableToRules[tableIndex][i].SrcCidr)
-			dstIPBlocks = append(dstIPBlocks, tableToRules[tableIndex][i].DstCidr)
+		if _, ok := tableToRules[filterIndex]; !ok {
+			tableToRules[filterIndex] = []*vpcmodel.RuleOfFilter{}
+			tableToAtomicBlocks[filterIndex] = []*ipblock.IPBlock{}
 		}
-		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(srcIPBlocks, dstIPBlocks)
+		tableToRules[filterIndex] = append(tableToRules[filterIndex], &rules[i])
+		tableToAtomicBlocks[filterIndex] = append(tableToAtomicBlocks[filterIndex], rules[i].SrcCidr)
+		tableToAtomicBlocks[filterIndex] = append(tableToAtomicBlocks[filterIndex], rules[i].DstCidr)
+	}
+	for tableIndex := range tableToRules {
+		slices.SortFunc(tableToRules[tableIndex], func(r1, r2 *vpcmodel.RuleOfFilter) int {
+			return r1.RuleIndex - r2.RuleIndex
+		})
+		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(tableToAtomicBlocks[tableIndex],nil)
 	}
 	return tableToRules, tableToAtomicBlocks
 }
