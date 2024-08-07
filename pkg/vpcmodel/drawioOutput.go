@@ -9,6 +9,7 @@ package vpcmodel
 import (
 	"errors"
 	"slices"
+	"strings"
 
 	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -166,20 +167,20 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 }
 
 func (d *DrawioOutputFormatter) createEdges() {
-	type edgeKey struct {
+	type edgeKeyForDirections struct {
 		src    EndpointElem
 		dst    EndpointElem
 		router drawio.IconTreeNodeInterface
 		label  string
 	}
-	isEdgeDirected := map[edgeKey]bool{}
+	isEdgeDirected := map[edgeKeyForDirections]bool{}
 	for vpcResourceID, vpcConn := range d.gConns {
 		for _, line := range vpcConn.GroupedLines {
 			src := line.Src
 			dst := line.Dst
 			router := d.lineRouter(line, vpcResourceID)
-			e := edgeKey{src, dst, router, line.ConnLabel(false)}
-			revE := edgeKey{dst, src, router, line.ConnLabel(false)}
+			e := edgeKeyForDirections{src, dst, router, line.ConnLabel(false)}
+			revE := edgeKeyForDirections{dst, src, router, line.ConnLabel(false)}
 			_, revExist := isEdgeDirected[revE]
 			if revExist {
 				isEdgeDirected[revE] = false
@@ -188,8 +189,20 @@ func (d *DrawioOutputFormatter) createEdges() {
 			}
 		}
 	}
+	type edgeKeyForLabels struct {
+		src    EndpointElem
+		dst    EndpointElem
+		router drawio.IconTreeNodeInterface
+		directed  bool
+	}
+	edgeLabels := map[edgeKeyForLabels][]string{}
 	for e, directed := range isEdgeDirected {
-		ei := &edgeInfo{e.src, e.dst, e.label, directed}
+		k := edgeKeyForLabels{e.src, e.dst, e.router, directed}
+		edgeLabels[k] = append(edgeLabels[k],e.label)
+	}
+
+	for e, labels := range edgeLabels {
+		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";"), e.directed}
 		eTn := d.gen.TreeNode(ei)
 		if eTn != nil && e.router != nil {
 			eTn.(*drawio.ConnectivityTreeNode).SetRouter(e.router)
