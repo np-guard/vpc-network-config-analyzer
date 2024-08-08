@@ -167,10 +167,6 @@ func getTablesRulesAndAtomicBlocks(config *vpcmodel.VPCConfig, filterLayerName s
 	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
-		if _, ok := tableToRules[filterIndex]; !ok {
-			tableToRules[filterIndex] = []*vpcmodel.RuleOfFilter{}
-			tableToAtomicBlocks[filterIndex] = []*ipblock.IPBlock{}
-		}
 		tableToRules[filterIndex] = append(tableToRules[filterIndex], &rules[i])
 		tableToAtomicBlocks[filterIndex] = append(tableToAtomicBlocks[filterIndex], rules[i].SrcCidr)
 		tableToAtomicBlocks[filterIndex] = append(tableToAtomicBlocks[filterIndex], rules[i].DstCidr)
