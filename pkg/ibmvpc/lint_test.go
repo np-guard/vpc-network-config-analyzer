@@ -32,6 +32,13 @@ var lintTests = []*vpcGeneralTest{
 		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
+		name:        "acl3_shadowed_rules_other_lints_disabled",
+		inputConfig: "acl_testing3_with_redundant_rules",
+		disable: []string{"rules-splitting-subnets-NACLS", "overlapping-subnets", "redundant tables",
+			"rules-referring-non-relevant-CIDRs-SG", "rules-referring-non-relevant-CIDRs-NACLs",
+			"blocked-TCP-response", "rules-redundant-SG"},
+	},
+	{
 		name:        "acl3_3rd",
 		inputConfig: "acl_testing3_3rd",
 		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
@@ -72,7 +79,7 @@ func TestAllLint(t *testing.T) {
 }
 
 // uncomment the function below for generating the expected output files instead of comparing
-/*
+
 func TestAllLintWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
@@ -85,7 +92,7 @@ func TestAllLintWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
+
 func (tt *vpcGeneralTest) runLintTest(t *testing.T) {
 	// all tests in lint mode
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
