@@ -167,48 +167,47 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 }
 
 // createEdges() has three steps:
-// 1. union two edges with opposite direction and the same label to one edge
-// 2. union edges that have the same src/dst/direction with different label to one edge
+// 1. union edges that have the same src/dst/direction with different labels to one edge
+// 2. union two edges with opposite direction and the same labels to one edge
 // 3. creating the TreeNodes, and set the routers
 func (d *DrawioOutputFormatter) createEdges() {
-	// 1.union for opposite direction:
-	type edgeKeyForDirections struct {
+	// 1. union for different labels:
+	type edgeKeyForLabels struct {
+		src    EndpointElem
+		dst    EndpointElem
+		router drawio.IconTreeNodeInterface
+	}
+	edgeLabels := map[edgeKeyForLabels][]string{}
+	for vpcResourceID, vpcConn := range d.gConns {
+		for _, line := range vpcConn.GroupedLines {
+			router := d.lineRouter(line, vpcResourceID)
+			k := edgeKeyForLabels{line.Src, line.Dst, router}
+			edgeLabels[k] = append(edgeLabels[k], line.ConnLabel(false))
+		}
+	}
+	// 2.union for opposite direction:
+	type edgeKey struct {
 		src    EndpointElem
 		dst    EndpointElem
 		router drawio.IconTreeNodeInterface
 		label  string
 	}
-	isEdgeDirected := map[edgeKeyForDirections]bool{}
-	for vpcResourceID, vpcConn := range d.gConns {
-		for _, line := range vpcConn.GroupedLines {
-			src := line.Src
-			dst := line.Dst
-			router := d.lineRouter(line, vpcResourceID)
-			e := edgeKeyForDirections{src, dst, router, line.ConnLabel(false)}
-			revE := edgeKeyForDirections{dst, src, router, line.ConnLabel(false)}
-			_, revExist := isEdgeDirected[revE]
-			if revExist {
-				isEdgeDirected[revE] = false
-			} else {
-				isEdgeDirected[e] = true
-			}
+	isEdgeDirected := map[edgeKey]bool{}
+	for key, labels := range edgeLabels {
+		slices.Sort(labels)
+		label :=  strings.Join(labels,";  ")
+		e := edgeKey{key.src, key.dst, key.router, label}
+		revE := edgeKey{key.dst, key.src, key.router, label}
+		_, revExist := isEdgeDirected[revE]
+		if revExist {
+			isEdgeDirected[revE] = false
+		} else {
+			isEdgeDirected[e] = true
 		}
 	}
-	// 2. union for different labels:
-	type edgeKeyForLabels struct {
-		src      EndpointElem
-		dst      EndpointElem
-		router   drawio.IconTreeNodeInterface
-		directed bool
-	}
-	edgeLabels := map[edgeKeyForLabels][]string{}
-	for e, directed := range isEdgeDirected {
-		k := edgeKeyForLabels{e.src, e.dst, e.router, directed}
-		edgeLabels[k] = append(edgeLabels[k], e.label)
-	}
 	// 3. create TreeNodes:
-	for e, labels := range edgeLabels {
-		ei := &edgeInfo{e.src, e.dst, strings.Join(labels, ";  "), e.directed}
+	for e, directed := range isEdgeDirected {
+		ei := &edgeInfo{e.src, e.dst, e.label, directed}
 		eTn := d.gen.TreeNode(ei)
 		if eTn != nil && e.router != nil {
 			eTn.(*drawio.ConnectivityTreeNode).SetRouter(e.router)
