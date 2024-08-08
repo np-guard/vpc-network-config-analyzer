@@ -20,6 +20,34 @@ type splitRuleSubnet struct {
 	splitSubnets []vpcmodel.Subnet
 }
 
+// filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
+func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
+			enable:      false,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findSplitRulesSubnet}
+}
+
+// filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
+func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findSplitRulesSubnet}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 // functionality used by both filterRuleSplitSubnetLintNACL and filterRuleSplitSubnetLintSG
 ////////////////////////////////////////////////////////////////////////////////////////////
