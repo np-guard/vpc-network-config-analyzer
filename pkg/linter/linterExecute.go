@@ -51,18 +51,27 @@ func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string
 	return res
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////
-// LinterExecute executes linters one by one
-func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
-	enableList, disableList []string) (issueFound bool, resString string, err error) {
+func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vpcmodel.VPCConnectivity, error) {
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
 	for uid, vpcConfig := range configs {
 		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
 		if err != nil {
-			return false, "", err
+			return nil, err
 		}
 		nodesConn[uid] = nodesConnThisCfg
 	}
+	return nodesConn, nil
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////////
+// LinterExecute executes linters one by one
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
+	enableList, disableList []string) (issueFound bool, resString string, err error) {
+	nodesConn, err := computeConnectivity(configs)
+	if err != nil {
+		return false, "", err
+	}
+
 	linters := generateLinters(configs, nodesConn)
 	strPerLint := []string{}
 	for _, thisLinter := range linters {

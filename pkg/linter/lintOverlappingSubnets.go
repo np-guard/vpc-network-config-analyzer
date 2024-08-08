@@ -19,7 +19,7 @@ type overlappingSubnetsLint struct {
 }
 
 func newOverlappingSubnetsLint(name string, configs map[string]*vpcmodel.VPCConfig,
-	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &overlappingSubnetsLint{
 		basicLinter: basicLinter{
 			configs:     configs,

@@ -40,13 +40,7 @@ func (s GenericSet[T]) AsKey() SetAsKey {
 }
 
 func (s GenericSet[T]) AsList() []T {
-	keys := make([]T, len(s))
-	i := 0
-	for k := range s {
-		keys[i] = k
-		i++
-	}
-	return keys
+	return MapKeys(s)
 }
 
 func FromList[T comparable](l []T) GenericSet[T] {
@@ -81,6 +75,7 @@ func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
 	return k, v
 }
 
+// todo - these two methods will be available on go 1.23:
 func MapValues[K comparable, V any](m map[K]V) []V {
 	vals := make([]V, len(m))
 	i := 0
