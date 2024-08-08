@@ -8,60 +8,80 @@ package linter
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const issues = "issues:"
 const delimBetweenLintsChars = 200
 
-func GetLintersNames() map[string]bool {
-	return map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: true,
-		overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-		ruleNonRelevantCIDRSGName: true, ruleRedundantNACLName: true, ruleRedundantSGName: true}
+// linterGenerator is a function that generate a linter.
+// we need a list of generators, and their names, so we holds a map from a linter name to its generator.
+// when creating a new linter, this is the list of linters that should be updated:
+type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
+
+var linterGenerators = map[string]linterGenerator{
+	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
+	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
+	"overlapping-subnets":                      newOverlappingSubnetsLint,
+	"redundant tables":                         newRedundantTablesLint,
+	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
+	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
+	"blocked-TCP-response":                     newBlockedTCPResponseLint,
+	"rules-shadowed-NACL":                      newRuleShadowedNACLLint,
+	"rules-redundant-SG":                       newRuleRedundantSGRuleLint,
 }
 
-// LinterExecute executes linters one by one
-func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
-	enableList, disableList []string) (issueFound bool, resString string, err error) {
-	enableLinters := // enabling and disabling linters defaults
-		map[string]bool{blockedTCPResponse: true, splitRuleSubnetNACLName: true, SplitRuleSubnetSGName: false,
-			overlappingSubnetsName: true, ruleNonRelevantCIDRNACLName: true, redundantTablesName: true,
-			ruleNonRelevantCIDRSGName: true, ruleRedundantNACLName: true, ruleRedundantSGName: true}
-	for _, disable := range disableList {
-		enableLinters[disable] = false
+func ValidLintersNames() string {
+	return strings.Join(common.MapKeys(linterGenerators), ",")
+}
+func IsValidLintersNames(name string) bool {
+	_, ok := linterGenerators[name]
+	return ok
+}
+func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) []linter {
+	res := make([]linter, len(linterGenerators))
+	i := 0
+	for name, generator := range linterGenerators {
+		res[i] = generator(name, configs, nodeConn)
+		i++
 	}
-	for _, enable := range enableList {
-		enableLinters[enable] = true
-	}
+	return res
+}
+
+func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vpcmodel.VPCConnectivity, error) {
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
 	for uid, vpcConfig := range configs {
 		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
 		if err != nil {
-			return false, "", err
+			return nil, err
 		}
 		nodesConn[uid] = nodesConnThisCfg
 	}
-	basicLint := basicLinter{
-		configs: configs,
+	return nodesConn, nil
+}
+
+// //////////////////////////////////////////////////////////////////////////////////////////////
+// LinterExecute executes linters one by one
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
+	enableList, disableList []string) (issueFound bool, resString string, err error) {
+	nodesConn, err := computeConnectivity(configs)
+	if err != nil {
+		return false, "", err
 	}
-	connLint := connectionLinter{basicLint, nodesConn}
-	linters := []linter{
-		&filterRuleSplitSubnetLintNACL{basicLinter: basicLint},
-		&filterRuleSplitSubnetLintSG{basicLinter: basicLint},
-		&overlappingSubnetsLint{basicLinter: basicLint},
-		&redundantTablesLint{basicLinter: basicLint},
-		&ruleNonRelevantCIDRSGLint{basicLinter: basicLint},
-		&ruleNonRelevantCIDRNACLLint{basicLinter: basicLint},
-		&blockedTCPResponseLint{connectionLinter: connLint},
-		&ruleRedundantNACLLint{basicLinter: basicLint},
-		&ruleRedundantSGLint{basicLinter: basicLint},
-	}
+
+	linters := generateLinters(configs, nodesConn)
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
-		if !enableLinters[thisLinter.lintName()] {
+		name := thisLinter.lintName()
+		enable := thisLinter.enableByDefault()
+		enable = enable || slices.Contains(enableList, name)
+		enable = enable && !slices.Contains(disableList, name)
+		if !enable {
 			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
 			continue
 		}

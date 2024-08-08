@@ -8,31 +8,16 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const SplitRuleSubnetSGName = "rules-splitting-subnets-SecurityGroups"
-
 // filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
-type filterRuleSplitSubnetLintSG struct {
-	basicLinter
-}
-
-// //////////////////////////////////////////////////////////////
-// lint interface implementation for filterRuleSplitSubnetLintSG
-// /////////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnetLintSG) lintName() string {
-	return SplitRuleSubnetSGName
-}
-
-func (lint *filterRuleSplitSubnetLintSG) lintDescription() string {
-	return "rules of security groups implying different connectivity for different endpoints within a subnet"
-}
-
-func (lint *filterRuleSplitSubnetLintSG) check() error {
-	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.SecurityGroupLayer)
-	if err != nil {
-		return err
-	}
-	for i := range rulesSplitSubnetsFound {
-		lint.addFinding(&rulesSplitSubnetsFound[i])
-	}
-	return nil
+func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
+			enable:      true,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findSplitRulesSubnet}
 }

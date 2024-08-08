@@ -8,31 +8,16 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const ruleRedundantNACLName = "rules-redundant-NACL"
-
 // ruleRedundantNACLLint: NACL rules that are overruled by higher priority rules
-type ruleRedundantNACLLint struct {
-	basicLinter
-}
-
-// /////////////////////////////////////////////////////////
-// lint interface implementation for ruleNonRelevantCIDRSGLint
-// ////////////////////////////////////////////////////////
-func (lint *ruleRedundantNACLLint) lintName() string {
-	return ruleRedundantNACLName
-}
-
-func (lint *ruleRedundantNACLLint) lintDescription() string {
-	return "rules of network ACLs that are shadowed by higher priority rules"
-}
-
-func (lint *ruleRedundantNACLLint) check() error {
-	rulesRedundantNACLFound, err := findRuleSyntacticRedundant(lint.configs, vpcmodel.NaclLayer)
-	if err != nil {
-		return err
-	}
-	for i := range rulesRedundantNACLFound {
-		lint.addFinding(&rulesRedundantNACLFound[i])
-	}
-	return nil
+func newRuleShadowedNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs that are shadowed by higher priority rules",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findRuleSyntacticRedundant}
 }

@@ -8,31 +8,16 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const ruleRedundantSGName = "rules-redundant-SG"
-
-// ruleRedundantSGLint: SG rules that are implied by other rules
-type ruleRedundantSGLint struct {
-	basicLinter
-}
-
-// /////////////////////////////////////////////////////////
-// lint interface implementation for ruleRedundantSGLint
-// ////////////////////////////////////////////////////////
-func (lint *ruleRedundantSGLint) lintName() string {
-	return ruleRedundantSGName
-}
-
-func (lint *ruleRedundantSGLint) lintDescription() string {
-	return "security group rules that are implied by other rules"
-}
-
-func (lint *ruleRedundantSGLint) check() error {
-	rulesRedundantSGFound, err := findRuleSyntacticRedundant(lint.configs, vpcmodel.SecurityGroupLayer)
-	if err != nil {
-		return err
-	}
-	for i := range rulesRedundantSGFound {
-		lint.addFinding(&rulesRedundantSGFound[i])
-	}
-	return nil
+// newRuleRedundantSGRuleLint: SG rules that are implied by other rules
+func newRuleRedundantSGRuleLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "security group rules that are implied by other rules",
+			enable:      true,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findRuleSyntacticRedundant}
 }

@@ -54,7 +54,7 @@ type ruleRedundant struct {
 //
 //nolint:gocyclo // better not split into two function
 func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
-	filterLayerName string) (res []ruleRedundant, err error) {
+	filterLayerName string) (res []finding, err error) {
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -107,7 +107,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 					}
 				}
 				if ruleIsRedundant {
-					res = append(res, ruleRedundant{vpcResource: config.VPC, rule: *redundantRule, containRules: containRules})
+					res = append(res, &ruleRedundant{vpcResource: config.VPC, rule: *redundantRule, containRules: containRules})
 				}
 			}
 		}
