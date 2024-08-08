@@ -195,7 +195,7 @@ func (d *DrawioOutputFormatter) createEdges() {
 	isEdgeDirected := map[edgeKey]bool{}
 	for key, labels := range edgeLabels {
 		slices.Sort(labels)
-		label :=  strings.Join(labels,";  ")
+		label := strings.Join(labels, ";  ")
 		e := edgeKey{key.src, key.dst, key.router, label}
 		revE := edgeKey{key.dst, key.src, key.router, label}
 		_, revExist := isEdgeDirected[revE]
