@@ -204,7 +204,7 @@ func (finding *ruleRedundant) string() string {
 type ruleRedundantJSON struct {
 	Rule         vpcmodel.RuleOfFilter   `json:"vpc_name"`
 	VpcName      string                  `json:"rule_details"`
-	ContainRules []vpcmodel.RuleOfFilter // rules because of which this rule is redundant to their description
+	ContainRules []vpcmodel.RuleOfFilter `json:"containing_rules"` // rules because of which this rule is redundant to their description
 }
 
 func (finding *ruleRedundant) toJSON() any {
