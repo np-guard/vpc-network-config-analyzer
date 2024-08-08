@@ -28,6 +28,34 @@ type ruleRedundant struct {
 	vpcResource  vpcmodel.VPC
 }
 
+// ruleRedundantNACLLint: NACL rules that are overruled by higher priority rules
+func newRuleShadowedNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs that are shadowed by higher priority rules",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findRuleSyntacticRedundant}
+}
+
+// newRuleRedundantSGRuleLint: SG rules that are implied by other rules
+func newRuleRedundantSGRuleLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "security group rules that are implied by other rules",
+			enable:      true,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findRuleSyntacticRedundant}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 // functionality used by both SG and NACL lints
 ////////////////////////////////////////////////////////////////////////////////////////////
