@@ -8,16 +8,16 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-// filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
-func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VPCConfig,
+// newRuleRedundantSGRuleLint: SG rules that are implied by other rules
+func newRuleRedundantSGRuleLint(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
-			enable:      false,
+			description: "security group rules that are implied by other rules",
+			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
-		checkForFilter: findSplitRulesSubnet}
+		checkForFilter: findRuleSyntacticRedundant}
 }

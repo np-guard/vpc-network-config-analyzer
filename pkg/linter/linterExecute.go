@@ -32,6 +32,8 @@ var linterGenerators = map[string]linterGenerator{
 	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
 	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
 	"blocked-TCP-response":                     newBlockedTCPResponseLint,
+	"rules-shadowed-NACL":                      newRuleShadowedNACLLint,
+	"rules-redundant-SG":                       newRuleRedundantSGRuleLint,
 }
 
 func ValidLintersNames() string {

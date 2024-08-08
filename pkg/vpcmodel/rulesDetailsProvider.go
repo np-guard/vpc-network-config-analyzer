@@ -80,7 +80,7 @@ func (rules *rulesDetails) stringRulesDetails(filterLayer string, filterIndex in
 func getHeaderRulesType(filter string, rType RulesType) string {
 	switch rType {
 	case NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
+		return filter + " has no relevant allow rules\n"
 	case OnlyDeny:
 		return filter + " blocks connection with the following deny rules:\n"
 	case BothAllowDeny:
