@@ -8,31 +8,17 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const ruleNonRelevantCIDRNACLName = "rules-referring-non-relevant-CIDRs-NACLs"
-
 // ruleNonRelevantCIDRNACLLint: NACL rules that are references CIDRs not in the vpc
-type ruleNonRelevantCIDRNACLLint struct {
-	basicLinter
-}
 
-// /////////////////////////////////////////////////////////
-// lint interface implementation for ruleNonRelevantCIDRSGLint
-// ////////////////////////////////////////////////////////
-func (lint *ruleNonRelevantCIDRNACLLint) lintName() string {
-	return ruleNonRelevantCIDRNACLName
-}
-
-func (lint *ruleNonRelevantCIDRNACLLint) lintDescription() string {
-	return "rules of network ACLs that references CIDRs not in the relevant VPC address range"
-}
-
-func (lint *ruleNonRelevantCIDRNACLLint) check() error {
-	rulesNonRelevantCIDRFound, err := findRuleNonRelevantCIDR(lint.configs, vpcmodel.NaclLayer)
-	if err != nil {
-		return err
-	}
-	for i := range rulesNonRelevantCIDRFound {
-		lint.addFinding(&rulesNonRelevantCIDRFound[i])
-	}
-	return nil
+func newRuleNonRelevantCIDRNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs that references CIDRs not in the relevant VPC address range",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findRuleNonRelevantCIDR}
 }

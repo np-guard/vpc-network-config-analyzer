@@ -43,7 +43,9 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 	// todo - how to handle this error:
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	return drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
+	subnetTn := drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
+	subnetTn.SetIsPublic(s.isPublic)
+	return subnetTn
 }
 
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

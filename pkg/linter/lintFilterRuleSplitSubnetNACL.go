@@ -8,31 +8,16 @@ package linter
 
 import "github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 
-const splitRuleSubnetNACLName = "rules-splitting-subnets-NACLS"
-
 // filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
-type filterRuleSplitSubnetLintNACL struct {
-	basicLinter
-}
-
-// /////////////////////////////////////////////////////////
-// lint interface implementation for filterRuleSplitSubnetLint
-// ////////////////////////////////////////////////////////
-func (lint *filterRuleSplitSubnetLintNACL) lintName() string {
-	return splitRuleSubnetNACLName
-}
-
-func (lint *filterRuleSplitSubnetLintNACL) lintDescription() string {
-	return "rules of network ACLs implying different connectivity for different endpoints within a subnet"
-}
-
-func (lint *filterRuleSplitSubnetLintNACL) check() error {
-	rulesSplitSubnetsFound, err := findSplitRulesSubnet(lint.configs, vpcmodel.NaclLayer)
-	if err != nil {
-		return err
-	}
-	for i := range rulesSplitSubnetsFound {
-		lint.addFinding(&rulesSplitSubnetsFound[i])
-	}
-	return nil
+func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findSplitRulesSubnet}
 }

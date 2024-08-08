@@ -22,6 +22,7 @@ type linter interface {
 	lintDescription() string       // this string Name
 	string(lintDesc string) string // string with this lint's finding
 	toJSON() []any                 // this lint finding in JSON
+	enableByDefault() bool         //
 }
 
 type finding interface {
@@ -31,8 +32,11 @@ type finding interface {
 }
 
 type basicLinter struct {
-	configs  map[string]*vpcmodel.VPCConfig
-	findings []finding
+	configs     map[string]*vpcmodel.VPCConfig
+	findings    []finding
+	name        string
+	description string
+	enable      bool
 }
 
 type connectionLinter struct {
@@ -40,12 +44,27 @@ type connectionLinter struct {
 	nodesConn map[string]*vpcmodel.VPCConnectivity
 }
 
+func (lint *basicLinter) lintName() string {
+	return lint.name
+}
+
+func (lint *basicLinter) lintDescription() string {
+	return lint.description
+}
+
 func (lint *basicLinter) addFinding(f finding) {
 	lint.findings = append(lint.findings, f)
+}
+func (lint *basicLinter) addFindings(f []finding) {
+	lint.findings = append(lint.findings, f...)
 }
 
 func (lint *basicLinter) getFindings() []finding {
 	return lint.findings
+}
+
+func (lint *basicLinter) enableByDefault() bool {
+	return lint.enable
 }
 
 func (lint *basicLinter) string(lintDesc string) string {
@@ -65,4 +84,19 @@ func (lint *basicLinter) toJSON() []any {
 		res[i] = thisFinding.toJSON()
 	}
 	return res
+}
+
+type filterLinter struct {
+	basicLinter
+	layer          string
+	checkForFilter func(map[string]*vpcmodel.VPCConfig, string) ([]finding, error)
+}
+
+func (fLint *filterLinter) check() error {
+	findings, err := fLint.checkForFilter(fLint.configs, fLint.layer)
+	if err != nil {
+		return err
+	}
+	fLint.addFindings(findings)
+	return nil
 }

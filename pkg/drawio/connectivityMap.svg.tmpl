@@ -58,8 +58,16 @@
         <rect x="{{$data.Add $ax -3}}" y="{{$data.Add $ay -3 }}" width="{{$data.Add $node.Width 6}}" height="{{$data.Add $node.Height 6}}" fill="none" stroke="none" stroke-width="6" selection-marker="true" />
         {{if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
+            {{if $data.HasImage $node}} 
+              {{if $data.HasDecore}} 
                 <image x="{{$data.Add $ax 18}}" y="{{$data.Add $ay 6}}" width="22" height="19.73" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
+              {{else}}
+                <image x="{{$ax}}" y="{{$ay}}" width="25" height="25" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
+              {{end}}
+            {{end}}
+            {{if $data.HasDecore}} 
                 <rect x="{{$ax}}" y="{{$ay}}" width="7" height="37" fill="{{$data.Color $node}}" stroke="none" pointer-events="all"/>
+            {{end}}
                 <foreignObject  x="{{$data.Add $ax 53}}" y="{{$data.Add $ay -15}}" width="200" height="50">
           				<p xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; font-size: 14px; font-family: &quot;IBM Plex Sans&quot; color: rgb(0, 0, 0); line-height: 0.9; pointer-events: all; white-space: normal; overflow-wrap: normal;">{{$data.SvgLabel $node}}</p>
 				        </foreignObject >
