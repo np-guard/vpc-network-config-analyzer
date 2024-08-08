@@ -131,14 +131,14 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
-	subnetNameToNetIntf := map[string][]*commonvpc.NetworkInterface{}
-	err = rc.getInstancesConfig(subnetNameToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
+	err = rc.getInstancesConfig(subnetIDToNetIntf, res, filteredOut, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
 	// pgw can be attached to multiple subnets in the zone
 	pgwToSubnet := map[string][]*commonvpc.Subnet{} // map from pgw name to its attached subnet(s)
-	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetNameToNetIntf, shouldSkipVpcIds)
+	vpcInternalAddressRange, err = rc.getSubnetsConfig(res, pgwToSubnet, subnetIDToNetIntf, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -345,7 +345,7 @@ func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filter
 }
 
 func (rc *IBMresourcesContainer) getInstancesConfig(
-	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
+	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
@@ -378,11 +378,11 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
 			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
-			subnetName := *netintf.Subnet.Name
-			if _, ok := subnetNameToNetIntf[subnetName]; !ok {
-				subnetNameToNetIntf[subnetName] = []*commonvpc.NetworkInterface{}
+			subnetUID := *netintf.Subnet.CRN
+			if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
+				subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
 			}
-			subnetNameToNetIntf[subnetName] = append(subnetNameToNetIntf[subnetName], intfNode)
+			subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
 		}
 	}
 	return nil
@@ -391,7 +391,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 func (rc *IBMresourcesContainer) getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	pgwToSubnet map[string][]*commonvpc.Subnet,
-	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
+	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	skipByVPC map[string]bool,
 ) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
 	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
@@ -404,7 +404,7 @@ func (rc *IBMresourcesContainer) getSubnetsConfig(
 		}
 		subnetNode, err := commonvpc.UpdateConfigWithSubnet(*subnet.Name,
 			*subnet.CRN, *subnet.Zone.Name, *subnet.Ipv4CIDRBlock,
-			*subnet.VPC.CRN, res, vpcInternalAddressRange, subnetNameToNetIntf)
+			*subnet.VPC.CRN, res, vpcInternalAddressRange, subnetIDToNetIntf)
 		if err != nil {
 			return nil, err
 		}
@@ -697,13 +697,13 @@ func (rc *IBMresourcesContainer) getNACLconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 ) error {
-	naclLists := map[string][]*NACL{} // map from vpc uid to its nacls
+	naclLists := map[string][]*commonvpc.NACL{} // map from vpc uid to its nacls
 	for i := range rc.NetworkACLList {
 		nacl := rc.NetworkACLList[i]
 		if skipByVPC[*nacl.VPC.CRN] {
 			continue
 		}
-		naclAnalyzer, err := NewNACLAnalyzer(&nacl.NetworkACL)
+		naclAnalyzer, err := commonvpc.NewNACLAnalyzer(NewIBMNACLAnalyzer(&nacl.NetworkACL))
 		if err != nil {
 			return err
 		}
@@ -713,7 +713,7 @@ func (rc *IBMresourcesContainer) getNACLconfig(
 			return err
 		}
 
-		naclResource := &NACL{
+		naclResource := &commonvpc.NACL{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *nacl.Name,
 				ResourceUID:  *nacl.CRN,
@@ -721,13 +721,13 @@ func (rc *IBMresourcesContainer) getNACLconfig(
 				VPCRef:       vpc,
 				Region:       vpc.RegionName(),
 			},
-			analyzer: naclAnalyzer, subnets: map[string]*commonvpc.Subnet{}}
+			Analyzer: naclAnalyzer, Subnets: map[string]*commonvpc.Subnet{}}
 		naclLists[vpcUID] = append(naclLists[vpcUID], naclResource)
 		for _, subnetRef := range nacl.Subnets {
 			subnetCRN := *subnetRef.CRN
 			if subnetResource, ok := res.Config(vpcUID).UIDToResource[subnetCRN]; ok {
 				if subnet, ok := subnetResource.(*commonvpc.Subnet); ok {
-					naclResource.subnets[subnet.Cidr] = subnet
+					naclResource.Subnets[subnet.Cidr] = subnet
 				} else {
 					return fmt.Errorf("getNACLconfig: could not find subnetRef by CRN")
 				}
@@ -740,13 +740,13 @@ func (rc *IBMresourcesContainer) getNACLconfig(
 		if err != nil {
 			return err
 		}
-		naclLayer := &NaclLayer{
+		naclLayer := &commonvpc.NaclLayer{
 			VPCResource: vpcmodel.VPCResource{
 				ResourceType: vpcmodel.NaclLayer,
 				VPCRef:       vpc,
 				Region:       vpc.RegionName(),
 			},
-			naclList: naclLists[vpcUID]}
+			NaclList: naclLists[vpcUID]}
 		vpcConfig.FilterResources = append(vpcConfig.FilterResources, naclLayer)
 	}
 	return nil
@@ -941,7 +941,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 	}
 
 	var vpcsAddressRanges *ipblock.IPBlock // collect all internal address ranges of involved VPCs
-	nacls := &NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
+	nacls := &commonvpc.NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 	sgs := &commonvpc.SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
 	for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
 		vpcConfig, ok := configs.Configs()[vpc.ResourceUID]
@@ -957,8 +957,8 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		// FilterResources: merge NACLLayers to a single NACLLayer object, same for sg
 		for _, fr := range vpcConfig.FilterResources {
 			switch layer := fr.(type) {
-			case *NaclLayer:
-				nacls.naclList = append(nacls.naclList, layer.naclList...)
+			case *commonvpc.NaclLayer:
+				nacls.NaclList = append(nacls.NaclList, layer.NaclList...)
 			case *commonvpc.SecurityGroupLayer:
 				sgs.SgList = append(sgs.SgList, layer.SgList...)
 			default:
@@ -1505,13 +1505,13 @@ func printConfig(c *vpcmodel.VPCConfig) {
 	logging.Debugf("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
-		case *NaclLayer:
-			for _, nacl := range filters.naclList {
-				if len(nacl.subnets) == 0 {
+		case *commonvpc.NaclLayer:
+			for _, nacl := range filters.NaclList {
+				if len(nacl.Subnets) == 0 {
 					continue
 				}
 				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
-				printNACLRules(nacl)
+				commonvpc.PrintNACLRules(nacl)
 			}
 		case *commonvpc.SecurityGroupLayer:
 			for _, sg := range filters.SgList {
@@ -1556,13 +1556,5 @@ func printTGWAvailableRoutes(tgw *TransitGateway) {
 		for _, r := range rList {
 			logging.Debugf("%s\n", r.ToCidrList())
 		}
-	}
-}
-
-func printNACLRules(nacl *NACL) {
-	numRules := len(nacl.analyzer.naclResource.Rules)
-	for i := 0; i < numRules; i++ {
-		strRule, _, _, err := nacl.analyzer.getNACLRule(i)
-		commonvpc.PrintRule(strRule, i, err)
 	}
 }

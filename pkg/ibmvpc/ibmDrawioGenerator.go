@@ -11,7 +11,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func (nl *NaclLayer) ShowOnSubnetMode() bool       { return true }
 func (n *IKSNode) ShowOnSubnetMode() bool          { return false }
 func (r *ReservedIP) ShowOnSubnetMode() bool       { return false }
 func (v *Vpe) ShowOnSubnetMode() bool              { return false }
@@ -20,15 +19,6 @@ func (fip *FloatingIP) ShowOnSubnetMode() bool     { return false }
 func (tgw *TransitGateway) ShowOnSubnetMode() bool { return true }
 func (lb *LoadBalancer) ShowOnSubnetMode() bool    { return true }
 func (pip *PrivateIP) ShowOnSubnetMode() bool      { return false }
-
-func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	for _, acl := range nl.naclList {
-		for _, sn := range acl.subnets {
-			gen.TreeNode(sn).(*drawio.SubnetTreeNode).SetACL(acl.Name())
-		}
-	}
-	return nil
-}
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(

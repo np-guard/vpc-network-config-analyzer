@@ -98,7 +98,7 @@ func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.
 
 func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.MultipleVPCConfigs,
 	vpcInternalAddressRange map[string]*ipblock.IPBlock,
-	subnetNameToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
+	subnetIDToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
 	subnetNodes := []vpcmodel.Node{}
 	vpc, err := GetVPCObjectByUID(res, vpcUID)
 	if err != nil {
@@ -121,7 +121,7 @@ func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.
 	res.Config(vpcUID).UIDToResource[subnetNode.ResourceUID] = subnetNode
 
 	// add pointers from networkInterface to its subnet, given the current subnet created
-	if subnetInterfaces, ok := subnetNameToNetIntf[name]; ok {
+	if subnetInterfaces, ok := subnetIDToNetIntf[uid]; ok {
 		for _, netIntf := range subnetInterfaces {
 			netIntf.SubnetResource = subnetNode
 			subnetNodes = append(subnetNodes, netIntf)
@@ -356,6 +356,14 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 		config.UIDToResource[n.UID()] = n
 	}
 	return externalNodes, nil
+}
+
+func PrintNACLRules(nacl *NACL) {
+	numRules := nacl.Analyzer.NaclAnalyzer.GetNumberOfRules()
+	for i := 0; i < numRules; i++ {
+		strRule, _, _, err := nacl.Analyzer.NaclAnalyzer.GetNACLRule(i)
+		PrintRule(strRule, i, err)
+	}
 }
 
 func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
