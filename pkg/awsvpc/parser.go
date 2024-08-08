@@ -155,13 +155,12 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 // get name from tags, if not fount return alternateName
 func getResourceName(tags []types.Tag, alternateName string) string {
-	name := alternateName
 	for _, tag := range tags {
 		if *tag.Key == resourceName {
-			name = *tag.Value
+			return *tag.Value
 		}
 	}
-	return name
+	return alternateName
 }
 
 func (rc *AWSresourcesContainer) getVPCconfig(
@@ -222,7 +221,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
 			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
 			vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
-			subnetID := *netintf.SubnetId //
+			subnetID := *netintf.SubnetId
 			if _, ok := subnetIDToNetIntf[subnetID]; !ok {
 				subnetIDToNetIntf[subnetID] = []*commonvpc.NetworkInterface{}
 			}

@@ -79,18 +79,18 @@ func (sga *AWSSGAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direct
 }
 
 // getProtocolTCPUDPRule returns rule results corresponding to the provided rule obj with tcp or udp connection
-func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction string) (
+func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction, protocol string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", *ruleObj.IpProtocol, minPort, maxPort)
+	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", protocol, minPort, maxPort)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
 	}
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
-		Connections: commonvpc.GetTCPUDPConns(*ruleObj.IpProtocol,
+		Connections: commonvpc.GetTCPUDPConns(protocol,
 			connection.MinPort,
 			connection.MaxPort,
 			minPort,
@@ -182,12 +182,12 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 		isIngress = false
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
-	*ruleObj.IpProtocol = convertProtocol(*ruleObj.IpProtocol)
-	switch *ruleObj.IpProtocol {
+	protocol := convertProtocol(*ruleObj.IpProtocol)
+	switch protocol {
 	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
 	case protocolTCP, protocolUDP:
-		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction)
+		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction, protocol)
 	case protocolICMP:
 		ruleStr, ruleRes, err = sga.getProtocolICMPRule(&ruleObj, direction)
 	default:

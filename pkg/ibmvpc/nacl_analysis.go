@@ -23,8 +23,7 @@ type IBMNACLAnalyzer struct {
 }
 
 func NewIBMNACLAnalyzer(nacl *vpc1.NetworkACL) *IBMNACLAnalyzer {
-	res := &IBMNACLAnalyzer{naclResource: nacl}
-	return res
+	return &IBMNACLAnalyzer{naclResource: nacl}
 }
 
 func getPortsStr(minPort, maxPort int64) string {

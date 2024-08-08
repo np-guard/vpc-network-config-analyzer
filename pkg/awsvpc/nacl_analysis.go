@@ -23,8 +23,7 @@ type AWSNACLAnalyzer struct {
 }
 
 func NewAWSNACLAnalyzer(nacl *types.NetworkAcl) *AWSNACLAnalyzer {
-	res := &AWSNACLAnalyzer{naclResource: nacl}
-	return res
+	return &AWSNACLAnalyzer{naclResource: nacl}
 }
 
 func (na *AWSNACLAnalyzer) GetNumberOfRules() int {
@@ -43,21 +42,21 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	var conns *connection.Set
 	var connStr string
 	ruleObj := na.naclResource.Entries[index]
-	*ruleObj.Protocol = convertProtocol(*ruleObj.Protocol)
-	switch *ruleObj.Protocol {
+	protocol := convertProtocol(*ruleObj.Protocol)
+	switch protocol {
 	case allProtocols:
 		conns = connection.All()
-		connStr = *ruleObj.Protocol
+		connStr = protocol
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
-		conns = commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
+		conns = commonvpc.GetTCPUDPConns(protocol,
 			connection.MinPort,
 			connection.MaxPort,
 			minPort,
 			maxPort,
 		)
-		connStr = fmt.Sprintf("protocol: %s, dstPorts: %d-%d", *ruleObj.Protocol, minPort, maxPort)
+		connStr = fmt.Sprintf("protocol: %s, dstPorts: %d-%d", protocol, minPort, maxPort)
 	case protocolICMP:
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
 			err := handleIcmpTypeCode(ruleObj.IcmpTypeCode.Type, ruleObj.IcmpTypeCode.Code)
@@ -66,7 +65,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 			return "", nil, false, err
 		}
 		conns = connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
+		connStr = fmt.Sprintf("protocol: %s", protocol)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)
 		return "", nil, false, err
@@ -77,15 +76,11 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		return "", nil, false, err
 	}
 	isIngress = !*ruleObj.Egress
-	var src, dst *ipblock.IPBlock
+	src, dst := ipblock.GetCidrAll(), ip
 	direction := commonvpc.Outbound
 	if isIngress {
-		src = ip
-		dst = ipblock.GetCidrAll()
+		src, dst = dst, src
 		direction = commonvpc.Inbound
-	} else {
-		dst = ip
-		src = ipblock.GetCidrAll()
 	}
 	ruleRes = &commonvpc.NACLRule{Src: src, Dst: dst, Connections: conns, Action: action}
 	ruleStr = fmt.Sprintf("index: %d, direction: %s ,cidr: %s, conn: %s, action: %s\n",
