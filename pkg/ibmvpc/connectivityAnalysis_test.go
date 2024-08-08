@@ -36,8 +36,8 @@ type testNodesConfig struct {
 // naclConfig contains basic nacl config details, should refer to subnets in testNodesConfig object
 type naclConfig struct {
 	name         string
-	ingressRules []*NACLRule
-	egressRules  []*NACLRule
+	ingressRules []*commonvpc.NACLRule
+	egressRules  []*commonvpc.NACLRule
 	subnets      []string // subnet cidrs
 }
 
@@ -89,12 +89,12 @@ var nc3a = &naclConfig{
 var nc3 = &naclConfig{
 	name:         "nacl-3",
 	ingressRules: getAllowAllRules(),
-	egressRules: []*NACLRule{
+	egressRules: []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
-			connections: connection.All(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
+			Connections: connection.All(),
+			Action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
@@ -104,12 +104,12 @@ var nc3 = &naclConfig{
 var nc4 = &naclConfig{
 	name:         "nacl-4",
 	ingressRules: getAllowAllRules(),
-	egressRules: []*NACLRule{
+	egressRules: []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: connection.TCPorUDPConnection(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: connection.TCPorUDPConnection(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
+			Action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
@@ -123,12 +123,12 @@ func nc5Conn() *connection.Set {
 var nc5 = &naclConfig{
 	name:         "nacl-5",
 	ingressRules: getAllowAllRules(),
-	egressRules: []*NACLRule{
+	egressRules: []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: nc5Conn(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: nc5Conn(),
+			Action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.10.0/24"},
@@ -141,12 +141,12 @@ func nc6Conn() *connection.Set {
 var nc6 = &naclConfig{
 	name:         "nacl-6",
 	ingressRules: getAllowAllRules(),
-	egressRules: []*NACLRule{
+	egressRules: []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: nc6Conn(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: nc6Conn(),
+			Action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
@@ -219,11 +219,11 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 		}
 	}
 	for _, nc := range ncList {
-		analyzer := &NACLAnalyzer{
+		analyzer := &commonvpc.NACLAnalyzer{
 			//naclResource:    nacl,
-			analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
-			ingressRules:    nc.ingressRules,
-			egressRules:     nc.egressRules,
+			AnalyzedSubnets: map[string]*commonvpc.AnalysisResultPerSubnet{},
+			IngressRules:    nc.ingressRules,
+			EgressRules:     nc.egressRules,
 		}
 		subnets := map[string]*commonvpc.Subnet{}
 		for _, s := range nc.subnets {
@@ -235,35 +235,35 @@ func createConfigFromTestConfig(tc *testNodesConfig, ncList []*naclConfig) *vpcm
 	return config
 }
 
-func getAllowAllRules() []*NACLRule {
-	return []*NACLRule{
+func getAllowAllRules() []*commonvpc.NACLRule {
+	return []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: connection.All(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: connection.All(),
+			Action:      "allow",
 		},
 	}
 }
 
-func getDenyAllRules() []*NACLRule {
-	return []*NACLRule{
+func getDenyAllRules() []*commonvpc.NACLRule {
+	return []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: connection.All(),
-			action:      "deny",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: connection.All(),
+			Action:      "deny",
 		},
 	}
 }
 
-func getAllowICMPRules() []*NACLRule {
-	return []*NACLRule{
+func getAllowICMPRules() []*commonvpc.NACLRule {
+	return []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: icmpConn(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: icmpConn(),
+			Action:      "allow",
 		},
 	}
 }
@@ -302,43 +302,43 @@ func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *commonvpc.S
 	return subnetNode
 }
 
-func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*commonvpc.Subnet, analyzer *NACLAnalyzer) {
-	var layer *NaclLayer
+func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*commonvpc.Subnet, analyzer *commonvpc.NACLAnalyzer) {
+	var layer *commonvpc.NaclLayer
 	for _, fr := range config.FilterResources {
 		if fr.Kind() == "NaclLayer" {
-			layer = fr.(*NaclLayer)
+			layer = fr.(*commonvpc.NaclLayer)
 			break
 		}
 	}
 	if layer == nil {
-		layer = &NaclLayer{
+		layer = &commonvpc.NaclLayer{
 			VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer},
-			naclList:    []*NACL{}}
+			NaclList:    []*commonvpc.NACL{}}
 		config.FilterResources = append(config.FilterResources, layer)
 	}
 
 	// create the new nacl
-	naclResource := &NACL{
+	naclResource := &commonvpc.NACL{
 		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: commonvpc.ResourceTypeNACL},
-		analyzer:    analyzer, /*&NACLAnalyzer{
+		Analyzer:    analyzer, /*&commonvpc.NACLAnalyzer{
 			//naclResource:    nacl,
-			analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
+			analyzedSubnets: map[string]*commonvpc.AnalysisResultPerSubnet{},
 		},*/
-		subnets: subnets,
+		Subnets: subnets,
 	}
 
 	// add the nacl to the layer
-	layer.naclList = append(layer.naclList, naclResource)
+	layer.NaclList = append(layer.NaclList, naclResource)
 }
 
-func newSimpleNACLAnalyzer() *NACLAnalyzer {
-	analyzer := &NACLAnalyzer{
+func newSimpleNACLAnalyzer() *commonvpc.NACLAnalyzer {
+	analyzer := &commonvpc.NACLAnalyzer{
 		//naclResource:    nacl,
-		analyzedSubnets: map[string]*AnalysisResultPerSubnet{},
+		AnalyzedSubnets: map[string]*commonvpc.AnalysisResultPerSubnet{},
 	}
 
-	analyzer.ingressRules = getAllowAllRules()
-	analyzer.egressRules = getAllowAllRules()
+	analyzer.IngressRules = getAllowAllRules()
+	analyzer.EgressRules = getAllowAllRules()
 
 	return analyzer
 }

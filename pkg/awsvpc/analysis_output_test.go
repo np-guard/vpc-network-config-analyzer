@@ -193,18 +193,23 @@ func (tt *vpcGeneralTest) initTest() {
 var tests = []*vpcGeneralTest{
 	{
 		inputConfig: "basic_config_with_sg",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 	},
 	{
 		inputConfig: "aws_sg_1",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		format:      vpcmodel.Text,
 	},
 	{
 		inputConfig: "aws_sg_1",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		format:      vpcmodel.HTML,
+	},
+	{
+		inputConfig: "aws_acl_1",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		format:      vpcmodel.Text,
 	},
 }
 

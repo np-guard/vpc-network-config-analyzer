@@ -15,6 +15,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
 func TestGetRules(t *testing.T) {
@@ -25,8 +26,8 @@ func TestGetRules(t *testing.T) {
 	require.Nilf(t, err, "err: %s", err)
 	for _, config := range vpcConfigs.Configs() {
 		for _, f := range config.FilterResources {
-			if naclLayer, ok := f.(*NaclLayer); ok {
-				for _, nacl := range naclLayer.naclList {
+			if naclLayer, ok := f.(*commonvpc.NaclLayer); ok {
+				for _, nacl := range naclLayer.NaclList {
 					testSingleNACL(nacl)
 				}
 			}
@@ -34,10 +35,10 @@ func TestGetRules(t *testing.T) {
 	}
 }
 
-func testSingleNACL(nacl *NACL) {
+func testSingleNACL(nacl *commonvpc.NACL) {
 	// test addAnalysisPerSubnet
-	for _, subnet := range nacl.subnets {
-		nacl.analyzer.addAnalysisPerSubnet(subnet)
+	for _, subnet := range nacl.Subnets {
+		nacl.Analyzer.AddAnalysisPerSubnet(subnet)
 		// functions to test
 		// AnalyzeNACLRulesPerDisjointTargets
 		// getAllowedXgressConnections
@@ -45,18 +46,18 @@ func testSingleNACL(nacl *NACL) {
 }
 
 func TestGetAllowedXgressConnections(t *testing.T) {
-	rulesTest1 := []*NACLRule{
+	rulesTest1 := []*commonvpc.NACLRule{
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
-			connections: connection.All(),
-			action:      "deny",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
+			Connections: connection.All(),
+			Action:      "deny",
 		},
 		{
-			src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			connections: connection.All(),
-			action:      "allow",
+			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+			Connections: connection.All(),
+			Action:      "allow",
 		},
 	}
 	//nolint:all
@@ -113,7 +114,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 
 	tests := []struct {
 		testName      string
-		naclRules     []*NACLRule
+		naclRules     []*commonvpc.NACLRule
 		src           []string
 		dst           []string
 		expectedConns []*connection.Set
@@ -135,7 +136,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
 			disjointPeers := []*ipblock.IPBlock{dst}
 			expectedConn := tt.expectedConns[i]
-			res, _, _, _ := getAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
+			res, _, _, _ := commonvpc.GetAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
 			dstStr := dst.ToIPRanges()
 			actualConn := res[dstStr]
 			require.True(t, expectedConn.Equal(actualConn))
@@ -146,7 +147,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	/*src := common.FromCidr("1.1.1.1/32")
 	dst := common.FromCidr("10.0.0.0/24")
 	disjointPeers := []*ipblock.IPBlock{dst}
-	res := getAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
+	res := commonvpc.GetAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
 	for d, c := range res {
 		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())
 		require.True(t, c.Equal(getAllConnSet()))
