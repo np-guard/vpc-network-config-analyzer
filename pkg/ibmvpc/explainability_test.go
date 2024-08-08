@@ -665,6 +665,7 @@ var explainTests = []*vpcGeneralTest{
 		format:        vpcmodel.Text,
 		detailExplain: true,
 	},
+	// todo: add a test in which two SGs are connected to a VSI but only one of them enables the connection
 }
 
 func TestAll(t *testing.T) {
