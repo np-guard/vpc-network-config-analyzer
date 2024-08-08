@@ -13,11 +13,20 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const overlappingSubnetsName = "overlapping-subnets"
-
 // overlapSubnets: overlapping subnet ranges (relevant mostly for the multiple VPCs use case)
 type overlappingSubnetsLint struct {
 	basicLinter
+}
+
+func newOverlappingSubnetsLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &overlappingSubnetsLint{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "Overlapping CIDR ranges between different subnets",
+			enable:      true,
+		}}
 }
 
 // a couple of overlapping subnets
@@ -29,13 +38,6 @@ type overlapSubnets struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for overlapSubnets
 // ////////////////////////////////////////////////////////
-func (lint *overlappingSubnetsLint) lintName() string {
-	return overlappingSubnetsName
-}
-
-func (lint *overlappingSubnetsLint) lintDescription() string {
-	return "Overlapping CIDR ranges between different subnets"
-}
 
 func (lint *overlappingSubnetsLint) check() error {
 	allSubnets := []vpcmodel.Subnet{}
