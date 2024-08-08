@@ -24,30 +24,37 @@ var lintTests = []*vpcGeneralTest{
 	{
 		name:        "basic_acl3",
 		inputConfig: "acl_testing3",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "acl3_shadowed_rules",
 		inputConfig: "acl_testing3_with_redundant_rules",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "acl3_3rd",
 		inputConfig: "acl_testing3_3rd",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "basic_sg1",
 		inputConfig: "sg_testing1_new",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "multivpc",
 		inputConfig: "tgw_larger_example",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "multivpc_partly_overlap",
 		inputConfig: "tgw_larger_example_partly_overlap",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		name:        "PartialTCPRespond",
 		inputConfig: "sg_testing1_new_respond_partly",
+		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 }
 
@@ -104,7 +111,7 @@ func runLintTestPerUseCase(t *testing.T,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	initLintTestFileNames(tt, outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, []string{"rules-splitting-subnets-SecurityGroups"}, []string{})
+	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.enable, tt.disable)
 	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
 	}
