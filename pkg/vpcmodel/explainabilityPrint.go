@@ -479,17 +479,31 @@ func FilterKindName(filterLayer string) string {
 }
 
 // for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
-// and the name of the denying table, if any
+// and the name of the denying table, if:
+// 1. there are denying table
+// 2. If the table is SG - then there are no allowing tables. this is since one SG suffice to enable connection
 func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
 	rules []RulesInTable) (allowPath, denyTable string) {
 	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
 	strSlice := []string{}
+	// Is there at least one allowing SG? if so, we ignore non-allowing SGs (if any)
+	ignoreBlocking := false
+	if filterLayerName == SecurityGroupLayer {
+		for _, effect := range filtersToActionMap {
+			if effect {
+				ignoreBlocking = true
+			}
+		}
+	}
 	for name, effect := range filtersToActionMap {
 		if !effect {
-			denyTable = FilterKindName(filterLayerName) + space + name
-			break
+			if !ignoreBlocking {
+				denyTable = FilterKindName(filterLayerName) + space + name
+				break
+			}
+		} else {
+			strSlice = append(strSlice, name)
 		}
-		strSlice = append(strSlice, name)
 	}
 	// if there are multiple SGs/NACLs effecting the path:
 	// ... -> Security Group [SG1,SG2,SG8]
