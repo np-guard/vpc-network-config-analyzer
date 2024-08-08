@@ -14,12 +14,24 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const blockedTCPResponse = "blocked-TCP-response"
 const deliminator = "/"
 
 // overlapSubnets: overlapping subnet ranges (relevant mostly for the multiple VPCs use case)
 type blockedTCPResponseLint struct {
 	connectionLinter
+}
+
+func newBlockedTCPResponseLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	nodesConn map[string]*vpcmodel.VPCConnectivity) linter {
+	return &blockedTCPResponseLint{
+		connectionLinter: connectionLinter{
+			basicLinter: basicLinter{
+				configs:     configs,
+				name:        name,
+				description: "Blocked TCP response",
+				enable:      true,
+			},
+			nodesConn: nodesConn}}
 }
 
 // TCP connection with no response
@@ -32,14 +44,6 @@ type blockedTCPResponseConn struct {
 // /////////////////////////////////////////////////////////
 // lint interface implementation for overlapSubnets
 // ////////////////////////////////////////////////////////
-func (lint *blockedTCPResponseLint) lintName() string {
-	return blockedTCPResponse
-}
-
-func (lint *blockedTCPResponseLint) lintDescription() string {
-	return "Blocked TCP response"
-}
-
 func (lint *blockedTCPResponseLint) check() error {
 	for _, nodesConn := range lint.nodesConn {
 		for _, line := range nodesConn.GroupedConnectivity.GroupedLines {
