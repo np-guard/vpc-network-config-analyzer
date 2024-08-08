@@ -25,7 +25,7 @@ type ruleNonRelevantCIDR struct {
 // functionality used by both SG and NACL lints
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []ruleNonRelevantCIDR, err error) {
+func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []finding, err error) {
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -44,7 +44,7 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 			}
 			if !relevantBlock.Equal(ipblock.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
 				if !relevantBlock.ContainedIn(vpcAddressRange) {
-					res = append(res, ruleNonRelevantCIDR{rule: rules[i], vpcResource: config.VPC,
+					res = append(res, &ruleNonRelevantCIDR{rule: rules[i], vpcResource: config.VPC,
 						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
 				}
 			}

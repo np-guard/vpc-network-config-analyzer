@@ -24,7 +24,7 @@ type splitRuleSubnet struct {
 // functionality used by both filterRuleSplitSubnetLintNACL and filterRuleSplitSubnetLintSG
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []splitRuleSubnet, err error) {
+func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []finding, err error) {
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -43,7 +43,7 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 				}
 			}
 			if len(subnetsSplitByRule) > 0 {
-				res = append(res, splitRuleSubnet{rule: rules[i], splitSubnets: subnetsSplitByRule})
+				res = append(res, &splitRuleSubnet{rule: rules[i], splitSubnets: subnetsSplitByRule})
 			}
 		}
 	}

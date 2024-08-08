@@ -9,7 +9,6 @@ package subcmds
 import (
 	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -34,7 +33,7 @@ func NewLintCommand(args *inArgs) *cobra.Command {
 			return lintVPCConfigs(cmd, args)
 		},
 	}
-	validLintersNames := getListLintersName(linter.GetLintersNames())
+	validLintersNames := linter.ValidLintersNames()
 	usageStr := " specific linters, specified as linter names separated by comma.\nlinters: " + validLintersNames
 	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+usageStr)
 	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+usageStr)
@@ -74,27 +73,16 @@ func validateLintFlags(cmd *cobra.Command, args *inArgs) error {
 }
 
 func validLintersName(inputLinters []string, enableOrDisable string) error {
-	validLintersNames := linter.GetLintersNames()
 	if inputLinters == nil {
 		return nil
 	}
 	for _, name := range inputLinters {
-		if !validLintersNames[name] {
+		if !linter.IsValidLintersNames(name) {
 			return fmt.Errorf("%s in %s linters list does not exists.\t\nLegal linters: %s", name,
-				enableOrDisable, getListLintersName(validLintersNames))
+				enableOrDisable, linter.ValidLintersNames())
 		}
 	}
 	return nil
-}
-
-func getListLintersName(lintersNames map[string]bool) string {
-	legalNamesSlice := make([]string, len(lintersNames))
-	i := 0
-	for lintName := range lintersNames {
-		legalNamesSlice[i] = lintName
-		i++
-	}
-	return strings.Join(legalNamesSlice, ",")
 }
 
 func bothDisableAndEnable(args *inArgs) error {
