@@ -79,7 +79,7 @@ func TestAllLint(t *testing.T) {
 }
 
 // uncomment the function below for generating the expected output files instead of comparing
-
+/*
 func TestAllLintWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
@@ -92,7 +92,7 @@ func TestAllLintWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-
+*/
 func (tt *vpcGeneralTest) runLintTest(t *testing.T) {
 	// all tests in lint mode
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
