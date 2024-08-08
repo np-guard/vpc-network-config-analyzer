@@ -79,25 +79,22 @@ func (sga *AWSSGAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direct
 }
 
 // getProtocolTCPUDPRule returns rule results corresponding to the provided rule obj with tcp or udp connection
-func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction string) (
+func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, direction, protocol string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	dstPortMin := commonvpc.GetProperty(&minPort, connection.MinPort)
-	dstPortMax := commonvpc.GetProperty(&maxPort, connection.MaxPort)
-	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
-	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.IpProtocol, dstPorts)
+	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", protocol, minPort, maxPort)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
 	}
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
-		Connections: commonvpc.GetTCPUDPConns(*ruleObj.IpProtocol,
+		Connections: commonvpc.GetTCPUDPConns(protocol,
 			connection.MinPort,
 			connection.MaxPort,
-			dstPortMin,
-			dstPortMax,
+			minPort,
+			maxPort,
 		),
 		Remote: &commonvpc.RuleTarget{Cidr: remote, SgName: ""},
 	}
@@ -109,12 +106,38 @@ func getRuleStr(direction, connStr, ipRanges string) string {
 	return fmt.Sprintf("direction: %s,  conns: %s, target: %s\n", direction, connStr, ipRanges)
 }
 
+func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeMax,
+	newIcmpCodeMin, newIcmpCodeMax int64, err error) {
+	if icmpCode == nil || icmpType == nil {
+		return 0, 0, 0, 0, fmt.Errorf("unexpected nil icmp type or code")
+	}
+	newIcmpTypeMin = int64(*icmpType)
+	newIcmpCodeMin = int64(*icmpCode)
+	newIcmpTypeMax = int64(*icmpType)
+	newIcmpCodeMax = int64(*icmpCode)
+
+	if newIcmpCodeMin == -1 {
+		newIcmpCodeMin = connection.MinICMPCode
+		newIcmpCodeMax = connection.MaxICMPCode
+	}
+	if newIcmpTypeMin == -1 {
+		newIcmpTypeMin = connection.MinICMPType
+		newIcmpTypeMax = connection.MaxICMPType
+	}
+
+	return
+}
+
 // getProtocolICMPRule returns rule results corresponding to the provided rule obj with icmp connection
 func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direction string) (
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
-	minPort := int64(*ruleObj.FromPort)
-	maxPort := int64(*ruleObj.ToPort)
-	conns := commonvpc.GetICMPconn(&minPort, &maxPort)
+	icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
+		err := handleIcmpTypeCode(ruleObj.FromPort, ruleObj.ToPort)
+
+	if err != nil {
+		return "", nil, err
+	}
+	conns := connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
@@ -126,6 +149,25 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 	}
 	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
 	return
+}
+
+// convertProtocol used to convert protocol numbers to string
+func convertProtocol(ipProtocol string) string {
+	// currently supports just tcp, udp and icmp
+	// todo remove hard coded numbers and support other protocol numbers
+	switch ipProtocol {
+	case allProtocols:
+		return allProtocols
+	case "6", protocolTCP:
+		return protocolTCP
+
+	case "17", protocolUDP:
+		return protocolUDP
+	case "1", protocolICMP:
+		return protocolICMP
+	default:
+		return ipProtocol
+	}
 }
 
 func (sga *AWSSGAnalyzer) GetSGRule(index int) (
@@ -140,11 +182,12 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 		isIngress = false
 		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
 	}
-	switch *ruleObj.IpProtocol {
+	protocol := convertProtocol(*ruleObj.IpProtocol)
+	switch protocol {
 	case allProtocols: // all protocols
 		ruleStr, ruleRes, err = sga.getProtocolAllRule(&ruleObj, direction)
 	case protocolTCP, protocolUDP:
-		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction)
+		ruleStr, ruleRes, err = sga.getProtocolTCPUDPRule(&ruleObj, direction, protocol)
 	case protocolICMP:
 		ruleStr, ruleRes, err = sga.getProtocolICMPRule(&ruleObj, direction)
 	default:
