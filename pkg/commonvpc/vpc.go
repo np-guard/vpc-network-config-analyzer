@@ -9,6 +9,8 @@ package commonvpc
 import (
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
@@ -16,7 +18,7 @@ import (
 )
 
 const EmptyNameError = "empty name for %s indexed %d"
-
+const networkACL = "network ACL"
 const securityGroup = "security group"
 
 // not used currently for aws , todo: check
@@ -132,6 +134,8 @@ type Subnet struct {
 	VPCnodes []vpcmodel.Node  `json:"-"`
 	Cidr     string           `json:"-"`
 	IPblock  *ipblock.IPBlock `json:"-"`
+	// isPublic is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
+	isPublic bool `json:"-"`
 }
 
 func (s *Subnet) CIDR() string {
@@ -148,6 +152,12 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 
 func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
+}
+func (s *Subnet) IsPublic() bool {
+	return s.isPublic
+}
+func (s *Subnet) SetIsPublic(isPublic bool) {
+	s.isPublic = isPublic
 }
 
 type Vsi struct {
@@ -181,6 +191,246 @@ func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // FilterTraffic elements
+
+type NaclLayer struct {
+	vpcmodel.VPCResource
+	NaclList []*NACL
+}
+
+// per-layer connectivity analysis
+// compute allowed connectivity based on the NACL resources for all relevant endpoints (subnets)
+func (nl *NaclLayer) ConnectivityMap() (map[string]*vpcmodel.IPbasedConnectivityResult, error) {
+	res := map[string]*vpcmodel.IPbasedConnectivityResult{} // map from subnet cidr to its connectivity result
+	for _, nacl := range nl.NaclList {
+		for subnetCidr, subnet := range nacl.Subnets {
+			_, resConnectivity := nacl.Analyzer.GeneralConnectivityPerSubnet(subnet)
+			// TODO: currently supporting only handling full-range of subnet connectivity-map, not partial range of subnet
+			if len(resConnectivity) != 1 {
+				return nil, errors.New("unsupported connectivity map with partial subnet ranges per connectivity result")
+			}
+			subnetKey := subnet.IPblock.ToIPRanges()
+			if _, ok := resConnectivity[subnetKey]; !ok {
+				return nil, errors.New("unexpected subnet connectivity result - key is different from subnet cidr")
+			}
+			res[subnetCidr] = resConnectivity[subnetKey]
+		}
+	}
+	return res, nil
+}
+
+func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
+	res := []string{}
+	// iterate over all subnets, collect all outputs per subnet connectivity
+	for _, nacl := range nl.NaclList {
+		for _, subnet := range nacl.Subnets {
+			res = append(res, nacl.GeneralConnectivityPerSubnet(subnet))
+		}
+	}
+	sort.Strings(res)
+	return strings.Join(res, "\n")
+}
+
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
+	res := connection.None()
+	for _, nacl := range nl.NaclList {
+		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
+		if err != nil {
+			return nil, err
+		}
+		res = res.Union(naclConn)
+	}
+	return res, nil
+}
+
+// RulesInConnectivity list of NACL rules contributing to the connectivity
+func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
+	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	denyRes []vpcmodel.RulesInTable, err error) {
+	for index, nacl := range nl.NaclList {
+		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
+		if err1 != nil {
+			return nil, nil, err1
+		}
+		if !tableRelevant {
+			continue
+		}
+		appendToRulesInFilter(&allowRes, &allowRules, index, true)
+		appendToRulesInFilter(&denyRes, &denyRules, index, false)
+	}
+	return allowRes, denyRes, nil
+}
+
+func (nl *NaclLayer) Name() string {
+	return ""
+}
+
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int, isAllow bool) {
+	var rType vpcmodel.RulesType
+	switch {
+	case len(*rules) == 0:
+		rType = vpcmodel.NoRules
+	case isAllow:
+		rType = vpcmodel.OnlyAllow
+	default: // more than 0 deny rules
+		rType = vpcmodel.OnlyDeny
+	}
+	rulesInNacl := vpcmodel.RulesInTable{
+		TableIndex:  filterIndex,
+		Rules:       *rules,
+		RulesOfType: rType,
+	}
+	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
+}
+
+func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
+	res := []*ipblock.IPBlock{}
+	for _, n := range nl.NaclList {
+		res = append(res, n.Analyzer.NaclAnalyzer.ReferencedIPblocks()...)
+	}
+	return res
+}
+
+func (nl *NaclLayer) GetRules() ([]vpcmodel.RuleOfFilter, error) {
+	resRulesIngress, err1 := nl.getIngressOrEgressRules(true)
+	if err1 != nil {
+		return nil, err1
+	}
+	resRulesEgress, err2 := nl.getIngressOrEgressRules(false)
+	if err2 != nil {
+		return nil, err2
+	}
+	return append(resRulesIngress, resRulesEgress...), nil
+}
+
+func (nl *NaclLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmodel.RuleOfFilter, error) {
+	resRules := []vpcmodel.RuleOfFilter{}
+	for naclIndx, nacl := range nl.NaclList {
+		var naclRules []*NACLRule
+		if isIngress {
+			naclRules = nacl.Analyzer.IngressRules
+		} else {
+			naclRules = nacl.Analyzer.EgressRules
+		}
+		if nacl.Analyzer.NaclAnalyzer.Name() == nil {
+			return nil, fmt.Errorf(EmptyNameError, networkACL, naclIndx)
+		}
+		naclName := *nacl.Analyzer.NaclAnalyzer.Name()
+		for _, rule := range naclRules {
+			ruleDesc, _, _, _ := nacl.Analyzer.NaclAnalyzer.GetNACLRule(rule.Index)
+			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(networkACL, naclName, ruleDesc, naclIndx, rule.Index,
+				isIngress, rule.Src, rule.Dst, rule.Connections))
+		}
+	}
+	return resRules, nil
+}
+
+func (nl *NaclLayer) GetFiltersAttachedResources() vpcmodel.FiltersAttachedResources {
+	resFiltersAttachedResources := vpcmodel.FiltersAttachedResources{}
+	for naclIndex, nacl := range nl.NaclList {
+		naclName := *nacl.Analyzer.NaclAnalyzer.Name()
+		thisFilter := &vpcmodel.Filter{LayerName: networkACL, FilterName: naclName, FilterIndex: naclIndex}
+		members := make([]vpcmodel.VPCResourceIntf, len(nacl.Subnets))
+		memberIndex := 0
+		for _, subnet := range nacl.Subnets {
+			members[memberIndex] = subnet
+			memberIndex++
+		}
+		resFiltersAttachedResources[*thisFilter] = members
+	}
+	return resFiltersAttachedResources
+}
+
+type NACL struct {
+	vpcmodel.VPCResource
+	Subnets  map[string]*Subnet // map of subnets (pair of cidr strings and subnet obj) for which this nacl is applied to
+	Analyzer *NACLAnalyzer
+}
+
+func (n *NACL) GeneralConnectivityPerSubnet(subnet *Subnet) string {
+	res, _ := n.Analyzer.GeneralConnectivityPerSubnet(subnet)
+	return res
+}
+
+func subnetFromNode(node vpcmodel.Node) (subnet *Subnet, err error) {
+	switch concreteNode := node.(type) {
+	case vpcmodel.InternalNodeIntf:
+		return concreteNode.Subnet().(*Subnet), nil
+	default:
+		return nil, fmt.Errorf("cannot get subnet for node: %+v", node)
+	}
+}
+
+type naclConnectivityInput struct {
+	targetNode           vpcmodel.Node
+	nodeInSubnet         vpcmodel.Node
+	subnet               *Subnet
+	subnetAffectedByNACL bool
+	targetWithinSubnet   bool
+}
+
+func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
+	isIngress bool) (
+	connectivityInput *naclConnectivityInput,
+	err error) {
+	connectivityInput = &naclConnectivityInput{}
+	if isIngress {
+		connectivityInput.targetNode, connectivityInput.nodeInSubnet = src, dst
+	} else {
+		connectivityInput.targetNode, connectivityInput.nodeInSubnet = dst, src
+	}
+	connectivityInput.subnet, err = subnetFromNode(connectivityInput.nodeInSubnet)
+	if err != nil {
+		return nil, err
+	}
+	if _, ok := n.Subnets[connectivityInput.subnet.Cidr]; ok {
+		connectivityInput.subnetAffectedByNACL = true
+	}
+	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
+	if connectivityInput.targetNode.IsInternal() &&
+		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.IPblock) {
+		connectivityInput.targetWithinSubnet = true
+	}
+
+	return connectivityInput, nil
+}
+
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
+	connectivityInput, err := n.initConnectivityComputation(src, dst, isIngress)
+	if err != nil {
+		return nil, err
+	}
+	// check if the subnet of the given node is affected by this nacl
+	if !connectivityInput.subnetAffectedByNACL {
+		return connection.None(), nil // not affected by current nacl
+	}
+	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
+	if connectivityInput.targetWithinSubnet {
+		return connection.All(), nil // nacl has no control on traffic between two instances in its subnet
+	}
+	return n.Analyzer.AllowedConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
+		connectivityInput.targetNode, isIngress)
+}
+
+// TODO: rulesFilterInConnectivity has some duplicated code with AllowedConnectivity
+func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
+	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
+	connectivityInput, err1 := n.initConnectivityComputation(src, dst, isIngress)
+	if err1 != nil {
+		return false, nil, nil, err1
+	}
+	// check if the subnet of the given node is affected by this nacl
+	if !connectivityInput.subnetAffectedByNACL {
+		return false, nil, nil, nil // not affected by current nacl
+	}
+	// nacl has no control on traffic between two instances in its subnet;
+	if connectivityInput.targetWithinSubnet {
+		return false, []int{}, nil, nil
+	}
+	var err2 error
+	allow, deny, err2 = n.Analyzer.rulesFilterInConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
+		connectivityInput.targetNode, conn, isIngress)
+	return true, allow, deny, err2
+}
 
 func GetHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
 	switch rType {
@@ -305,7 +555,7 @@ func (sgl *SecurityGroupLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmod
 				srcBlock, dstBlock = ruleOfSG.Local, ruleOfSG.Remote.Cidr
 			}
 			resRules = append(resRules, *vpcmodel.NewRuleOfFilter(securityGroup, sgName, ruleDesc, sgIndex, ruleOfSG.Index,
-				isIngress, srcBlock, dstBlock))
+				isIngress, srcBlock, dstBlock, ruleOfSG.Connections))
 		}
 	}
 	return resRules, nil

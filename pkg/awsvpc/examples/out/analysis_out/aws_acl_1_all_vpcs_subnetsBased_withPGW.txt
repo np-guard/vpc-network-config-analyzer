@@ -1,0 +1,24 @@
+Subnet connectivity for VPC VpcId:44
+SubnetId:49 => Public Internet (all ranges) : All Connections
+SubnetId:49 => SubnetId:51 : All Connections
+SubnetId:49 => SubnetId:53 : All Connections
+SubnetId:51 => Public Internet (all ranges) : All Connections
+SubnetId:51 => SubnetId:49 : All Connections
+SubnetId:51 => SubnetId:53 : All Connections
+SubnetId:53 => Public Internet (all ranges) : All Connections
+SubnetId:53 => SubnetId:49 : All Connections
+SubnetId:53 => SubnetId:51 : All Connections
+
+Subnet connectivity for VPC prod_vpc
+pub0 => Public Internet 147.235.208.136/32 : All Connections
+pub0 => pub1 : All Connections
+pub0 => pub2 : protocol: TCP src-ports: 1-9079,9081-65535 * 
+pub0 => pub2 : protocol: TCP src-ports: 9080
+pub1 => pub0 : All Connections
+pub2 => Public Internet 147.235.208.136/32 : All Connections
+pub2 => pub0 : protocol: TCP dst-ports: 9080
+pub2 => pub3 : All Connections
+pub3 => Public Internet (all ranges) : All Connections
+pub3 => pub2 : All Connections
+
+TCP connections for which response is not permitted are marked with * 

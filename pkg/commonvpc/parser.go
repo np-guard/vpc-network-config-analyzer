@@ -80,7 +80,7 @@ func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.
 
 func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.MultipleVPCConfigs,
 	vpcInternalAddressRange map[string]*ipblock.IPBlock,
-	subnetNameToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
+	subnetIDToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
 	subnetNodes := []vpcmodel.Node{}
 	vpc, err := GetVPCObjectByUID(res, vpcUID)
 	if err != nil {
@@ -103,7 +103,7 @@ func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.
 	res.Config(vpcUID).UIDToResource[subnetNode.ResourceUID] = subnetNode
 
 	// add pointers from networkInterface to its subnet, given the current subnet created
-	if subnetInterfaces, ok := subnetNameToNetIntf[name]; ok {
+	if subnetInterfaces, ok := subnetIDToNetIntf[uid]; ok {
 		for _, netIntf := range subnetInterfaces {
 			netIntf.SubnetResource = subnetNode
 			subnetNodes = append(subnetNodes, netIntf)
@@ -168,14 +168,6 @@ func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 
 func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (
 	vpcNodeSet *VPC, err error) {
-	var regionPointer *Region
-	if regionToStructMap != nil {
-		regionPointer = GetRegionByName(region, regionToStructMap)
-	} else {
-		// drawio needs regions. for now, creating a region for each vpc
-		// todo - remove this else when region is supported for aws
-		regionPointer = &Region{Name: name}
-	}
 	vpcNodeSet = &VPC{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -184,7 +176,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 			Region:       region,
 		},
 		Zones:     map[string]*Zone{},
-		VPCregion: regionPointer,
+		VPCregion: GetRegionByName(region, regionToStructMap),
 		VPCnodes:  []vpcmodel.Node{},
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
@@ -346,4 +338,20 @@ func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblo
 		config.UIDToResource[n.UID()] = n
 	}
 	return externalNodes, nil
+}
+
+func PrintNACLRules(nacl *NACL) {
+	numRules := nacl.Analyzer.NaclAnalyzer.GetNumberOfRules()
+	for i := 0; i < numRules; i++ {
+		strRule, _, _, err := nacl.Analyzer.NaclAnalyzer.GetNACLRule(i)
+		PrintRule(strRule, i, err)
+	}
+}
+
+func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
+	res := []vpcmodel.Node{}
+	for _, s := range subnets {
+		res = append(res, s.Nodes()...)
+	}
+	return res
 }

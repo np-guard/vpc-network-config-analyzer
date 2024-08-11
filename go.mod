@@ -5,6 +5,7 @@ go 1.22.4
 require (
 	github.com/IBM/networking-go-sdk v0.49.0
 	github.com/IBM/vpc-go-sdk v0.54.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.163.0
 	github.com/np-guard/cloud-resource-collector v0.13.0
 	github.com/np-guard/models v0.3.4
 	github.com/spf13/cobra v1.8.1
@@ -23,7 +24,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.12 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.163.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.14 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.21.1 // indirect

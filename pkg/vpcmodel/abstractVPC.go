@@ -262,6 +262,7 @@ type RuleOfFilter struct {
 	IsIngress bool             `json:"inbound_rule"`
 	SrcCidr   *ipblock.IPBlock `json:"src_cidr"`
 	DstCidr   *ipblock.IPBlock `json:"dst_cidr"`
+	Conn      *connection.Set  `json:"rule_connection"`
 	RuleDesc  string           `json:"rule_description"`
 }
 
@@ -272,12 +273,12 @@ type Filter struct {
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex int,
-	isIngress bool, srcBlock, dstBlock *ipblock.IPBlock) *RuleOfFilter {
+	isIngress bool, srcBlock, dstBlock *ipblock.IPBlock, conn *connection.Set) *RuleOfFilter {
 	table := Filter{LayerName: layerName, FilterIndex: filterIndex, FilterName: filterName}
 	srcBlock = getCidrAllIfNil(srcBlock)
 	dstBlock = getCidrAllIfNil(dstBlock)
 	return &RuleOfFilter{IsIngress: isIngress, Filter: table, RuleIndex: ruleIndex, RuleDesc: desc,
-		SrcCidr: srcBlock, DstCidr: dstBlock}
+		SrcCidr: srcBlock, DstCidr: dstBlock, Conn: conn}
 }
 
 func getCidrAllIfNil(block *ipblock.IPBlock) *ipblock.IPBlock {

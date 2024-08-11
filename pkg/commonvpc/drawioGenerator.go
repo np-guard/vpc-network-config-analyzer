@@ -11,6 +11,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+func (nl *NaclLayer) ShowOnSubnetMode() bool           { return true }
 func (r *Region) ShowOnSubnetMode() bool               { return true }
 func (v *VPC) ShowOnSubnetMode() bool                  { return true }
 func (z *Zone) ShowOnSubnetMode() bool                 { return true }
@@ -19,6 +20,15 @@ func (sgl *SecurityGroupLayer) ShowOnSubnetMode() bool { return false }
 func (sg *SecurityGroup) ShowOnSubnetMode() bool       { return false }
 func (v *Vsi) ShowOnSubnetMode() bool                  { return false }
 func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
+
+func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	for _, acl := range nl.NaclList {
+		for _, sn := range acl.Subnets {
+			gen.TreeNode(sn).(*drawio.SubnetTreeNode).SetACL(acl.Name())
+		}
+	}
+	return nil
+}
 
 // for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
 func (r *Region) Kind() string { return "Cloud" }
@@ -43,7 +53,9 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 	// todo - how to handle this error:
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	return drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
+	subnetTn := drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
+	subnetTn.SetIsPublic(s.isPublic)
+	return subnetTn
 }
 
 func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
