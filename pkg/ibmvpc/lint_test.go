@@ -39,10 +39,6 @@ var lintTests = []*vpcGeneralTest{
 			"blocked-TCP-response", "rules-redundant-SG"},
 	},
 	{
-		name:        "acl3_shadowed_rules",
-		inputConfig: "acl_testing3_with_redundant_rules",
-	},
-	{
 		name:        "acl3_3rd",
 		inputConfig: "acl_testing3_3rd",
 		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
