@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -435,6 +436,7 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
+	// ingress: subnet should come before filters tables
 	for _, layer := range layers {
 		var allowFiltersOfLayer, denyFiltersOfLayer string
 		if isIngress {
@@ -454,12 +456,13 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 		// subnet should be added after sg in egress and after nacl in ingress
 		// or this node internal and externalRouter is pgw
 		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
-			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
-				(isIngress && layer == NaclLayer && len(layers) > 1)) {
+			((!isIngress && layer == SecurityGroupLayer && slices.Contains(layers, NaclLayer)) ||
+				(isIngress && layer == NaclLayer)) {
 			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
 			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
 		}
 	}
+	// egress: subnet should come after filter tables for internal nodes
 	if isIngress && len(pathSlice) > 0 {
 		pathSlice[0] = newLineTab + pathSlice[0]
 	}
