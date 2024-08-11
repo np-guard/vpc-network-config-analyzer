@@ -450,6 +450,15 @@ var explainTests = []*vpcGeneralTest{
 		format:        vpcmodel.Text,
 		detailExplain: true,
 	},
+	// two SGs attached to one VSI, only one enabling
+	{
+		name:          "VsiWithTwoSgsOneEnabling",
+		inputConfig:   "sg_testing1_new_2SGs_one_enabling",
+		ESrc:          "vsi3a-ky",
+		EDst:          "vsi1-ky",
+		format:        vpcmodel.Text,
+		detailExplain: true,
+	},
 	// respond enabled only on part of the TCP connection
 	{
 		name:          "PartialTCPRespond",
