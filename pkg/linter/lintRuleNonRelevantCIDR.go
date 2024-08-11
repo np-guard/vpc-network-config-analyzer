@@ -21,6 +21,34 @@ type ruleNonRelevantCIDR struct {
 	disjoint    bool // is the relevant src/dst block disjoint to the VPC address range;
 }
 
+// ruleNonRelevantCIDRNACLLint: NACL rules that are references CIDRs not in the vpc
+func newRuleNonRelevantCIDRNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs that references CIDRs not in the relevant VPC address range",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findRuleNonRelevantCIDR}
+}
+
+// ruleNonRelevantCIDRSGLint: SG rules that are references CIDRs not in the vpc
+func newRuleNonRelevantCIDRSGLint(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of security groups that references CIDRs not in the relevant VPC address range",
+			enable:      true,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findRuleNonRelevantCIDR}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 // functionality used by both SG and NACL lints
 ////////////////////////////////////////////////////////////////////////////////////////////
