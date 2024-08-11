@@ -319,7 +319,7 @@ func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*common
 
 	// create the new nacl
 	naclResource := &commonvpc.NACL{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: commonvpc.ResourceTypeNACL},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: vpcmodel.ResourceTypeNACL},
 		Analyzer:    analyzer, /*&commonvpc.NACLAnalyzer{
 			//naclResource:    nacl,
 			analyzedSubnets: map[string]*commonvpc.AnalysisResultPerSubnet{},
