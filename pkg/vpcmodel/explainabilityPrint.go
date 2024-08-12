@@ -490,14 +490,14 @@ func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName st
 	// Is there at least one allowing SG? if so, we ignore non-allowing SGs (if any)
 	ignoreBlocking := false
 	if filterLayerName == SecurityGroupLayer {
-		for _, effect := range filtersToActionMap {
-			if effect {
+		for _, allow := range filtersToActionMap {
+			if allow {
 				ignoreBlocking = true
 			}
 		}
 	}
-	for name, effect := range filtersToActionMap {
-		if !effect {
+	for name, allow := range filtersToActionMap {
+		if !allow {
 			if !ignoreBlocking {
 				denyTablesSlice = append(denyTablesSlice, name)
 			}
