@@ -9,6 +9,7 @@ package vpcmodel
 import (
 	"errors"
 	"slices"
+	"strings"
 
 	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -165,7 +166,26 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 	return nil
 }
 
+// createEdges() has three steps:
+// 1. union edges that have the same src/dst/direction with different labels to one edge
+// 2. union two edges with opposite direction and the same labels to one edge
+// 3. creating the TreeNodes, and set the routers
 func (d *DrawioOutputFormatter) createEdges() {
+	// 1. union for different labels:
+	type edgeKeyForLabels struct {
+		src    EndpointElem
+		dst    EndpointElem
+		router drawio.IconTreeNodeInterface
+	}
+	edgeLabels := map[edgeKeyForLabels][]string{}
+	for vpcResourceID, vpcConn := range d.gConns {
+		for _, line := range vpcConn.GroupedLines {
+			router := d.lineRouter(line, vpcResourceID)
+			k := edgeKeyForLabels{line.Src, line.Dst, router}
+			edgeLabels[k] = append(edgeLabels[k], line.ConnLabel(false))
+		}
+	}
+	// 2.union for opposite direction:
 	type edgeKey struct {
 		src    EndpointElem
 		dst    EndpointElem
@@ -173,21 +193,19 @@ func (d *DrawioOutputFormatter) createEdges() {
 		label  string
 	}
 	isEdgeDirected := map[edgeKey]bool{}
-	for vpcResourceID, vpcConn := range d.gConns {
-		for _, line := range vpcConn.GroupedLines {
-			src := line.Src
-			dst := line.Dst
-			router := d.lineRouter(line, vpcResourceID)
-			e := edgeKey{src, dst, router, line.ConnLabel(false)}
-			revE := edgeKey{dst, src, router, line.ConnLabel(false)}
-			_, revExist := isEdgeDirected[revE]
-			if revExist {
-				isEdgeDirected[revE] = false
-			} else {
-				isEdgeDirected[e] = true
-			}
+	for key, labels := range edgeLabels {
+		slices.Sort(labels)
+		label := strings.Join(labels, ";  ")
+		e := edgeKey{key.src, key.dst, key.router, label}
+		revE := edgeKey{key.dst, key.src, key.router, label}
+		_, revExist := isEdgeDirected[revE]
+		if revExist {
+			isEdgeDirected[revE] = false
+		} else {
+			isEdgeDirected[e] = true
 		}
 	}
+	// 3. create TreeNodes:
 	for e, directed := range isEdgeDirected {
 		ei := &edgeInfo{e.src, e.dst, e.label, directed}
 		eTn := d.gen.TreeNode(ei)

@@ -245,6 +245,7 @@ type SubnetTreeNode struct {
 	groupSquares []SquareTreeNodeInterface
 	cidr         string
 	acl          string
+	isPublic     bool
 }
 
 func NewSubnetTreeNode(parent *ZoneTreeNode, name, cidr, acl string) *SubnetTreeNode {
@@ -272,6 +273,8 @@ func (tn *SubnetTreeNode) nonGroupingIcons() []IconTreeNodeInterface {
 	}
 	return nis
 }
+func (tn *SubnetTreeNode) IsPublic() bool            { return tn.isPublic }
+func (tn *SubnetTreeNode) SetIsPublic(isPublic bool) { tn.isPublic = isPublic }
 
 // /////////////////////////////////////////////////////////////////////////////////////
 // GroupSquareTreeNode is a tree node that represents a group of icons that share the same connectivity

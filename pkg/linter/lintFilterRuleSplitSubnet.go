@@ -20,11 +20,39 @@ type splitRuleSubnet struct {
 	splitSubnets []vpcmodel.Subnet
 }
 
+// filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
+func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
+			enable:      false,
+		},
+		layer:          vpcmodel.SecurityGroupLayer,
+		checkForFilter: findSplitRulesSubnet}
+}
+
+// filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
+func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.VPCConfig,
+	_ map[string]*vpcmodel.VPCConnectivity) linter {
+	return &filterLinter{
+		basicLinter: basicLinter{
+			configs:     configs,
+			name:        name,
+			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
+			enable:      true,
+		},
+		layer:          vpcmodel.NaclLayer,
+		checkForFilter: findSplitRulesSubnet}
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 // functionality used by both filterRuleSplitSubnetLintNACL and filterRuleSplitSubnetLintSG
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []splitRuleSubnet, err error) {
+func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerName string) (res []finding, err error) {
 	for _, config := range configs {
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
@@ -43,7 +71,7 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 				}
 			}
 			if len(subnetsSplitByRule) > 0 {
-				res = append(res, splitRuleSubnet{rule: rules[i], splitSubnets: subnetsSplitByRule})
+				res = append(res, &splitRuleSubnet{rule: rules[i], splitSubnets: subnetsSplitByRule})
 			}
 		}
 	}
