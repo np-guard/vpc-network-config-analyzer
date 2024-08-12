@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -435,30 +436,32 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
+	subnetInPath := !node.IsExternal() && (!isExternal || (router != nil && router.Kind() == pgwKind)) &&
+		slices.Contains(layers, NaclLayer)
+	// ingress: subnet should come before filters tables
+	if isIngress && subnetInPath {
+		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+	}
+	blocked := false
 	for _, layer := range layers {
-		var allowFiltersOfLayer, denyTable string
+		var allowFiltersOfLayer, denyFiltersOfLayer string
 		if isIngress {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.ingressRules[layer])
+			allowFiltersOfLayer, denyFiltersOfLayer = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.ingressRules[layer])
 		} else {
-			allowFiltersOfLayer, denyTable = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.egressRules[layer])
+			allowFiltersOfLayer, denyFiltersOfLayer = pathFiltersSingleLayerStr(allRulesDetails, layer, rules.egressRules[layer])
 		}
 		if allowFiltersOfLayer != emptyString {
 			pathSlice = append(pathSlice, allowFiltersOfLayer)
 		}
-		if denyTable != emptyString {
-			pathSlice = append(pathSlice, blockedLeft+denyTable)
+		if denyFiltersOfLayer != emptyString {
+			pathSlice = append(pathSlice, blockedLeft+denyFiltersOfLayer)
+			blocked = true
 			break
 		}
-		// got here: first layer (security group for egress nacl for ingress) allows connection,
-		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
-		// subnet should be added after sg in egress and after nacl in ingress
-		// or this node internal and externalRouter is pgw
-		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
-			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
-				(isIngress && layer == NaclLayer && len(layers) > 1)) {
-			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
-			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
-		}
+	}
+	// egress: subnet should come after filter tables for internal nodes
+	if !isIngress && subnetInPath && !blocked {
+		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
 	}
 	if isIngress && len(pathSlice) > 0 {
 		pathSlice[0] = newLineTab + pathSlice[0]
@@ -478,28 +481,46 @@ func FilterKindName(filterLayer string) string {
 	}
 }
 
-// for a given filter layer (e.g. sg) returns a string of the allowing tables (note that denying tables are excluded),
-// and the name of the denying table, if any
+// for a given filter layer (e.g. sg) returns a string of the allowing tables,
+// and string of the denying table(s) if the connection is indeed denied
+// the connection is denied if the denying table is NACL (in which case there is only one attached table)
+// or if the table is SG and then there are no allowing tables. This is since one SG suffice to enable connection
 func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
-	rules []RulesInTable) (allowPath, denyTable string) {
+	rules []RulesInTable) (allowPath, denyPath string) {
 	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
-	strSlice := []string{}
-	for name, effect := range filtersToActionMap {
-		if !effect {
-			denyTable = FilterKindName(filterLayerName) + space + name
-			break
+	allowTablesSlice := []string{}
+	denyTablesSlice := []string{}
+	// Is there at least one allowing SG? if so, we ignore non-allowing SGs (if any)
+	ignoreBlocking := false
+	if filterLayerName == SecurityGroupLayer {
+		for _, allow := range filtersToActionMap {
+			if allow {
+				ignoreBlocking = true
+			}
 		}
-		strSlice = append(strSlice, name)
 	}
-	// if there are multiple SGs/NACLs effecting the path:
-	// ... -> Security Group [SG1,SG2,SG8]
-	if len(strSlice) == 1 {
-		return FilterKindName(filterLayerName) + space + strSlice[0], denyTable
-	} else if len(strSlice) > 1 {
-		sort.Strings(strSlice)
-		return FilterKindName(filterLayerName) + "[" + strings.Join(strSlice, comma) + "]", denyTable
+	for name, allow := range filtersToActionMap {
+		if !allow {
+			if !ignoreBlocking {
+				denyTablesSlice = append(denyTablesSlice, name)
+			}
+		} else {
+			allowTablesSlice = append(allowTablesSlice, name)
+		}
 	}
-	return emptyString, denyTable
+	return sgsString(filterLayerName, allowTablesSlice), sgsString(filterLayerName, denyTablesSlice)
+}
+
+// if there are multiple SGs/NACLs effecting the path:
+// ... -> Security Group [SG1,SG2,SG8]
+func sgsString(filterLayerName string, tablesStrSlice []string) string {
+	if len(tablesStrSlice) == 0 {
+		return emptyString
+	} else if len(tablesStrSlice) == 1 {
+		return FilterKindName(filterLayerName) + space + tablesStrSlice[0]
+	}
+	sort.Strings(tablesStrSlice)
+	return FilterKindName(filterLayerName) + "[" + strings.Join(tablesStrSlice, comma) + "]"
 }
 
 // prints detailed list of rules that effects the (existing or non-existing) connection

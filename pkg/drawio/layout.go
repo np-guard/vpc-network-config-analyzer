@@ -746,24 +746,39 @@ func calcGroupingIconLocation(location, collLocation *Location) (r *row, c *col)
 // setGroupingIconLocations() set each group point its location and offsets.
 // the offset is set according to the group visibility - we put the icon on the square border line
 func (ly *layoutS) setGroupingIconLocations() {
-	type cell struct {
-		r *row
-		c *col
+	// groupBorder represent a right/left border of a cell of a group.
+	// for each groupBorder we collect its icons
+	type groupBorder struct {
+		r          *row
+		c          *col
+		right      bool
+		visibility groupSquareVisibility
 	}
-	iconsInCell := map[cell][]IconTreeNodeInterface{}
+	iconsInBorder := map[groupBorder][]IconTreeNodeInterface{}
 	for _, tn := range getAllIcons(ly.network) {
 		if !tn.IsGroupingPoint() {
 			continue
 		}
+		// choosing the right cell for the icon:
 		gIcon := tn.(*GroupPointTreeNode)
 		parent := gIcon.Parent().(*GroupSquareTreeNode)
 		colleague := gIcon.getColleague()
 		parentLocation := parent.Location()
-		colleagueParentLocation := colleague.Parent().Location()
-		r, c := calcGroupingIconLocation(parentLocation, colleagueParentLocation)
-
+		colleagueLocation := colleague.Location()
+		if colleague.IsGroupingPoint() {
+			colleagueLocation = colleague.Parent().Location()
+		}
+		r, c := calcGroupingIconLocation(parentLocation, colleagueLocation)
 		gIcon.setLocation(newCellLocation(r, c))
-		iconsInCell[cell{r, c}] = append(iconsInCell[cell{r, c}], gIcon)
+		// add the icon to its border:
+		groupBorder := groupBorder{
+			c:          c,
+			r:          r,
+			visibility: parent.visibility,
+			right:      c == parentLocation.nextCol(),
+		}
+		iconsInBorder[groupBorder] = append(iconsInBorder[groupBorder], gIcon)
+		// set the x offset to the icons:
 		switch parent.visibility {
 		case theSubnet:
 			gIcon.Location().xOffset = gIcon.Location().firstCol.width() / 2
@@ -779,10 +794,27 @@ func (ly *layoutS) setGroupingIconLocations() {
 			gIcon.Location().xOffset = -gIcon.Location().xOffset
 		}
 	}
-	// set the y offset according to the number of icons in the cell:
-	for cell, cellIcons := range iconsInCell {
-		for i, gIcon := range cellIcons {
-			gIcon.Location().yOffset = cell.r.height() * (2*i - len(cellIcons) + 1) / (len(cellIcons) + 1) / 2
+	// set the y offset of each icon according to:
+	// 1. the number of icons in the border:
+	// 2. the length of the border
+	// 3. the offset of the border group
+	for border, borderIcons := range iconsInBorder {
+		borderLength := border.r.height()
+		cellOffset := 0
+
+		if border.visibility == square || innerSquare == border.visibility {
+			groupLocation := borderIcons[0].Parent().Location()
+			if border.r == groupLocation.firstRow { // its the top cell
+				borderLength -= groupLocation.yOffset
+				cellOffset += groupLocation.yOffset / 2
+			}
+			if border.r == groupLocation.lastRow { // its the bottom cell
+				borderLength -= groupLocation.yEndOffset
+				cellOffset -= groupLocation.yEndOffset / 2
+			}
+		}
+		for i, gIcon := range borderIcons {
+			gIcon.Location().yOffset = borderLength*(2*i-len(borderIcons)+1)/(len(borderIcons)+1)/2 + cellOffset
 		}
 	}
 }
