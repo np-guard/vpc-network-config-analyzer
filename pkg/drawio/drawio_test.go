@@ -866,7 +866,7 @@ func createNetworkAws() SquareTreeNodeInterface {
 	for i := 0; i < len(nis); i++ {
 		zone := NewZoneTreeNode(vpc, "zone1")
 		subnet := NewSubnetTreeNode(zone, "subnet2", "cidr1", "acl1")
-		subnet.SetIsPublic(i <= 1)
+		subnet.SetIsPrivate(i > 1)
 		nis[i] = NewNITreeNode(subnet, "ni20")
 		sg.AddIcon(nis[i])
 	}

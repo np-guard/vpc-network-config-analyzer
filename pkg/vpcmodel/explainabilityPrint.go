@@ -196,7 +196,7 @@ func respondDetailsHeader(d *detailedConn) string {
 
 func IsAtPrivateSubnet(endpoint EndpointElem) bool {
 	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
-		return !internalNode.Subnet().IsPublic()
+		return internalNode.Subnet().IsPrivate()
 	}
 	return false
 }

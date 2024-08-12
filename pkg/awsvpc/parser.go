@@ -251,7 +251,7 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 		if err != nil {
 			return nil, err
 		}
-		subnet.SetIsPublic(*subnetObj.MapPublicIpOnLaunch)
+		subnet.SetIsPrivate(!*subnetObj.MapPublicIpOnLaunch)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -398,7 +398,7 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		subnets := vpc.Subnets()
 		// only public subnets can be a subnet of igw:
 		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
-			return !s.IsPublic()
+			return s.IsPrivate()
 		})
 
 		if len(subnets) == 0 {

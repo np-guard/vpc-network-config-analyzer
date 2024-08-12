@@ -212,10 +212,10 @@ func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
 	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}) {
 		return reflect.TypeOf(tn).Elem()
 	}
-	if tn.(*SubnetTreeNode).IsPublic() {
-		return reflect.TypeOf(publicSubnetTreeNode{})
+	if tn.(*SubnetTreeNode).IsPrivate() {
+		return reflect.TypeOf(privateSubnetTreeNode{})
 	}
-	return reflect.TypeOf(privateSubnetTreeNode{})
+	return reflect.TypeOf(publicSubnetTreeNode{})
 }
 
 func (stl *templateStyles) Image(tn TreeNodeInterface) string {
