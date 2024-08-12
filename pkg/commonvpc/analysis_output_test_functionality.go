@@ -42,6 +42,9 @@ const (
 	outDir      = "out/"
 )
 
+const errString = "err: %s"
+const carriageReturn = "\r"
+
 type VpcGeneralTest struct {
 	Name string // test name
 	// todo: support multiple configs input
@@ -82,7 +85,7 @@ const (
 	suffixOutFileDetail               = "_detail"
 	txtOutSuffix                      = ".txt"
 	mdOutSuffix                       = ".md"
-	JsonOutSuffix                     = ".json"
+	JSONOutSuffix                     = ".json"
 	secJSONOutSuffix                  = "_2nd.json"
 	drawioOutSuffix                   = ".drawio"
 	archDrawioOutSuffix               = "_arch.drawio"
@@ -157,7 +160,7 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	case vpcmodel.MD:
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
-		return JsonOutSuffix, nil
+		return JSONOutSuffix, nil
 	case vpcmodel.DRAWIO:
 		return drawioOutSuffix, nil
 	case vpcmodel.ARCHDRAWIO:
@@ -226,11 +229,11 @@ func GetVPCConfigs(t *testing.T, tt *VpcGeneralTest, firstCfg bool, rc Resources
 	inputConfigFile := filepath.Join(GetTestsDirInput(), inputConfig)
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
-		t.Fatalf("err: %s", err)
+		t.Fatalf(errString, err)
 	}
 	vpcConfigs, err := rc.VPCConfigsFromResources(tt.Vpc, tt.ResourceGroup, tt.Regions)
 	if err != nil {
-		t.Fatalf("err: %s", err)
+		t.Fatalf(errString, err)
 	}
 	return vpcConfigs
 }
@@ -239,7 +242,7 @@ func GetVPCConfigs(t *testing.T, tt *VpcGeneralTest, firstCfg bool, rc Resources
 // files names (actual and expected), per use case
 func (tt *VpcGeneralTest) InitTest() {
 	tt.InputConfig2nd = InputFilePrefix + tt.InputConfig + secJSONOutSuffix
-	tt.InputConfig = InputFilePrefix + tt.InputConfig + JsonOutSuffix
+	tt.InputConfig = InputFilePrefix + tt.InputConfig + JSONOutSuffix
 	tt.ExpectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.ActualOutput = map[vpcmodel.OutputUseCase]string{}
 	// init field of expected errs
@@ -262,7 +265,7 @@ func CompareOrRegenerateOutputPerTest(t *testing.T,
 	if mode == OutputComparison {
 		expectedOutput, err := os.ReadFile(tt.ExpectedOutput[uc])
 		if err != nil {
-			t.Fatalf("err: %s", err)
+			t.Fatalf(errString, err)
 		}
 		expectedOutputStr := string(expectedOutput)
 		if cleanStr(expectedOutputStr) != cleanStr(actualOutput) {
@@ -322,7 +325,7 @@ func RunTestPerUseCase(t *testing.T,
 
 // comparison should be insensitive to line comparators; cleaning strings from line comparators
 func cleanStr(str string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
+	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), carriageReturn, "")
 }
 
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
@@ -334,8 +337,8 @@ func compareTextualResult(expected, actual, testDir string) {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
 
-	expectedLines := strings.Split(strings.ReplaceAll(expected, "\r", ""), "\n")
-	actualLines := strings.Split(strings.ReplaceAll(actual, "\r", ""), "\n")
+	expectedLines := strings.Split(strings.ReplaceAll(expected, carriageReturn, ""), "\n")
+	actualLines := strings.Split(strings.ReplaceAll(actual, carriageReturn, ""), "\n")
 	if len(expectedLines) != len(actualLines) {
 		fmt.Printf("different number of lines: %d of expected, %d of actual", len(expectedLines), len(actualLines))
 		return

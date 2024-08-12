@@ -26,7 +26,7 @@ const explainOut = "explain_out"
 // getConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(commonvpc.GetTestsDirInput(),
-		commonvpc.InputFilePrefix+fileName+commonvpc.JsonOutSuffix)
+		commonvpc.InputFilePrefix+fileName+commonvpc.JSONOutSuffix)
 	rc := IBMresourcesContainer{}
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
