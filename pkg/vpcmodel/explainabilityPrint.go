@@ -214,10 +214,10 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
 	case IsAtPrivateSubnet(dst) && src.IsExternal():
-		return fmt.Sprintf("%v\tthe subnet of %v is private and does not enable inbound external connectivity\n",
+		return fmt.Sprintf("%v\tthe subnet of %v is not public and does not enable inbound external connectivity\n",
 			noConnection, dst.Name())
 	case IsAtPrivateSubnet(src) && dst.IsExternal():
-		return fmt.Sprintf("%v\tThe dst is external but the subnet of %v is private\n",
+		return fmt.Sprintf("%v\tThe dst is external but the subnet of %v is not public\n",
 			noConnection, src.Name())
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
