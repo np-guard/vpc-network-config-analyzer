@@ -27,4 +27,4 @@ pkg/drawio/*.svg
 pkg/*/examples/*.svg
 pkg/drawio/*.html
 pkg/*/examples/*.html
-confinential_examples
+
