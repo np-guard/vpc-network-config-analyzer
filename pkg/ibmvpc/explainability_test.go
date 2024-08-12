@@ -452,6 +452,24 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	// two SGs attached to one VSI, only one enabling
+	{
+		name:          "VsiWithTwoSgsOneEnabling",
+		inputConfig:   "sg_testing1_new_2SGs_one_enabling",
+		ESrc:          "vsi3a-ky",
+		EDst:          "vsi1-ky",
+		format:        vpcmodel.Text,
+		detailExplain: true,
+	},
+	// two SGs attached to one VSI, none enabling
+	{
+		name:          "VsiWithTwoSgsNeitherEnabling",
+		inputConfig:   "sg_testing1_new_2SGs_none_enabling",
+		ESrc:          "vsi3a-ky",
+		EDst:          "vsi1-ky",
+		format:        vpcmodel.Text,
+		detailExplain: true,
+	},
 	// respond enabled only on part of the TCP connection
 	{
 		Name:          "PartialTCPRespond",
@@ -667,6 +685,7 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	// todo: add a test in which two SGs are connected to a VSI but only one of them enables the connection
 }
 
 func TestAll(t *testing.T) {
@@ -943,10 +962,10 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
 	require.Contains(t, outputString, "No connections from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
 		"\tThe dst is external but there is no resource enabling external connectivity", "no connection external dst entry")
-	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> ky-vpc1-net1 -> network ACL ky-vpc1-acl1 ->",
+	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> network ACL ky-vpc1-acl1 -> ky-vpc1-net1 -> ",
 		"connection vsi to vsi")
 	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
-	require.Contains(t, outputString, "network ACL ky-vpc2-acl1 -> ky-vpc2-net1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
+	require.Contains(t, outputString, "ky-vpc2-net1 -> network ACL ky-vpc2-acl1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
 		"connection vsi to vsi")
 	fmt.Println("\n\n", outputString)
 }

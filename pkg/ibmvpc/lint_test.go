@@ -25,26 +25,44 @@ var lintTests = []*commonvpc.VpcGeneralTest{
 	{
 		Name:        "basic_acl3",
 		InputConfig: "acl_testing3",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+	},
+	{
+		Name:        "acl3_shadowed_rules",
+		InputConfig: "acl_testing3_with_redundant_rules",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+	},
+	{
+		Name:        "acl3_shadowed_rules_other_lints_disabled",
+		InputConfig: "acl_testing3_with_redundant_rules",
+		Disable: []string{"rules-splitting-subnets-NACLS", "overlapping-subnets", "redundant tables",
+			"rules-referring-non-relevant-CIDRs-SG", "rules-referring-non-relevant-CIDRs-NACLs",
+			"blocked-TCP-response", "rules-redundant-SG"},
 	},
 	{
 		Name:        "acl3_3rd",
 		InputConfig: "acl_testing3_3rd",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		Name:        "basic_sg1",
 		InputConfig: "sg_testing1_new",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		Name:        "multivpc",
 		InputConfig: "tgw_larger_example",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		Name:        "multivpc_partly_overlap",
 		InputConfig: "tgw_larger_example_partly_overlap",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 	{
 		Name:        "PartialTCPRespond",
 		InputConfig: "sg_testing1_new_respond_partly",
+		Enable:      []string{"rules-splitting-subnets-SecurityGroups"},
 	},
 }
 
@@ -102,8 +120,8 @@ func runLintTestPerUseCase(t *testing.T,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	initLintTestFileNames(tt, outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, []string{"rules-splitting-subnets-SecurityGroups"}, []string{})
-	if err := commonvpc.CompareOrRegenerateOutputPerTest(t, tt.Mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
+	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.enable, tt.disable)
+	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
 	}
 	return nil
