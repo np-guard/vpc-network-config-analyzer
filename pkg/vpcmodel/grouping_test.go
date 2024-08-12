@@ -123,6 +123,9 @@ func (m *mockSubnet) AddressRange() *ipblock.IPBlock {
 func (m *mockSubnet) CIDR() string {
 	return m.cidr
 }
+func (m *mockSubnet) IsPublic() bool {
+	return true
+}
 func (m *mockSubnet) Connectivity() *ConnectivityResult {
 	return nil
 }
