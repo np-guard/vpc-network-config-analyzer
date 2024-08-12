@@ -20,26 +20,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -55,36 +35,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -96,21 +46,6 @@
             },
             "src": {
                 "name": "vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
                 "type": "instance"
             }
         },
@@ -133,26 +68,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -164,26 +79,6 @@
             },
             "src": {
                 "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -203,36 +98,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -244,21 +109,6 @@
             },
             "src": {
                 "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
                 "type": "instance"
             }
         },
@@ -281,26 +131,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -312,26 +142,6 @@
             },
             "src": {
                 "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -351,36 +161,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -392,21 +172,6 @@
             },
             "src": {
                 "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
                 "type": "instance"
             }
         },
@@ -429,26 +194,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -460,26 +205,6 @@
             },
             "src": {
                 "name": "vsi2-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
                 "type": "instance"
             }
         },
@@ -496,26 +221,6 @@
             "src": {
                 "name": "vsi2-ky",
                 "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "external0",
-                "type": "external"
-            },
-            "src": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "external0",
-                "type": "external"
             }
         },
         {
@@ -537,26 +242,6 @@
             }
         },
         {
-            "dst": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "UDP"
@@ -572,26 +257,6 @@
             }
         },
         {
-            "dst": {
-                "name": "external1",
-                "type": "external"
-            },
-            "src": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "external1",
-                "type": "external"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -604,26 +269,6 @@
             "src": {
                 "name": "external0",
                 "type": "external"
-            }
-        },
-        {
-            "dst": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "external0",
-                "type": "external"
-            }
-        },
-        {
-            "dst": {
-                "name": "external0",
-                "type": "external"
-            },
-            "src": {
-                "name": "vsi2-ky",
-                "type": "instance"
             }
         }
     ]

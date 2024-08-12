@@ -26,26 +26,6 @@
             }
         },
         {
-            "dst": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "code": 0,
@@ -63,26 +43,6 @@
             }
         },
         {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -94,26 +54,6 @@
             },
             "src": {
                 "name": "sub2-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -140,26 +80,6 @@
             }
         },
         {
-            "dst": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "ANY"
@@ -171,26 +91,6 @@
             },
             "src": {
                 "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-2-ky",
                 "type": "subnet"
             }
         },
@@ -212,121 +112,11 @@
             }
         },
         {
-            "dst": {
-                "name": "external0",
-                "type": "external"
-            },
-            "src": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "external0",
-                "type": "external"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
                 }
             ],
-            "dst": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "dst": {
                 "name": "sub1-2-ky",
                 "type": "subnet"
@@ -347,13 +137,18 @@
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-2-ky",
+                "name": "sub1-3-ky",
                 "type": "subnet"
             }
         },
         {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "sub1-3-ky",
                 "type": "subnet"
             },
             "src": {
@@ -362,12 +157,17 @@
             }
         },
         {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
             "dst": {
-                "name": "sub1-2-ky",
+                "name": "sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "sub1-2-ky",
                 "type": "subnet"
             }
         },
@@ -389,26 +189,6 @@
             }
         },
         {
-            "dst": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -424,26 +204,6 @@
             }
         },
         {
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            }
-        },
-        {
             "allowed-protocols": [
                 {
                     "protocol": "TCP"
@@ -455,26 +215,6 @@
             },
             "src": {
                 "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-2-ky",
                 "type": "subnet"
             }
         },
@@ -493,26 +233,6 @@
             "src": {
                 "name": "sub1-1-ky",
                 "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "external0",
-                "type": "external"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "external0",
-                "type": "external"
             }
         }
     ]
