@@ -194,7 +194,7 @@ func respondDetailsHeader(d *detailedConn) string {
 	}
 }
 
-func IsAtPrivateSubnet(endpoint EndpointElem) bool {
+func isAtPrivateSubnet(endpoint EndpointElem) bool {
 	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
 		return internalNode.Subnet().IsPrivate()
 	}
@@ -213,10 +213,10 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
-	case IsAtPrivateSubnet(dst) && src.IsExternal():
+	case isAtPrivateSubnet(dst) && src.IsExternal():
 		return fmt.Sprintf("%v\tthe subnet of %v is not public and does not enable inbound external connectivity\n",
 			noConnection, dst.Name())
-	case IsAtPrivateSubnet(src) && dst.IsExternal():
+	case isAtPrivateSubnet(src) && dst.IsExternal():
 		return fmt.Sprintf("%v\tThe dst is external but the subnet of %v is not public\n",
 			noConnection, src.Name())
 	case externalRouter == nil && src.IsExternal():
