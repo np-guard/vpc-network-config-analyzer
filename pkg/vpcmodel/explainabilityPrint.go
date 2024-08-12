@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -435,6 +436,13 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 	isIngress, isExternal bool, router RoutingResource) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
+	subnetInPath := !node.IsExternal() && (!isExternal || (router != nil && router.Kind() == pgwKind)) &&
+		slices.Contains(layers, NaclLayer)
+	// ingress: subnet should come before filters tables
+	if isIngress && subnetInPath {
+		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+	}
+	blocked := false
 	for _, layer := range layers {
 		var allowFiltersOfLayer, denyFiltersOfLayer string
 		if isIngress {
@@ -447,18 +455,13 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 		}
 		if denyFiltersOfLayer != emptyString {
 			pathSlice = append(pathSlice, blockedLeft+denyFiltersOfLayer)
+			blocked = true
 			break
 		}
-		// got here: first layer (security group for egress nacl for ingress) allows connection,
-		// subnet is part of the path if both node are internal and there are two layers - sg and nacl
-		// subnet should be added after sg in egress and after nacl in ingress
-		// or this node internal and externalRouter is pgw
-		if !node.IsExternal() && (!isExternal || router.Kind() == pgwKind) &&
-			((!isIngress && layer == SecurityGroupLayer && len(layers) > 1) ||
-				(isIngress && layer == NaclLayer && len(layers) > 1)) {
-			// if !node.isExternal then node is a single internal node implementing InternalNodeIntf
-			pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
-		}
+	}
+	// egress: subnet should come after filter tables for internal nodes
+	if !isIngress && subnetInPath && !blocked {
+		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
 	}
 	if isIngress && len(pathSlice) > 0 {
 		pathSlice[0] = newLineTab + pathSlice[0]
