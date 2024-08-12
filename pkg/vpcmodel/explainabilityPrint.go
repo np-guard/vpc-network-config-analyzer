@@ -194,6 +194,13 @@ func respondDetailsHeader(d *detailedConn) string {
 	}
 }
 
+func IsAtPrivateSubnet(endpoint EndpointElem) bool {
+	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
+		return !internalNode.Subnet().IsPublic()
+	}
+	return false
+}
+
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,
@@ -206,6 +213,12 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
+	case IsAtPrivateSubnet(dst) && src.IsExternal():
+		return fmt.Sprintf("%v\tthe subnet of %v is private and does not enable inbound external connectivity\n",
+			noConnection, dst.Name())
+	case IsAtPrivateSubnet(src) && dst.IsExternal():
+		return fmt.Sprintf("%v\tThe dst is external but the subnet of %v is private\n",
+			noConnection, src.Name())
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():
