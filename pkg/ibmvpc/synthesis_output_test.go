@@ -23,6 +23,10 @@ var synthesisTests = []*vpcGeneralTest{
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 	},
 	{
+		inputConfig: "acl_testing4",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	},
+	{
 		inputConfig: "acl_testing5",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 	},
