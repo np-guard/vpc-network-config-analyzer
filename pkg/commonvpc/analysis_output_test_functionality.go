@@ -16,6 +16,7 @@ import (
 	"testing"
 
 	"github.com/np-guard/models/pkg/netp"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
