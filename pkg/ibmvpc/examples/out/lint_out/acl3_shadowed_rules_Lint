@@ -7,7 +7,6 @@ ________________________________________________________________________________
 "Blocked TCP response" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-In the connection from test-vpc1-ky/vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 TCP response is blocked
 In the connection from test-vpc1-ky/vsi2-ky[10.240.20.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
@@ -16,8 +15,19 @@ ________________________________________________________________________________
 
 "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC test-vpc1-ky, network ACL acl2-ky rule's indexed 6 splits subnet subnet2-ky (10.240.20.0/24). Splitting rule details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 1 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC test-vpc1-ky, network ACL acl3-ky rule's indexed 3 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"rules of network ACLs that are shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC test-vpc1-ky network ACL acl2-ky's rule 6 is redundant. It is shadowed by higher priority rules
+	Rule's details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
+		Shadowing rules:
+		index: 1, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: protocol: icmp, action: allow
+		index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "rules of network ACLs that references CIDRs not in the relevant VPC address range" issues:
@@ -31,10 +41,6 @@ In VPC test-vpc1-ky network ACL acl2-ky's ingress rule indexed 4 with destinatio
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 no lint "Overlapping CIDR ranges between different subnets" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that are shadowed by higher priority rules" issues
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
