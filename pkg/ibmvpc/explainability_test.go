@@ -454,21 +454,21 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 	},
 	// two SGs attached to one VSI, only one enabling
 	{
-		name:          "VsiWithTwoSgsOneEnabling",
-		inputConfig:   "sg_testing1_new_2SGs_one_enabling",
+		Name:          "VsiWithTwoSgsOneEnabling",
+		InputConfig:   "sg_testing1_new_2SGs_one_enabling",
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		format:        vpcmodel.Text,
-		detailExplain: true,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
 	},
 	// two SGs attached to one VSI, none enabling
 	{
-		name:          "VsiWithTwoSgsNeitherEnabling",
-		inputConfig:   "sg_testing1_new_2SGs_none_enabling",
+		Name:          "VsiWithTwoSgsNeitherEnabling",
+		InputConfig:   "sg_testing1_new_2SGs_none_enabling",
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		format:        vpcmodel.Text,
-		detailExplain: true,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
 	},
 	// respond enabled only on part of the TCP connection
 	{

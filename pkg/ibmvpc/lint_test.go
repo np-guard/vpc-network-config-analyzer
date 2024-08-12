@@ -120,8 +120,8 @@ func runLintTestPerUseCase(t *testing.T,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	initLintTestFileNames(tt, outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.enable, tt.disable)
-	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
+	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.Enable, tt.Disable)
+	if err := commonvpc.CompareOrRegenerateOutputPerTest(t, tt.Mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
 	}
 	return nil

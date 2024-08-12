@@ -69,6 +69,8 @@ type VpcGeneralTest struct {
 	EDstMinPort    int64
 	EDstMaxPort    int64
 	DetailExplain  bool
+	Enable         []string
+	Disable        []string
 }
 
 const (
