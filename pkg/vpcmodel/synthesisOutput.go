@@ -113,20 +113,10 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
-		responsiveAndOther := groupedLine.CommonProperties.Conn.tcpRspEnable.Union(groupedLine.CommonProperties.Conn.nonTCP)
-
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
-			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(responsiveAndOther)))},
-			spec.SpecRequiredConnectionsElem{
-				Src:              spec.Resource{Name: srcName, Type: srcType},
-				Dst:              spec.Resource{Name: dstName, Type: dstType},
-				AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable)))},
-			spec.SpecRequiredConnectionsElem{
-				Src:              spec.Resource{Name: dstName, Type: dstType},
-				Dst:              spec.Resource{Name: srcName, Type: srcType},
-				AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.TCPRspDisable)))})
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn)))})
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
