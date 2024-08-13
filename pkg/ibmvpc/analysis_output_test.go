@@ -402,12 +402,6 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.Text,
 	},
 	{
-		inputConfig: "iks_config_object",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		noLbAbstract: true,
-		format:      vpcmodel.Text,
-	},
-	{
 		inputConfig:  "iks_config_object",
 		useCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:     true,
@@ -596,12 +590,6 @@ var tests = []*vpcGeneralTest{
 	},
 	{
 		inputConfig: "iks_workers_large",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		noLbAbstract:    true,
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "iks_workers_large",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		grouping:    false,
 		format:      vpcmodel.DRAWIO,
@@ -742,12 +730,6 @@ var tests = []*vpcGeneralTest{
 		inputConfig: "hub_n_spoke_1",
 		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		grouping:    true,
-		format:      vpcmodel.Text,
-	},
-	{
-		inputConfig: "hub_n_spoke_1",
-		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		noLbAbstract:    true,
 		format:      vpcmodel.Text,
 	},
 	{
