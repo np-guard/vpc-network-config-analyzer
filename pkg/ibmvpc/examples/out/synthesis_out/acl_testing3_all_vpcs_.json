@@ -1,6 +1,6 @@
 {
     "externals": {
-        "external0": "0.0.0.0/0",
+        "external0": "142.0.0.0/8",
         "external1": "161.26.0.0/16"
     },
     "required-connections": [
@@ -211,7 +211,7 @@
         {
             "allowed-protocols": [
                 {
-                    "protocol": "ANY"
+                    "protocol": "ICMP"
                 }
             ],
             "dst": {
@@ -254,21 +254,6 @@
             "src": {
                 "name": "vsi1-ky",
                 "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi2-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "external0",
-                "type": "external"
             }
         }
     ]
