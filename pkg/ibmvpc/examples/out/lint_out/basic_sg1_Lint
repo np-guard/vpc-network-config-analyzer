@@ -37,27 +37,3 @@ In VPC test-vpc1-ky security group sg3-ky's rule 3 is redundant. It is implied b
 		Implying rules:
 		index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		index: 2, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "Blocked TCP response" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "Overlapping CIDR ranges between different subnets" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that are shadowed by higher priority rules" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups that references CIDRs not in the relevant VPC address range" issues

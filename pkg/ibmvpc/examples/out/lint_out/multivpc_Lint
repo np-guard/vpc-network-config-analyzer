@@ -44,23 +44,3 @@ In VPC test-vpc0-ky network ACL acl2-ky's rule 5 is redundant. It is shadowed by
 		Shadowing rules:
 		index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
 		index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "security group rules that are implied by other rules" issues

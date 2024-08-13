@@ -83,7 +83,6 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		enable = enable || slices.Contains(enableList, name)
 		enable = enable && !slices.Contains(disableList, name)
 		if !enable {
-			fmt.Printf("%q linter disabled.\n\n", thisLinter.lintDescription())
 			continue
 		}
 		thisLintStr := ""
@@ -92,13 +91,11 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 			return false, "", err
 		}
 		lintFindings := thisLinter.getFindings()
-		if len(lintFindings) == 0 {
-			thisLintStr = fmt.Sprintf("no lint %q issues\n", thisLinter.lintDescription())
-		} else {
+		if len(lintFindings) > 0 {
 			issueFound = true
 			thisLintStr = thisLinter.string(thisLinter.lintDescription())
+			strPerLint = append(strPerLint, thisLintStr)
 		}
-		strPerLint = append(strPerLint, thisLintStr)
 	}
 	sort.Strings(strPerLint)
 	delimBetweenLints := strings.Repeat("_", delimBetweenLintsChars)
