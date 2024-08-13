@@ -278,7 +278,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	netIntfToSGs map[string][]types.GroupIdentifier) error {
-	sgMap := map[string]map[string]*commonvpc.SecurityGroup{} // map from vpc uid to map from sg name to its sg object
+	sgMap := map[string]map[string]*commonvpc.SecurityGroup{} // map from vpc uid to map from sg id to its sg object
 	sgLists := map[string][]*commonvpc.SecurityGroup{}
 	for i := range rc.SecurityGroupsList {
 		sg := rc.SecurityGroupsList[i]
@@ -290,8 +290,11 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		sgName := getResourceName(sg.Tags, *sg.GroupId)
-		commonvpc.NewSGResource(sgName, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
+		sgName := *sg.GroupId
+		if sg.GroupName != nil && *sg.GroupName != "" {
+			sgName = *sg.GroupName
+		}
+		commonvpc.NewSGResource(sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
 	for vpcUID, sgListInstance := range sgLists {

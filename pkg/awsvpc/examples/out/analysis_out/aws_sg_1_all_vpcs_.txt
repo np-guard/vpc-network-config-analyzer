@@ -1,15 +1,17 @@
-Endpoint connectivity for VPC VpcId:43
+Endpoint connectivity for VPC VpcId:40
 <nothing to report>
 
-Endpoint connectivity for VPC VpcId:5
-InstanceId:18[10.240.20.141] => InstanceId:29[10.240.30.108] : protocol: TCP
-InstanceId:24[10.240.20.131] => InstanceId:29[10.240.30.108] : protocol: TCP
-InstanceId:37[10.240.10.122] => InstanceId:18[10.240.20.141] : protocol: TCP dst-ports: 9080
-InstanceId:37[10.240.10.122] => InstanceId:24[10.240.20.131] : protocol: TCP dst-ports: 9080
-InstanceId:37[10.240.10.122] => InstanceId:7[10.240.40.184] : All Connections
-InstanceId:37[10.240.10.122] => Public Internet (all ranges) : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:29[10.240.30.108] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:37[10.240.10.122] : All Connections
+Endpoint connectivity for VPC vpc0
+InstanceId:15[10.240.20.141] => InstanceId:26[10.240.30.108] : protocol: TCP
+InstanceId:21[10.240.20.131] => InstanceId:26[10.240.30.108] : protocol: TCP
+InstanceId:34[10.240.10.122] => InstanceId:15[10.240.20.141] : protocol: TCP dst-ports: 9080
+InstanceId:34[10.240.10.122] => InstanceId:21[10.240.20.131] : protocol: TCP dst-ports: 9080
+InstanceId:34[10.240.10.122] => InstanceId:7[10.240.40.184] : All Connections
+InstanceId:34[10.240.10.122] => Public Internet (all ranges) : All Connections
+InstanceId:7[10.240.40.184] => InstanceId:15[10.240.20.141] : All Connections
+InstanceId:7[10.240.40.184] => InstanceId:21[10.240.20.131] : All Connections
+InstanceId:7[10.240.40.184] => InstanceId:26[10.240.30.108] : All Connections
+InstanceId:7[10.240.40.184] => InstanceId:34[10.240.10.122] : All Connections
 InstanceId:7[10.240.40.184] => Public Internet (all ranges) : All Connections
-Public Internet (all ranges) => InstanceId:37[10.240.10.122] : All Connections
+Public Internet (all ranges) => InstanceId:34[10.240.10.122] : All Connections
 Public Internet (all ranges) => InstanceId:7[10.240.40.184] : All Connections

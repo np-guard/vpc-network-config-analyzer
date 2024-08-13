@@ -35,7 +35,10 @@ func NewAWSSGAnalyzer(sg *types.SecurityGroup) *AWSSGAnalyzer {
 }
 
 func (sga *AWSSGAnalyzer) Name() *string {
-	return sga.sgResource.GroupName
+	if sga.sgResource.GroupName != nil && *sga.sgResource.GroupName != "" {
+		return sga.sgResource.GroupName
+	}
+	return sga.sgResource.GroupId
 }
 
 func (sga *AWSSGAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPairs []types.UserIdGroupPair) (
