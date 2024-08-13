@@ -347,7 +347,8 @@ tvpc-enterprise-z3-worker[192.168.2.4] => tvpc-enterprise-z1-worker[192.168.0.4]
 tvpc-enterprise-z3-worker[192.168.2.4] => tvpc-enterprise-z2-worker[192.168.1.4] : All Connections
 
 Endpoint connectivity for VPC tvpc-spoke0
-Public Internet (all ranges) => kube-clusterid:1-124eeb9c05a2412c9c141445301ed38b[LoadBalancer] : protocol: TCP,UDP
+Public Internet (all ranges) => kube-clusterid:1-124eeb9c05a2412c9c141445301ed38b[LoadBalancer] : protocol: TCP * 
+Public Internet (all ranges) => kube-clusterid:1-124eeb9c05a2412c9c141445301ed38b[LoadBalancer] : protocol: UDP
 Public Internet 147.235.211.134/32 => tvpc-spoke0-z1-worker[10.1.0.4] : protocol: TCP dst-ports: 22
 Public Internet 147.235.211.134/32 => tvpc-spoke0-z2-worker[10.2.0.4] : protocol: TCP dst-ports: 22
 Public Internet 147.235.211.134/32 => tvpc-spoke0-z3-worker[10.3.0.4] : protocol: TCP dst-ports: 22
@@ -419,7 +420,8 @@ tvpc-spoke0-z3-worker[10.3.0.4] => server-lb[LoadBalancer] : protocol: TCP *
 tvpc-spoke0-z3-worker[10.3.0.4] => server-lb[LoadBalancer] : protocol: UDP
 
 Endpoint connectivity for VPC tvpc-spoke1
-Public Internet (all ranges) => kube-clusterid:8-c67f13d52fff45d7bdca157530557243[LoadBalancer] : protocol: TCP,UDP
+Public Internet (all ranges) => kube-clusterid:8-c67f13d52fff45d7bdca157530557243[LoadBalancer] : protocol: TCP * 
+Public Internet (all ranges) => kube-clusterid:8-c67f13d52fff45d7bdca157530557243[LoadBalancer] : protocol: UDP
 Public Internet 147.235.211.134/32 => tvpc-spoke1-z1-worker[10.1.1.4] : protocol: TCP dst-ports: 22
 Public Internet 147.235.211.134/32 => tvpc-spoke1-z2-worker[10.2.1.4] : protocol: TCP dst-ports: 22
 Public Internet 147.235.211.134/32 => tvpc-spoke1-z3-worker[10.3.1.4] : protocol: TCP dst-ports: 22

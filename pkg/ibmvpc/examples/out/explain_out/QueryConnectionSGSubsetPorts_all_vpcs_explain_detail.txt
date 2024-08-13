@@ -9,15 +9,22 @@ Connections are allowed from Public Internet 147.235.219.206/32 to vsi2-ky[10.24
 Path:
 	Public Internet 147.235.219.206/32 -> 
 	FloatingIP floating-ip-ky 52.118.184.123 -> 
-	security group sg2-ky -> vsi2-ky[10.240.20.4]
+	network ACL acl2-ky -> security group sg2-ky -> vsi2-ky[10.240.20.4]
 
 
 Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Ingress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 		security group sg2-ky allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: tcp,  dstPorts: 22-22, remote: 147.235.219.206/32, local: 0.0.0.0/0
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL acl2-ky allows connection with the following allow rules
+			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
