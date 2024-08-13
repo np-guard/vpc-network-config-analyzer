@@ -263,10 +263,6 @@ func (fip *FloatingIP) RouterDefined(src, dst vpcmodel.Node) bool {
 		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal())
 }
 
-func (fip *FloatingIP) AppliedFiltersKinds() map[string]bool {
-	return map[string]bool{vpcmodel.SecurityGroupLayer: true}
-}
-
 func (fip *FloatingIP) ExternalIP() string {
 	return fip.cidr
 }
@@ -340,10 +336,6 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 
 func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	return vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
-}
-
-func (pgw *PublicGateway) AppliedFiltersKinds() map[string]bool {
-	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
 
 func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
@@ -590,11 +582,6 @@ func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.T
 		return noVerboseStr + "denies connection"
 	}
 	return "" // should never get here
-}
-
-// AppliedFiltersKinds todo: currently not used
-func (tgw *TransitGateway) AppliedFiltersKinds() map[string]bool {
-	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
 }
 
 func isNodesPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcNode, dstNode vpcmodel.Node) {
