@@ -198,10 +198,10 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 				return err
 			}
 			if externalRouter == nil {
-				continue // no externalRouter: no connections, filtersLayers non defined
+				continue // no externalRouter: no connections
 			}
 			singleSrcDstDetails.externalRouter = externalRouter
-			singleSrcDstDetails.filtersRelevant = externalRouter.AppliedFiltersKinds() // relevant filtersExternal
+			singleSrcDstDetails.filtersRelevant = map[string]bool{NaclLayer: true, SecurityGroupLayer: true}
 		}
 	}
 	return nil
