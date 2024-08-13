@@ -5,7 +5,7 @@ go 1.22.4
 require (
 	github.com/IBM/networking-go-sdk v0.49.0
 	github.com/IBM/vpc-go-sdk v0.56.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.163.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.175.0
 	github.com/np-guard/cloud-resource-collector v0.14.0
 	github.com/np-guard/models v0.3.4
 	github.com/spf13/cobra v1.8.1
@@ -42,7 +42,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
