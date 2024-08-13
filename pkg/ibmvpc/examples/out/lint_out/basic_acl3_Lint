@@ -3,7 +3,8 @@
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-In the connection from test-vpc1-ky/vsi3c-ky[10.240.30.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+...and 1 more
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:

@@ -16,13 +16,13 @@ import (
 
 type linter interface {
 	check() error
-	getFindings() []finding        // returns all findings detected by the linter
-	addFinding(f finding)          // add a single finding
-	lintName() string              // this lint Name
-	lintDescription() string       // this string Name
-	string(lintDesc string) string // string with this lint's finding
-	toJSON() []any                 // this lint finding in JSON
-	enableByDefault() bool         //
+	getFindings() []finding                       // returns all findings detected by the linter
+	addFinding(f finding)                         // add a single finding
+	lintName() string                             // this lint Name
+	lintDescription() string                      // this string Name
+	string(lintDesc string, printAll bool) string // string with this lint's finding
+	toJSON() []any                                // this lint finding in JSON
+	enableByDefault() bool                        //
 }
 
 type finding interface {
@@ -67,15 +67,23 @@ func (lint *basicLinter) enableByDefault() bool {
 	return lint.enable
 }
 
-func (lint *basicLinter) string(lintDesc string) string {
-	findingsRes := make([]string, len(lint.findings))
+func (lint *basicLinter) string(lintDesc string, printAll bool) string {
+	findingsResAll := make([]string, len(lint.findings))
 	for i, thisFinding := range lint.findings {
-		findingsRes[i] = thisFinding.string()
+		findingsResAll[i] = thisFinding.string()
 	}
-	sort.Strings(findingsRes)
+	sort.Strings(findingsResAll)
+	suffix := ""
+	findingRes := []string{}
+	if !printAll && len(lint.findings) > 3 {
+		findingRes = findingsResAll[:3]
+		suffix = fmt.Sprintf("\n...and %d more\n", len(lint.findings)-3)
+	} else {
+		findingRes = findingsResAll
+	}
 	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
 		strings.Repeat("~", len(lintDesc)+len(issues)+3) + "\n"
-	return header + strings.Join(findingsRes, "\n")
+	return header + strings.Join(findingRes, "\n") + suffix
 }
 
 func (lint *basicLinter) toJSON() []any {

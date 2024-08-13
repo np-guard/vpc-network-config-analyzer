@@ -3,8 +3,8 @@
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP src-ports: 1-99,201-65535; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 response is blocked
 In the connection from test-vpc1-ky/vsi2-ky[10.240.20.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP src-ports: 1-99,201-65535; TCP src-ports: 100-200 dst-ports: 51-65535 response is blocked
 In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP src-ports: 1-99,201-65535; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 response is blocked
-In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP src-ports: 1-99,201-65535; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 response is blocked
-In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.4] to test-vpc1-ky/vsi2-ky[10.240.20.4] TCP src-ports: 1-99,221-65535; TCP src-ports: 100-220 dst-ports: 1-9,61-65535 response is blocked
+...and 2 more
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
@@ -22,9 +22,8 @@ ________________________________________________________________________________
 In VPC test-vpc1-ky, security group sg1-ky rule's indexed 1 splits subnet subnet1-ky (10.240.10.0/24). Splitting rule details: index: 1, direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0
 In VPC test-vpc1-ky, security group sg1-ky rule's indexed 3 splits subnets subnet2-ky (10.240.20.0/24), subnet3-ky (10.240.30.0/24). Splitting rule details: index: 3, direction: inbound,  conns: protocol: all, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 In VPC test-vpc1-ky, security group sg1-ky rule's indexed 4 splits subnet subnet3-ky (10.240.30.0/24). Splitting rule details: index: 4, direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0
-In VPC test-vpc1-ky, security group sg2-ky rule's indexed 4 splits subnet subnet1-ky (10.240.10.0/24). Splitting rule details: index: 4, direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0
-In VPC test-vpc1-ky, security group sg2-ky rule's indexed 6 splits subnets subnet2-ky (10.240.20.0/24), subnet3-ky (10.240.30.0/24). Splitting rule details: index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
-In VPC test-vpc1-ky, security group sg2-ky rule's indexed 7 splits subnets subnet2-ky (10.240.20.0/24), subnet3-ky (10.240.30.0/24). Splitting rule details: index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+...and 3 more
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "security group rules that are implied by other rules" issues:
