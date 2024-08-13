@@ -367,3 +367,26 @@ func GetTestsDirInput() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, examplesDir+inputDir)
 }
+
+var formatsAvoidComparisonAndGeneration = map[vpcmodel.OutFormat]bool{
+	vpcmodel.DRAWIO:     true,
+	vpcmodel.ARCHDRAWIO: true,
+	vpcmodel.SVG:        true,
+	vpcmodel.ARCHSVG:    true,
+	vpcmodel.HTML:       true,
+	vpcmodel.ARCHHTML:   true,
+}
+
+func TestAll(tt *VpcGeneralTest, t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
+	// todo - remove the following if when drawio is stable
+	if formatsAvoidComparisonAndGeneration[tt.Format] {
+		tt.Mode = OutputIgnore
+	} else {
+		tt.Mode = mode
+	}
+	tt.Name = testName
+	t.Run(tt.Name, func(t *testing.T) {
+		t.Parallel()
+		tt.RunTest(t, testDir, rc)
+	})
+}

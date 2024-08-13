@@ -575,35 +575,13 @@ var tests = []*commonvpc.VpcGeneralTest{
 	},
 }
 
-var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
-	vpcmodel.DRAWIO:     true,
-	vpcmodel.ARCHDRAWIO: true,
-	vpcmodel.SVG:        true,
-	vpcmodel.ARCHSVG:    true,
-	vpcmodel.HTML:       true,
-	vpcmodel.ARCHHTML:   true,
-}
-
 // uncomment the function below to run for updating the expected output
 /*
-var formatsAvoidOutputGeneration = formatsAvoidComparison
-
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidOutputGeneration[tt.Format] {
-			tt.mode = commonvpc.OutputIgnore
-		} else {
-			tt.mode = commonvpc.OutputGeneration
-		}
-		tt.name = tt.InputConfig
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			rc := &IBMresourcesContainer{}
-			tt.RunTest(t, analysisOut, rc)
-		})
+		commonvpc.TestAll(tt, t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -612,18 +590,7 @@ func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		// todo - remove the following if when drawio is stable
-		if formatsAvoidComparison[tt.Format] {
-			tt.Mode = commonvpc.OutputIgnore
-		} else {
-			tt.Mode = commonvpc.OutputComparison
-		}
-		tt.Name = tt.InputConfig
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &IBMresourcesContainer{}
-			tt.RunTest(t, analysisOut, rc)
-		})
+		commonvpc.TestAll(tt, t, commonvpc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -655,12 +622,10 @@ func TestUnsupportedAnalysis(t *testing.T) {
 			Mode: commonvpc.OutputGeneration,
 		},
 	}
+	// tests is the list of tests to run
 	for testIdx := range tests {
-		test := tests[testIdx]
-		t.Run(test.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &IBMresourcesContainer{}
-			test.RunTest(t, analysisOut, rc)
-		})
+		tt := tests[testIdx]
+		commonvpc.TestAll(tt, t, tt.Mode, &IBMresourcesContainer{}, analysisOut, tt.Name)
 	}
+	fmt.Println("done")
 }
