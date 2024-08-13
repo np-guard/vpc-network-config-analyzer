@@ -290,11 +290,8 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		sgName := *sg.GroupId
-		if sg.GroupName != nil && *sg.GroupName != "" {
-			sgName = *sg.GroupName
-		}
-		commonvpc.NewSGResource(sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
+		sgName := getSGName(sg)
+		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
 	for vpcUID, sgListInstance := range sgLists {
