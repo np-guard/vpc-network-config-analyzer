@@ -46,6 +46,8 @@ their connectivity at the bottom of the page.
 
 Output can be saved to a file using the `--filename` flag.
 
+Example `html` output is available [here](docs/small_example.html) and [here](docs/lb_example.html).
+
 ## Build the project
 
 Make sure you have golang 1.22+ on your platform
