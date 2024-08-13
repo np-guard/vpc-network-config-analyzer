@@ -2,13 +2,14 @@
 
 ## About vpc-network-config-analyzer
 This repo contains packages and a CLI for analyzing the network connectivity of a VPC, as specified by various VPC resources.
+The full list of supported resources is available [here](docs/supported_resources.md).
 
 
 ## Usage
 Run the `vpcanalyzer` CLI tool with one of the following commands.
-* `vpcanalyzer report` - provides a detailed report/diagram of VPC connectivity, as implied by the given VPC configuration. [Details](vpcanalyzer_report.md).
-* `vpcanalyzer diff` - lists changes in connectivity (modified, added and removed connections) between two VPC configurations. [Details](vpcanalyzer_diff.md).
-* `vpcanalyzer explain` - explains how the given VPC configuration affects connectivity between two endpoints. [Details](vpcanalyzer_explain.md).
+* `vpcanalyzer report` - provides a detailed report/diagram of VPC connectivity, as implied by the given VPC configuration. [Details](docs/vpcanalyzer_report.md).
+* `vpcanalyzer diff` - lists changes in connectivity (modified, added and removed connections) between two VPC configurations. [Details](docs/vpcanalyzer_diff.md).
+* `vpcanalyzer explain` - explains how the given VPC configuration affects connectivity between two endpoints. [Details](docs/vpcanalyzer_explain.md).
 
 ### Global options
 ```
