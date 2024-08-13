@@ -745,6 +745,18 @@ var tests = []*vpcGeneralTest{
 		format:      vpcmodel.HTML,
 		grouping:    true,
 	},
+	{
+		inputConfig: "vni_basic",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.Text,
+	},
+	{
+		inputConfig: "vni_basic",
+		useCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		grouping:    true,
+		format:      vpcmodel.HTML,
+	},
 }
 
 var formatsAvoidComparison = map[vpcmodel.OutFormat]bool{
