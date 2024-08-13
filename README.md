@@ -46,7 +46,7 @@ their connectivity at the bottom of the page.
 
 Output can be saved to a file using the `--filename` flag.
 
-Example `html` output is available [here](docs/small_example.html) and [here](docs/lb_example.html) (should be downloaded view in browser).
+Example `html` output is available [here](docs/small_example.html) and [here](docs/lb_example.html) (should be downloaded to view in browser).\
 Example screenshot of `html` output file is available [here](docs/html-screenshot-example.png).
 
 ## Build the project
