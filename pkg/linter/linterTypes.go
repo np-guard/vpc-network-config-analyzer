@@ -14,15 +14,17 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const numFindingToPrint = 3
+
 type linter interface {
 	check() error
-	getFindings() []finding        // returns all findings detected by the linter
-	addFinding(f finding)          // add a single finding
-	lintName() string              // this lint Name
-	lintDescription() string       // this string Name
-	string(lintDesc string) string // string with this lint's finding
-	toJSON() []any                 // this lint finding in JSON
-	enableByDefault() bool         //
+	getFindings() []finding                       // returns all findings detected by the linter
+	addFinding(f finding)                         // add a single finding
+	lintName() string                             // this lint Name
+	lintDescription() string                      // this string Name
+	string(lintDesc string, printAll bool) string // string with this lint's finding
+	toJSON() []any                                // this lint finding in JSON
+	enableByDefault() bool                        //
 }
 
 type finding interface {
@@ -67,15 +69,23 @@ func (lint *basicLinter) enableByDefault() bool {
 	return lint.enable
 }
 
-func (lint *basicLinter) string(lintDesc string) string {
-	findingsRes := make([]string, len(lint.findings))
+func (lint *basicLinter) string(lintDesc string, printAll bool) string {
+	findingsResAll := make([]string, len(lint.findings))
 	for i, thisFinding := range lint.findings {
-		findingsRes[i] = thisFinding.string()
+		findingsResAll[i] = thisFinding.string()
 	}
-	sort.Strings(findingsRes)
-	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
-		strings.Repeat("~", len(lintDesc)+len(issues)+3) + "\n"
-	return header + strings.Join(findingsRes, "\n")
+	sort.Strings(findingsResAll)
+	var suffix string
+	var findingRes []string
+	if !printAll && len(lint.findings) > numFindingToPrint {
+		findingRes = findingsResAll[:numFindingToPrint]
+		suffix = fmt.Sprintf("\n... (%d more)\n", len(lint.findings)-numFindingToPrint)
+	} else {
+		findingRes = findingsResAll
+	}
+	header := fmt.Sprintf("%q issues:\n", lintDesc)
+	header += strings.Repeat("~", len(header)-1) + "\n"
+	return header + strings.Join(findingRes, "\n") + suffix
 }
 
 func (lint *basicLinter) toJSON() []any {

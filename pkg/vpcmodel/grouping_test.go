@@ -28,10 +28,10 @@ func (mockVPC *mockVPCIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.
 func (mockVPC *mockVPCIntf) ShowOnSubnetMode() bool { return true }
 
 type mockNetIntf struct {
-	cidr     string
-	isPublic bool
-	name     string
-	subnet   Subnet
+	cidr       string
+	isExternal bool
+	name       string
+	subnet     Subnet
 }
 
 func (m *mockNetIntf) CidrOrAddress() string {
@@ -49,10 +49,10 @@ func (m *mockNetIntf) Subnet() Subnet {
 }
 
 func (m *mockNetIntf) IsInternal() bool {
-	return !m.isPublic
+	return !m.isExternal
 }
 func (m *mockNetIntf) IsPublicInternet() bool {
-	return m.isPublic
+	return m.isExternal
 }
 func (m *mockNetIntf) AbstractedToNodeSet() NodeSet {
 	return nil
@@ -87,7 +87,7 @@ func (m *mockNetIntf) RegionName() string {
 func (m *mockNetIntf) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
-func (m *mockNetIntf) IsExternal() bool       { return m.isPublic }
+func (m *mockNetIntf) IsExternal() bool       { return m.isExternal }
 func (m *mockNetIntf) ShowOnSubnetMode() bool { return false }
 
 func (m *mockNetIntf) VPC() VPCResourceIntf {
@@ -128,6 +128,9 @@ func (m *mockSubnet) AddressRange() *ipblock.IPBlock {
 }
 func (m *mockSubnet) CIDR() string {
 	return m.cidr
+}
+func (m *mockSubnet) IsPrivate() bool {
+	return true
 }
 func (m *mockSubnet) Connectivity() *ConnectivityResult {
 	return nil

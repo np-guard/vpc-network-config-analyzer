@@ -662,7 +662,7 @@ func (rc *IBMresourcesContainer) getSGconfig(
 			return err
 		}
 
-		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, vpc, NewIBMSGAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
+		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, *sg.Name, vpc, NewIBMSGAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
 	}
 	for vpcUID, sgListInstance := range sgLists {

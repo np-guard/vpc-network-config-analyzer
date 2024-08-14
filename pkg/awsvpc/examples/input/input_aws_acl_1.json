@@ -125,8 +125,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1b",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -299,8 +299,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1b",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -473,8 +473,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1b",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -647,8 +647,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -821,8 +821,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -995,8 +995,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -1506,10 +1506,10 @@
                         {
                             "Description": null,
                             "GroupId": "GroupId:60",
-                            "GroupName": "GroupName:62",
+                            "GroupName": null,
                             "PeeringStatus": null,
                             "UserId": "UserId:63",
-                            "VpcId": "VpcId:64",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1591,10 +1591,10 @@
                         {
                             "Description": null,
                             "GroupId": "GroupId:65",
-                            "GroupName": "GroupName:62",
+                            "GroupName": null,
                             "PeeringStatus": null,
                             "UserId": "UserId:63",
-                            "VpcId": "VpcId:64",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1882,5 +1882,6 @@
             "VpcId": "VpcId:44",
             "Region": "eu-north-1"
         }
-    ]
+    ],
+    "config-file-git-sha1": "$Id: 16f8fe60b5992634f2e00ab80cac59f0ec7c4887 $"
 }

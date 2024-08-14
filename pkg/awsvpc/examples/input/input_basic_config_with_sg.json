@@ -125,8 +125,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -164,7 +164,12 @@
             "StateReason": null,
             "StateTransitionReason": "",
             "SubnetId": "SubnetId:6",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "instance1"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-06-24T07:25:37Z",
@@ -282,8 +287,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1b",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -300,8 +305,8 @@
             },
             "PrivateIpAddress": "10.0.20.81",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:16",
-            "PublicIpAddress": "1.0.0.2",
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
@@ -321,7 +326,12 @@
             "StateReason": null,
             "StateTransitionReason": "",
             "SubnetId": "SubnetId:17",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "instance2"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-06-24T07:25:29Z",
@@ -339,7 +349,12 @@
             ],
             "InternetGatewayId": "InternetGatewayId:20",
             "OwnerId": "OwnerId:8",
-            "Tags": []
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "gw"
+                }
+            ]
         },
         {
             "Attachments": [
@@ -499,10 +514,10 @@
                         {
                             "Description": null,
                             "GroupId": "GroupId:28",
-                            "GroupName": "GroupName:30",
+                            "GroupName": null,
                             "PeeringStatus": null,
                             "UserId": "UserId:31",
-                            "VpcId": "VpcId:32",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -525,7 +540,7 @@
                 }
             ],
             "OwnerId": "OwnerId:8",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:22"
         },
         {
@@ -570,7 +585,12 @@
                 }
             ],
             "OwnerId": "OwnerId:8",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "allow_tls"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -589,10 +609,10 @@
                         {
                             "Description": null,
                             "GroupId": "GroupId:33",
-                            "GroupName": "GroupName:30",
+                            "GroupName": null,
                             "PeeringStatus": null,
                             "UserId": "UserId:31",
-                            "VpcId": "VpcId:32",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -615,7 +635,7 @@
                 }
             ],
             "OwnerId": "OwnerId:8",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:5"
         }
     ],
@@ -644,7 +664,7 @@
             "State": "available",
             "SubnetArn": "SubnetArn:34",
             "SubnetId": "SubnetId:25",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:22"
         },
         {
@@ -671,7 +691,12 @@
             "State": "available",
             "SubnetArn": "SubnetArn:35",
             "SubnetId": "SubnetId:17",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "subnet2"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -698,7 +723,7 @@
             "State": "available",
             "SubnetArn": "SubnetArn:36",
             "SubnetId": "SubnetId:26",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:22"
         },
         {
@@ -725,7 +750,7 @@
             "State": "available",
             "SubnetArn": "SubnetArn:37",
             "SubnetId": "SubnetId:24",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:22"
         },
         {
@@ -752,7 +777,12 @@
             "State": "available",
             "SubnetArn": "SubnetArn:38",
             "SubnetId": "SubnetId:6",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "subnet1"
+                }
+            ],
             "VpcId": "VpcId:5"
         }
     ],
@@ -775,7 +805,12 @@
             "IsDefault": false,
             "OwnerId": "OwnerId:8",
             "State": "available",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "vpc1"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -796,8 +831,9 @@
             "IsDefault": true,
             "OwnerId": "OwnerId:8",
             "State": "available",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:22"
         }
-    ]
+    ],
+    "config-file-git-sha1": "$Id: ed8fb144ad0b43312896bf8e88d03a4644a3786d $"
 }

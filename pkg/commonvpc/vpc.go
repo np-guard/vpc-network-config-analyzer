@@ -134,8 +134,8 @@ type Subnet struct {
 	VPCnodes []vpcmodel.Node  `json:"-"`
 	Cidr     string           `json:"-"`
 	IPblock  *ipblock.IPBlock `json:"-"`
-	// isPublic is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
-	isPublic bool `json:"-"`
+	// isPrivate is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
+	isPrivate bool `json:"-"`
 }
 
 func (s *Subnet) CIDR() string {
@@ -153,11 +153,11 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
 }
-func (s *Subnet) IsPublic() bool {
-	return s.isPublic
+func (s *Subnet) IsPrivate() bool {
+	return s.isPrivate
 }
-func (s *Subnet) SetIsPublic(isPublic bool) {
-	s.isPublic = isPublic
+func (s *Subnet) SetIsPrivate(isPrivate bool) {
+	s.isPrivate = isPrivate
 }
 
 type Vsi struct {

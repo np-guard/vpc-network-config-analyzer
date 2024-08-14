@@ -115,7 +115,9 @@ func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.
 	return subnetNode, nil
 }
 
-func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyzer,
+// pairingID is the identifier for the sgs, in ibm it is the name of the sg, and in aws it is groupID
+// it is used later in sg analysis
+func NewSGResource(name, uid, pairingID string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyzer,
 	sgMap map[string]map[string]*SecurityGroup,
 	sgLists map[string][]*SecurityGroup) *SecurityGroup {
 	sgResource := &SecurityGroup{
@@ -131,7 +133,7 @@ func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyz
 	if _, ok := sgMap[vpc.UID()]; !ok {
 		sgMap[vpc.UID()] = map[string]*SecurityGroup{}
 	}
-	sgMap[vpc.UID()][name] = sgResource
+	sgMap[vpc.UID()][pairingID] = sgResource
 	sgLists[vpc.UID()] = append(sgLists[vpc.UID()], sgResource)
 	return sgResource
 }
