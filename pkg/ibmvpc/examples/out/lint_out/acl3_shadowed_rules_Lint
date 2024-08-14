@@ -15,11 +15,11 @@ ________________________________________________________________________________
 "NACLs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] splits subnet "subnet2-ky" (10.240.20.0/24).
-	Rule's details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
+	Rule details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [1] splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule's details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
+	Rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [3] splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule's details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
+	Rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "SG for which there are no resources attached to" issues:
@@ -40,7 +40,7 @@ ________________________________________________________________________________
 "rules of network ACLs that reference CIDRs not in the relevant VPC address range" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [3] with destination 147.235.219.207 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule's details: index: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny
+	Rule details: index: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny
 
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [4] with destination 147.235.219.206/31 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule's details: index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow
+	Rule details: index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow

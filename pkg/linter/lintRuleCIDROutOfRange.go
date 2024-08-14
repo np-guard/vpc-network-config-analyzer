@@ -98,7 +98,7 @@ func (finding *ruleNonRelevantCIDR) string() string {
 	} else {
 		strPrefix += fmt.Sprintf("egress rule [%d] with source %s ", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
 	}
-	strSuffix := fmt.Sprintf("is outside of the VPC's Address Range (%s)\n\tRule's details: %s",
+	strSuffix := fmt.Sprintf("is outside of the VPC's Address Range (%s)\n\tRule details: %s",
 		finding.vpcResource.AddressRange().String(), rule.RuleDesc)
 	return strPrefix + strSuffix
 }
