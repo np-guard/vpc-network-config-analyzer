@@ -20,8 +20,8 @@ type splitRuleSubnet struct {
 	splitSubnets []vpcmodel.Subnet
 }
 
-// filterRuleSplitSubnetLintSG: SG rules that are inconsistent w.r.t. subnets.
-func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VPCConfig,
+// SG rules that are inconsistent w.r.t. subnets.
+func newSGSplitSubnet(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
@@ -34,8 +34,8 @@ func newFilterRuleSplitSubnetLintSG(name string, configs map[string]*vpcmodel.VP
 		checkForFilter: findSplitRulesSubnet}
 }
 
-// filterRuleSplitSubnetLintNACL: NACL rules that are inconsistent w.r.t. subnets.
-func newFilterRuleSplitSubnetLintNACL(name string, configs map[string]*vpcmodel.VPCConfig,
+// NACL rules that are inconsistent w.r.t. subnets.
+func newNACLSplitSubnet(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{

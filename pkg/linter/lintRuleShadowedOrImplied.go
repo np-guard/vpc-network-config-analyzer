@@ -28,8 +28,8 @@ type ruleRedundant struct {
 	vpcResource  vpcmodel.VPC
 }
 
-// ruleRedundantNACLLint: NACL rules that are overruled by higher priority rules
-func newRuleShadowedNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+// NACL rules that are shadowed by higher priority rules
+func newNACLRuleShadowed(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
@@ -42,8 +42,8 @@ func newRuleShadowedNACLLint(name string, configs map[string]*vpcmodel.VPCConfig
 		checkForFilter: findRuleSyntacticRedundant}
 }
 
-// newRuleRedundantSGRuleLint: SG rules that are implied by other rules
-func newRuleRedundantSGRuleLint(name string, configs map[string]*vpcmodel.VPCConfig,
+// SG rules that are implied by other rules
+func newSGRuleImplied(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
