@@ -484,7 +484,7 @@ func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *data
 	}
 }
 
-func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, srcNodes []vpcmodel.Node) *FloatingIP {
+func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc vpcmodel.VPC, srcNodes []vpcmodel.Node) *FloatingIP {
 	return &FloatingIP{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: fipName,
@@ -532,16 +532,13 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		}
 
 		var srcNodes []vpcmodel.Node
-		var vpcUID string
 		var vpcConfig *vpcmodel.VPCConfig
-		for vpcUID, vpcConfig = range res.Configs() {
+		for _, vpcConfig = range res.Configs() {
 			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool {
 				if targetUID != "" {
 					return n.UID() == targetUID
-				} else {
-					return n.CidrOrAddress() == targetAddress
-
 				}
+				return n.CidrOrAddress() == targetAddress
 			})
 			if len(srcNodes) > 0 {
 				break
@@ -553,11 +550,8 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			continue // could not find network interface attached to configured fip -- skip that fip
 		}
 
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		if skipByVPC[vpc.ResourceUID] {
+		vpc := srcNodes[0].VPC().(vpcmodel.VPC)
+		if skipByVPC[vpc.UID()] {
 			continue // skip fip because of selected vpc to analyze
 		}
 
@@ -614,6 +608,7 @@ func (rc *IBMresourcesContainer) getVPCconfig(
 	return nil
 }
 
+//nolint:gocyclo // there is a big switch/case. no point to split
 func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 	sg *vpc1.SecurityGroup,
 	c *vpcmodel.VPCConfig) {
