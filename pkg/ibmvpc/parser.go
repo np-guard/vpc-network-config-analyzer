@@ -534,11 +534,14 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		var vpcUID string
 		var vpcConfig *vpcmodel.VPCConfig
 		for vpcUID, vpcConfig = range res.Configs() {
-			if targetUID != "" {
-				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
-			} else {
-				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == targetAddress })
-			}
+			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool {
+				if targetUID != "" {
+					return n.UID() == targetUID
+				} else {
+					return n.CidrOrAddress() == targetAddress
+
+				}
+			})
 			if len(srcNodes) > 0 {
 				break
 			}
@@ -623,7 +626,9 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 			case commonvpc.VirtualNetworkInterfaceResourceType:
 				address := *targetIntfRef.PrimaryIP.Address
 				ns := getCertainNodes(c.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })
-				sgResource.Members[address] = ns[0]
+				if len(ns) == 1 {
+					sgResource.Members[address] = ns[0]
+				}
 			case commonvpc.NetworkInterfaceResourceType:
 				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
 					if intfNodeObj, ok := intfNode.(*commonvpc.NetworkInterface); ok {
