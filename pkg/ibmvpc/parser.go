@@ -511,7 +511,6 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			switch *target.ResourceType {
-
 			case commonvpc.NetworkInterfaceResourceType:
 				targetUID = *target.ID
 			case commonvpc.VirtualNetworkInterfaceResourceType:
@@ -535,9 +534,9 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		var vpcUID string
 		var vpcConfig *vpcmodel.VPCConfig
 		for vpcUID, vpcConfig = range res.Configs() {
-			if targetUID != ""{
+			if targetUID != "" {
 				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
-			}else{
+			} else {
 				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == targetAddress })
 			}
 			if len(srcNodes) > 0 {
