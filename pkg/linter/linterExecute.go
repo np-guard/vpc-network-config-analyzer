@@ -93,7 +93,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) > 0 {
 			issueFound = true
-			thisLintStr = thisLinter.string(thisLinter.lintDescription())
+			thisLintStr = thisLinter.string(thisLinter.lintDescription(), false) // todo connect to cli
 			strPerLint = append(strPerLint, thisLintStr)
 		}
 	}
