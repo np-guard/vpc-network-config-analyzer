@@ -34,7 +34,7 @@ var lintTests = []*vpcGeneralTest{
 	{
 		name:        "acl3_shadowed_rules_other_lints_disabled",
 		inputConfig: "acl_testing3_with_redundant_rules",
-		disable: []string{"rules-splitting-subnets-NACLS", "overlapping-subnets", "redundant tables",
+		disable: []string{"rules-splitting-subnets-NACLS", "overlapping-subnets", "nacl-unattached", "sg-unattached",
 			"rules-referring-non-relevant-CIDRs-SG", "rules-referring-non-relevant-CIDRs-NACLs",
 			"blocked-TCP-response", "rules-redundant-SG"},
 	},
