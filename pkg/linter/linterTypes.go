@@ -79,12 +79,12 @@ func (lint *basicLinter) string(lintDesc string, printAll bool) string {
 	var findingRes []string
 	if !printAll && len(lint.findings) > numFindingToPrint {
 		findingRes = findingsResAll[:numFindingToPrint]
-		suffix = fmt.Sprintf("\n...and %d more\n", len(lint.findings)-numFindingToPrint)
+		suffix = fmt.Sprintf("\n... (%d more)\n", len(lint.findings)-numFindingToPrint)
 	} else {
 		findingRes = findingsResAll
 	}
-	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
-		strings.Repeat("~", len(lintDesc)+len(issues)+numFindingToPrint) + "\n"
+	header := fmt.Sprintf("%q issues:\n", lintDesc)
+	header += strings.Repeat("~", len(header)-1) + "\n"
 	return header + strings.Join(findingRes, "\n") + suffix
 }
 

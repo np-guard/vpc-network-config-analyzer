@@ -38,8 +38,8 @@ func NewLintCommand(args *inArgs) *cobra.Command {
 	usageStr := " specific linters, specified as linter names separated by comma.\nlinters: " + validLintersNames
 	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+usageStr)
 	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+usageStr)
-	cmd.Flags().BoolVar(&args.printAllLinters, printAllFlag, false, "print all linters finding (do not limit"+
-		"findings of each lint to 3)")
+	cmd.Flags().BoolVar(&args.printAllLinters, printAllFlag, false, "print all findings (do not limit "+
+		"findings of each linter to 3)")
 	return cmd
 }
 
