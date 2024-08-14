@@ -72,6 +72,7 @@ type VpcGeneralTest struct {
 	DetailExplain  bool
 	Enable         []string
 	Disable        []string
+	PrintAllLints  bool
 }
 
 const (

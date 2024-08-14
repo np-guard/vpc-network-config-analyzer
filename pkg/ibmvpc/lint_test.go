@@ -55,15 +55,15 @@ var lintTests = []*commonvpc.VpcGeneralTest{
 		Enable:      []string{"sg-split-subnet"},
 	},
 	{
-		name:          "multivpc_print_all",
-		inputConfig:   "tgw_larger_example",
-		printAllLints: true,
-		enable:        []string{"sg-split-subnet"},
+		Name:          "multivpc_print_all",
+		InputConfig:   "tgw_larger_example",
+		PrintAllLints: true,
+		Enable:        []string{"sg-split-subnet"},
 	},
 	{
-		name:        "multivpc_partly_overlap",
-		inputConfig: "tgw_larger_example_partly_overlap",
-		enable:      []string{"sg-split-subnet"},
+		Name:        "multivpc_partly_overlap",
+		InputConfig: "tgw_larger_example_partly_overlap",
+		Enable:      []string{"sg-split-subnet"},
 	},
 	{
 		Name:        "PartialTCPRespond",
@@ -126,8 +126,8 @@ func runLintTestPerUseCase(t *testing.T,
 	outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	initLintTestFileNames(tt, outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.printAllLints, tt.enable, tt.disable)
-	if err := compareOrRegenerateOutputPerTest(t, tt.mode, actualOutput, tt, vpcmodel.AllEndpoints); err != nil {
+	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.PrintAllLints, tt.Enable, tt.Disable)
+	if err := commonvpc.CompareOrRegenerateOutputPerTest(t, tt.Mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
 		return err
 	}
 	return nil
