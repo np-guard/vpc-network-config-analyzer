@@ -1,10 +1,10 @@
-"NACL for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"NACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "corrode-kilogram-cola-mandated" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"SG for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"SG not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", security group "shininess-disavow-whinny-canal" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
