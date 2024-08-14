@@ -35,14 +35,14 @@ var lintTests = []*commonvpc.VpcGeneralTest{
 	{
 		Name:        "acl3_shadowed_rules_other_lints_disabled",
 		InputConfig: "acl_testing3_with_redundant_rules",
-		disable: []string{"nacl-split-subnet", "subnet-cidr-overlap", "nacl-unattached",
+		Disable: []string{"nacl-split-subnet", "subnet-cidr-overlap", "nacl-unattached",
 			"sg-unattached", "sg-rule-cidr-out-of-range", "nacl-rule-cidr-out-of-range",
 			"tcp-response-blocked", "sg-rule-implied"},
 	},
 	{
 		Name:        "acl3_3rd",
 		InputConfig: "acl_testing3_3rd",
-		Dnable:      []string{"sg-split-subnet"},
+		Enable:      []string{"sg-split-subnet"},
 	},
 	{
 		Name:        "basic_sg1",
