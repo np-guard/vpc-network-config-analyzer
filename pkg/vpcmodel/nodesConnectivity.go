@@ -165,7 +165,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			allLayersRes[peerNode] = routerConnRes
 		}
 		loadBalancerRule := c.getLoadBalancerRule(src, dst)
-		if !isIngress && loadBalancerRule != nil && loadBalancerRule.Deny() {
+		if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 			allLayersRes[peerNode] = NoConns()
 			continue
 		}
