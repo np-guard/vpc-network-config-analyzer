@@ -37,7 +37,7 @@ func NewAWSSGAnalyzer(sg *types.SecurityGroup) *AWSSGAnalyzer {
 func getSGName(sg *types.SecurityGroup) *string {
 	sgName := sg.GroupId
 	if sg.GroupName != nil && *sg.GroupName != "" {
-		sgName = sg.GroupName
+		return sg.GroupName
 	}
 	return getResourceName(sg.Tags, sgName)
 }
