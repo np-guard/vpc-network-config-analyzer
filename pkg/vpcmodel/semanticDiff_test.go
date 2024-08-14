@@ -158,17 +158,17 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.1.20.0/22", "subnet1", nil},
 		&mockSubnet{nil, "10.2.20.0/22", "subnet2", nil})
 	cfg1.Nodes = append(cfg1.Nodes,
-		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true},
-		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isPublic: true},
-		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isPublic: true})
+		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isExternal: true},
+		&mockNetIntf{cidr: "250.2.4.0/24", name: "public1-2", isExternal: true},
+		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isExternal: true})
 
 	cfg2 := &VPCConfig{}
 	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.1.20.0/22", "subnet1", nil},
 		&mockSubnet{nil, "10.2.20.0/22", "subnet2", nil})
 	cfg2.Nodes = append(cfg2.Nodes,
-		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true},
-		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isPublic: true},
-		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isPublic: true})
+		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isExternal: true},
+		&mockNetIntf{cidr: "250.2.4.0/30", name: "public2-2", isExternal: true},
+		&mockNetIntf{cidr: "200.2.4.0/24", name: "public1-3", isExternal: true})
 
 	//      cfg1                                            cfg2
 	// <subnet2, public1-1>	    		 and		<subnet2, public2-1> are comparable
@@ -272,22 +272,22 @@ func TestSimpleIPAndSubnetDiffGrouping(t *testing.T) {
 func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg1 := &VPCConfig{}
 	cfg1.Nodes = append(cfg1.Nodes,
-		&mockNetIntf{name: "vsi0", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi1", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi2", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi3", isPublic: false, cidr: ""},
-		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isPublic: true})
+		&mockNetIntf{name: "vsi0", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi1", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi2", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi3", isExternal: false, cidr: ""},
+		&mockNetIntf{cidr: "1.2.3.0/30", name: "public1-1", isExternal: true})
 
 	cfg1.Subnets = append(cfg1.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg1.Nodes[0], cfg1.Nodes[1],
 		cfg1.Nodes[2], cfg1.Nodes[3]}})
 
 	cfg2 := &VPCConfig{}
 	cfg2.Nodes = append(cfg2.Nodes,
-		&mockNetIntf{name: "vsi1", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi2", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi3", isPublic: false, cidr: ""},
-		&mockNetIntf{name: "vsi4", isPublic: false, cidr: ""},
-		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isPublic: true})
+		&mockNetIntf{name: "vsi1", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi2", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi3", isExternal: false, cidr: ""},
+		&mockNetIntf{name: "vsi4", isExternal: false, cidr: ""},
+		&mockNetIntf{cidr: "1.2.3.0/26", name: "public2-1", isExternal: true})
 
 	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
