@@ -18,7 +18,7 @@ type overlappingSubnetsLint struct {
 	basicLinter
 }
 
-func newOverlappingSubnetsLint(name string, configs map[string]*vpcmodel.VPCConfig,
+func newSubnetCIDROverlap(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &overlappingSubnetsLint{
 		basicLinter: basicLinter{
