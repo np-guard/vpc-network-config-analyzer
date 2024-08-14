@@ -21,7 +21,7 @@ import (
 
 func TestVPCResourceModelRegion(t *testing.T) {
 	rc := IBMresourcesContainer{}
-	err := rc.ParseResourcesFromFile(filepath.Join(getTestsDirInput(), "input_multi_regions.json"))
+	err := rc.ParseResourcesFromFile(filepath.Join(commonvpc.GetTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs(common.IBM)
