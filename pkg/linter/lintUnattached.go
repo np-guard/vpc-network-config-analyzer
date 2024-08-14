@@ -12,11 +12,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// redundantTablesLint: tables - sgs/nacls - that no endpoint/subnet are attached to them
-type redundantTablesLint struct {
-	filterLinter
-}
-
 func newNACLUnattachedLint(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
