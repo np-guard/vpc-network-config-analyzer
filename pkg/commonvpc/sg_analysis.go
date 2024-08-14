@@ -297,3 +297,23 @@ func GetIPBlockResult(cidr, address, name *string,
 	}
 	return ipBlock, cidrRes, nil
 }
+
+func GetSGRules(numRules int, sga SpecificSGAnalyzer) (ingressRules, egressRules []*SGRule, err error) {
+	ingressRules = []*SGRule{}
+	egressRules = []*SGRule{}
+	for index := 0; index < numRules; index++ {
+		_, ruleObj, isIngress, err := sga.GetSGRule(index)
+		if err != nil {
+			return nil, nil, err
+		}
+		if ruleObj == nil {
+			continue
+		}
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
+	}
+	return ingressRules, egressRules, nil
+}

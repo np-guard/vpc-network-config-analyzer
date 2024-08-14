@@ -212,24 +212,7 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 
 // GetSGRules returns ingress and egress rule objects
 func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
-	ingressRules = []*commonvpc.SGRule{}
-	egressRules = []*commonvpc.SGRule{}
-	numRules := len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
-	for index := 0; index < numRules; index++ {
-		_, ruleObj, isIngress, err := sga.GetSGRule(index)
-		if err != nil {
-			return nil, nil, err
-		}
-		if ruleObj == nil {
-			continue
-		}
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
-	}
-	return ingressRules, egressRules, nil
+	return commonvpc.GetSGRules(len(sga.sgResource.IpPermissions)+len(sga.sgResource.IpPermissionsEgress), sga)
 }
 
 // SetSGmap gets sgMap (a map from sg groupID to SecurityGroup obj) and save it in AWSSGAnalyzer

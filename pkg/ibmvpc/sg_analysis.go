@@ -14,7 +14,6 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 // IBMSGAnalyzer implements commonvpc.SpecificSGAnalyzer
@@ -206,27 +205,7 @@ func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 
 // GetSGRules returns ingress and egress rule objects
 func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
-	ingressRules = []*commonvpc.SGRule{}
-	egressRules = []*commonvpc.SGRule{}
-	for index := range sga.SgResource.Rules {
-		_, ruleObj, isIngress, err := sga.GetSGRule(index)
-		if err != nil {
-			return nil, nil, err
-		}
-		if ruleObj == nil {
-			continue
-		}
-		if ruleObj.Remote.Cidr.IsEmpty() && ruleObj.Remote.SgName != "" {
-			logging.Warnf("in SG %s, rule index %d: could not find remote SG %s or its attached network interfaces",
-				*sga.SgResource.Name, index, ruleObj.Remote.SgName)
-		}
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
-	}
-	return ingressRules, egressRules, nil
+	return commonvpc.GetSGRules(len(sga.SgResource.Rules), sga)
 }
 
 // ReferencedIPblocks returns referencedIPblocks filed
