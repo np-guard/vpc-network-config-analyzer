@@ -83,8 +83,8 @@ func (lint *basicLinter) string(lintDesc string, printAll bool) string {
 	} else {
 		findingRes = findingsResAll
 	}
-	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
-		strings.Repeat("~", len(lintDesc)+len(issues)+numFindingToPrint) + "\n"
+	header := fmt.Sprintf("%q issues:\n", lintDesc)
+	header += strings.Repeat("~", len(header)-1) + "\n"
 	return header + strings.Join(findingRes, "\n") + suffix
 }
 

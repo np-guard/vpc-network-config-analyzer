@@ -16,7 +16,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const issues = "issues:"
 const delimBetweenLintsChars = 200
 
 // linterGenerator is a function that generate a linter.
