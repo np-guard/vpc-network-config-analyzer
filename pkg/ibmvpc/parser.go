@@ -511,14 +511,14 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType {
-				logging.Debugf(ignoreFIPWarning(*fip.Name,
+				logging.Debug(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
 						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.ID
 		default:
-			logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+			logging.Debug(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
