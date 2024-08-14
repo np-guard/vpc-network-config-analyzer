@@ -62,6 +62,8 @@ func handleTypes(kind string) (spec.ResourceType, error) {
 		return spec.ResourceTypeInstance, nil
 	case ResourceTypeNetworkInterface:
 		return spec.ResourceTypeNif, nil
+	case ResourceTypeReservedIP:
+		return spec.ResourceTypeVpe, nil
 	default:
 		return "", fmt.Errorf("resourceType %s is not supported yet", kind)
 	}

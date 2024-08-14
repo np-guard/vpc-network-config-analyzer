@@ -44,6 +44,11 @@ func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 	return r.ExtendedPrefix(c) + r.Name()
 }
 
+// used for synthesis output
+func (r *ReservedIP) DetailedResourceForSynthesisOut() (name string, details int) {
+	return r.vpe, 0
+}
+
 // PrivateIP implements vpcmodel.Node interface
 type PrivateIP struct {
 	vpcmodel.VPCResource
