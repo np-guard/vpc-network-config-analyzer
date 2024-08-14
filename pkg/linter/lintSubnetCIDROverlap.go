@@ -75,7 +75,7 @@ func (finding *overlapSubnets) vpc() []vpcmodel.VPCResourceIntf {
 func (finding *overlapSubnets) string() string {
 	subnet1 := finding.overlapSubnets[0]
 	subnet2 := finding.overlapSubnets[1]
-	return fmt.Sprintf("VPC %q's %s and VPC \"%s\"'s %s overlap", subnet1.VPC().Name(), subnetStr(subnet1),
+	return fmt.Sprintf("VPC %q's %s and VPC %q's %s overlap", subnet1.VPC().Name(), subnetStr(subnet1),
 		subnet2.VPC().Name(), subnetStr(subnet2))
 }
 

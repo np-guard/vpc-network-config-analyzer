@@ -101,7 +101,7 @@ func (finding *splitRuleSubnet) string() string {
 	rule := finding.rule
 	subnetsStrSlice := make([]string, len(finding.splitSubnets))
 	for i, subnet := range finding.splitSubnets {
-		subnetsStrSlice[i] = fmt.Sprintf("\"%s\" (%s)", subnet.Name(), subnet.CIDR())
+		subnetsStrSlice[i] = fmt.Sprintf("%q (%s)", subnet.Name(), subnet.CIDR())
 	}
 	subnetStr := strings.Join(subnetsStrSlice, ", ")
 	if len(subnetsStrSlice) > 1 {
