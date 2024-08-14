@@ -211,7 +211,7 @@ func NewLoadBalancerRule(lb *LoadBalancer, deny bool, src, dst vpcmodel.Node) vp
 	return &LoadBalancerRule{lb, deny, src, dst}
 }
 
-func (lbr *LoadBalancerRule) Deny(isIngress bool ) bool { return !isIngress && lbr.deny }
+func (lbr *LoadBalancerRule) Deny(isIngress bool) bool { return !isIngress && lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
 	if lbr.Deny(false) {
