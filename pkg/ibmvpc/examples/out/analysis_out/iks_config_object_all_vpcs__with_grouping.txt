@@ -1,6 +1,5 @@
 Endpoint connectivity for VPC ky-test-vpc
-Public Internet (all ranges) => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP *  ** 
-Public Internet (all ranges) => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: UDP ** 
+Public Internet (all ranges) => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP,UDP ** 
 iks-clusterid:1[192.168.32.5] => iks-clusterid:1[192.168.36.5],iks-node[192.168.36.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.32.5] => iks-clusterid:1[192.168.40.5],iks-node[192.168.40.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.32.5] => iks-node[192.168.0.4] : protocol: TCP,UDP dst-ports: 30000-32767
@@ -10,8 +9,7 @@ iks-clusterid:1[192.168.32.5] => iks-node[192.168.24.4] : protocol: TCP,UDP dst-
 iks-clusterid:1[192.168.32.5] => iks-node[192.168.32.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.32.5] => iks-node[192.168.4.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.32.5] => iks-node[192.168.8.4] : protocol: TCP,UDP dst-ports: 30000-32767
-iks-clusterid:1[192.168.32.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP dst-ports: 30000-32767 * 
-iks-clusterid:1[192.168.32.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: UDP dst-ports: 30000-32767
+iks-clusterid:1[192.168.32.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.36.5] => iks-clusterid:1[192.168.32.5],iks-node[192.168.32.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.36.5] => iks-clusterid:1[192.168.40.5],iks-node[192.168.40.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.36.5] => iks-node[192.168.0.4] : protocol: TCP,UDP dst-ports: 30000-32767
@@ -21,8 +19,7 @@ iks-clusterid:1[192.168.36.5] => iks-node[192.168.24.4] : protocol: TCP,UDP dst-
 iks-clusterid:1[192.168.36.5] => iks-node[192.168.36.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.36.5] => iks-node[192.168.4.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.36.5] => iks-node[192.168.8.4] : protocol: TCP,UDP dst-ports: 30000-32767
-iks-clusterid:1[192.168.36.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP dst-ports: 30000-32767 * 
-iks-clusterid:1[192.168.36.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: UDP dst-ports: 30000-32767
+iks-clusterid:1[192.168.36.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.40.5] => iks-clusterid:1[192.168.32.5],iks-node[192.168.32.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.40.5] => iks-clusterid:1[192.168.36.5],iks-node[192.168.36.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.40.5] => iks-node[192.168.0.4] : protocol: TCP,UDP dst-ports: 30000-32767
@@ -32,8 +29,7 @@ iks-clusterid:1[192.168.40.5] => iks-node[192.168.24.4] : protocol: TCP,UDP dst-
 iks-clusterid:1[192.168.40.5] => iks-node[192.168.4.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.40.5] => iks-node[192.168.40.4] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-clusterid:1[192.168.40.5] => iks-node[192.168.8.4] : protocol: TCP,UDP dst-ports: 30000-32767
-iks-clusterid:1[192.168.40.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP dst-ports: 30000-32767 * 
-iks-clusterid:1[192.168.40.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: UDP dst-ports: 30000-32767
+iks-clusterid:1[192.168.40.5] => kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] : protocol: TCP,UDP dst-ports: 30000-32767
 iks-node[192.168.0.4] => iks-clusterid:1[192.168.32.5] : protocol: TCP,UDP
 iks-node[192.168.0.4] => iks-clusterid:1[192.168.36.5] : protocol: TCP,UDP
 iks-node[192.168.0.4] => iks-clusterid:1[192.168.40.5] : protocol: TCP,UDP
@@ -154,7 +150,5 @@ kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] => iks-node[192.
 kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] => iks-node[192.168.4.4] : protocol: TCP,UDP dst-ports: 30000-32767
 kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] => iks-node[192.168.40.4] : protocol: TCP,UDP dst-ports: 30000-32767
 kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] => iks-node[192.168.8.4] : protocol: TCP,UDP dst-ports: 30000-32767
-
-TCP connections for which response is not permitted are marked with * 
 
 connections marked with  **  are an over-approximation, not all private IPs have the same connectivity

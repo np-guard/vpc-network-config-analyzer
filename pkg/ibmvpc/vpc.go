@@ -198,7 +198,7 @@ func (lb *LoadBalancer) AbstractionInfo() *vpcmodel.AbstractionInfo {
 
 // ////////////////////////////////////////////////////////////////////////////////
 // LoadBalancerRule is a rule applied to all private IPs of a given load balancer:
-// these private IPs can only connect to pool members of the load balancer.
+// these private IPs can only init connection to pool members of the load balancer.
 type LoadBalancerRule struct {
 	// the relevant load balancer:
 	lb *LoadBalancer
@@ -211,10 +211,10 @@ func NewLoadBalancerRule(lb *LoadBalancer, deny bool, src, dst vpcmodel.Node) vp
 	return &LoadBalancerRule{lb, deny, src, dst}
 }
 
-func (lbr *LoadBalancerRule) Deny() bool { return lbr.deny }
+func (lbr *LoadBalancerRule) Deny(isIngress bool) bool { return !isIngress && lbr.deny }
 
 func (lbr *LoadBalancerRule) String() string {
-	if lbr.Deny() {
+	if lbr.Deny(false) {
 		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
 			lbr.lb.nameWithKind(), lbr.dst.Name())
 	}
