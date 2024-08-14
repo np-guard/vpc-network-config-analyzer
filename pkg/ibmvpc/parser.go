@@ -612,6 +612,10 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 			// get from target name + resource type -> find the address of the target
 			targetType := *targetIntfRef.ResourceType
 			switch targetType {
+			case commonvpc.VirtualNetworkInterfaceResourceType:
+				address := *targetIntfRef.PrimaryIP.Address
+				ns := getCertainNodes(c.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })
+				sgResource.Members[address] = ns[0]
 			case commonvpc.NetworkInterfaceResourceType:
 				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
 					if intfNodeObj, ok := intfNode.(*commonvpc.NetworkInterface); ok {

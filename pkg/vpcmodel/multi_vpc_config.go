@@ -7,6 +7,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"strings"
 
 	collector_common "github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -56,7 +57,7 @@ func (c *MultipleVPCConfigs) SetConfigsToCompare(toCompare map[string]*VPCConfig
 	c.toCompareConfigs = toCompare
 }
 func (c *MultipleVPCConfigs) CloudName() string {
-	return string(c.provider) + " Cloud"
+	return strings.ToUpper(string(c.provider)) + " Cloud"
 }
 func (c *MultipleVPCConfigs) Provider() collector_common.Provider {
 	return c.provider

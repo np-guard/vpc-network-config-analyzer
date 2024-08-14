@@ -19,9 +19,10 @@ const (
 	Inbound  = "inbound"
 	Outbound = "outbound"
 	// used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
-	NetworkInterfaceResourceType = "network_interface"
-	VpeResourceType              = "endpoint_gateway"
-	LoadBalancerResourceType     = "load_balancer"
+	NetworkInterfaceResourceType        = "network_interface"
+	VirtualNetworkInterfaceResourceType = "virtual_network_interface"
+	VpeResourceType                     = "endpoint_gateway"
+	LoadBalancerResourceType            = "load_balancer"
 	// iksNodeResourceType is not actually used from input api objects, but is added by the parser to SGs with targets
 	// that should be added with iks nodes
 	IksNodeResourceType = "iks_node" // used as the type within api objects (e.g. SecurityGroup.Targets.ResourceType)
