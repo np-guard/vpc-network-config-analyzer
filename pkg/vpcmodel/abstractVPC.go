@@ -231,7 +231,7 @@ type LoadBalancer interface {
 
 // LoadBalancerRule represent the influence of the load balancer on a connectivity
 type LoadBalancerRule interface {
-	Deny() bool
+	Deny(bool) bool
 	String() string
 }
 
