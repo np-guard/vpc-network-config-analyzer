@@ -14,6 +14,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+const numFindingToPrint = 3
+
 type linter interface {
 	check() error
 	getFindings() []finding                       // returns all findings detected by the linter
@@ -73,16 +75,16 @@ func (lint *basicLinter) string(lintDesc string, printAll bool) string {
 		findingsResAll[i] = thisFinding.string()
 	}
 	sort.Strings(findingsResAll)
-	suffix := ""
-	findingRes := []string{}
-	if !printAll && len(lint.findings) > 3 {
-		findingRes = findingsResAll[:3]
-		suffix = fmt.Sprintf("\n...and %d more\n", len(lint.findings)-3)
+	var suffix string
+	var findingRes []string
+	if !printAll && len(lint.findings) > numFindingToPrint {
+		findingRes = findingsResAll[:numFindingToPrint]
+		suffix = fmt.Sprintf("\n...and %d more\n", len(lint.findings)-numFindingToPrint)
 	} else {
 		findingRes = findingsResAll
 	}
 	header := fmt.Sprintf("%q %s\n", lintDesc, issues) +
-		strings.Repeat("~", len(lintDesc)+len(issues)+3) + "\n"
+		strings.Repeat("~", len(lintDesc)+len(issues)+numFindingToPrint) + "\n"
 	return header + strings.Join(findingRes, "\n") + suffix
 }
 
