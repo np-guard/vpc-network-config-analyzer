@@ -9,7 +9,7 @@ ________________________________________________________________________________
 network acl "creatable-chive-turbojet-share" of VPC "zn-vpc2" has no resources attached to it
 network acl "sixtieth-resurrect-pledge-wince" of VPC "test-vpc2-ky" has no resources attached to it
 network acl "stimulus-surpass-backup-museum" of VPC "test-vpc0-ky" has no resources attached to it
-...and 3 more
+... (3 more)
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
@@ -23,7 +23,7 @@ ________________________________________________________________________________
 security group "disrupt-stem-mulch-moneybags" of VPC "zn-vpc2" has no resources attached to it
 security group "heroics-diffused-book-estranged" of VPC "test-vpc2-ky" has no resources attached to it
 security group "relenting-sixfold-moisturize-emcee" of VPC "test-vpc0-ky" has no resources attached to it
-...and 5 more
+... (5 more)
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
