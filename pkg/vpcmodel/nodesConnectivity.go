@@ -151,7 +151,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			}
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else {
-			// else : external node -> consider attached routing resources
+			// else : external node -> needs external router, which considers both NACL and SG
 			appliedRouter, routerConnRes, err := c.getRoutingResource(src, dst)
 			if err != nil {
 				return nil, nil, err
@@ -163,10 +163,8 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 				allLayersRes[peerNode] = NoConns()
 				continue
 			}
-			// ibm-config1: appliedFilters are either both nacl and sg (for pgw) or only sg (for fip)
 			// TODO: consider moving to pkg ibm-vpc
-			appliedFilters := appliedRouter.AppliedFiltersKinds()
-			for layer := range appliedFilters {
+			for _, layer := range filterLayers {
 				routerConnRes = routerConnRes.Intersect(perLayerRes[layer][peerNode])
 			}
 			allLayersRes[peerNode] = routerConnRes
@@ -213,35 +211,7 @@ func getConnectionStr(src, dst, conn, suffix string) string {
 	return fmt.Sprintf("%s => %s : %s%s\n", src, dst, conn, suffix)
 }
 
-// given allowed conn from v.AllowedConnsCombined, check if it is external through FIP
-func (v *VPCConnectivity) isConnExternalThroughFIP(src, dst Node) bool {
-	var connRes *ConnectivityResult
-	var isSrcPublic bool
-	switch {
-	case dst.IsPublicInternet():
-		connRes = v.AllowedConnsPerLayer[src][fipRouter]
-	case src.IsPublicInternet():
-		connRes = v.AllowedConnsPerLayer[dst][fipRouter]
-		isSrcPublic = true
-	default:
-		return false
-	}
-	if connRes == nil {
-		return false
-	}
-	var conns *connection.Set
-	if !isSrcPublic {
-		conns = connRes.EgressAllowedConns[dst]
-	} else {
-		conns = connRes.IngressAllowedConns[src]
-	}
-	if conns != nil && !conns.IsEmpty() {
-		return true
-	}
-	return false
-}
-
-// computeAllowedresponsiveConnectionsOld adds the responsiveness analysis for the computed allowed connections.
+// computeAllowedResponsiveConnections adds the responsiveness analysis for the computed allowed connections.
 // A connection A -> B is considered responsive if:
 // Each connection A -> B is being split into 3 parts (each of which could be empty)
 // 1. Responsive: A  TCP (allows bidrectional flow) connection s.t.: both SG and NACL
@@ -267,17 +237,8 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 			// src and dst here are nodes, always. Thus ignoring potential error in conversion
 			srcNode := src.(Node)
 			dstNode := dst.(Node)
-			// iterate pairs (src,dst) with allConn as allowed connectivity, to check responsive aspect
-			if v.isConnExternalThroughFIP(srcNode, dstNode) { // fip ignores NACL
-				// TODO: this may be ibm-specific. consider moving to ibmvpc
-				tcpComponent, _ := partitionTCPNonTCP(conn)
-				v.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(src, dst,
-					detailedConnForTCPRsp(tcpComponent, conn))
-				continue
-			}
-
 			// get the allowed *responsive* conn result
-			// check allowed conns per NACL-layer from dst to src (dst->src)
+			// check allowed conns per NACL-layer from dst to src (dst->src) (since SG is stateful)
 			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
 			// can dst egress to src?
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
