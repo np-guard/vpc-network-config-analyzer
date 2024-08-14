@@ -270,7 +270,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	logging.Debugf("%s",strings.Repeat("-", lineSectionLen))
+	logging.Debugf("%s", strings.Repeat("-", lineSectionLen))
 }
 
 func PrintSGRules(sg *SecurityGroup) {
@@ -291,7 +291,7 @@ func PrintSGRules(sg *SecurityGroup) {
 
 func PrintRule(ruleStr string, index int, err error) {
 	if err == nil {
-		logging.Debugf("%s",ruleStr)
+		logging.Debugf("%s", ruleStr)
 	} else {
 		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}
