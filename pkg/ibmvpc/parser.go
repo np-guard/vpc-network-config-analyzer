@@ -495,7 +495,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc vpcmodel.VPC, srcNo
 	}
 }
 
-func getNodesOfFloatingIp(res *vpcmodel.MultipleVPCConfigs,
+func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
 	fip *datamodel.FloatingIP) (srcNodes []vpcmodel.Node, vpcConfig *vpcmodel.VPCConfig) {
 	targetIntf := fip.Target
@@ -514,15 +514,15 @@ func getNodesOfFloatingIp(res *vpcmodel.MultipleVPCConfigs,
 			logging.Debugf(ignoreFIPWarning(*fip.Name,
 				fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
 					*target.ResourceType)))
-			return
+			return nil, nil
 		}
 	default:
 		logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
-		return
+		return nil, nil
 	}
 
 	if targetUID == "" && targetAddress == "" {
-		return
+		return nil, nil
 	}
 
 	for _, vpcConfig = range res.Configs() {
@@ -549,7 +549,7 @@ func (rc *IBMresourcesContainer) getFipConfig(
 	skipByVPC map[string]bool,
 ) {
 	for _, fip := range rc.FloatingIPList {
-		srcNodes, vpcConfig := getNodesOfFloatingIp(res, filteredOutUIDs, fip)
+		srcNodes, vpcConfig := getNodesOfFloatingIP(res, filteredOutUIDs, fip)
 		if len(srcNodes) == 0 {
 			continue
 		}
