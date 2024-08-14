@@ -6,12 +6,12 @@ ________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-network acl "creatable-chive-turbojet-share" of VPC "zn-vpc2" has no resources attached to it
-network acl "sixtieth-resurrect-pledge-wince" of VPC "test-vpc2-ky" has no resources attached to it
-network acl "stimulus-surpass-backup-museum" of VPC "test-vpc0-ky" has no resources attached to it
-network acl "thickness-persevere-kindred-composite" of VPC "test-vpc3-ky" has no resources attached to it
-network acl "unsaid-numerate-alto-dried" of VPC "test-vpc1-ky" has no resources attached to it
-network acl "washout-accurate-shiny-fringe" of VPC "zn-vpc1" has no resources attached to it
+In VPC "test-vpc0-ky", network acl "stimulus-surpass-backup-museum" has no resources attached to it
+In VPC "test-vpc1-ky", network acl "unsaid-numerate-alto-dried" has no resources attached to it
+In VPC "test-vpc2-ky", network acl "sixtieth-resurrect-pledge-wince" has no resources attached to it
+In VPC "test-vpc3-ky", network acl "thickness-persevere-kindred-composite" has no resources attached to it
+In VPC "zn-vpc1", network acl "washout-accurate-shiny-fringe" has no resources attached to it
+In VPC "zn-vpc2", network acl "creatable-chive-turbojet-share" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Overlapping subnet address spaces" issues:
@@ -21,14 +21,14 @@ ________________________________________________________________________________
 
 "SG for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-security group "disrupt-stem-mulch-moneybags" of VPC "zn-vpc2" has no resources attached to it
-security group "heroics-diffused-book-estranged" of VPC "test-vpc2-ky" has no resources attached to it
-security group "relenting-sixfold-moisturize-emcee" of VPC "test-vpc0-ky" has no resources attached to it
-security group "surrogate-putdown-crank-unspoken" of VPC "test-vpc3-ky" has no resources attached to it
-security group "unmolded-grime-decompose-hammock" of VPC "test-vpc1-ky" has no resources attached to it
-security group "vanish-counting-unblessed-stable" of VPC "zn-vpc1" has no resources attached to it
-security group "zn-vpc1-sg" of VPC "zn-vpc1" has no resources attached to it
-security group "zn-vpc2-sg" of VPC "zn-vpc2" has no resources attached to it
+In VPC "test-vpc0-ky", security group "relenting-sixfold-moisturize-emcee" has no resources attached to it
+In VPC "test-vpc1-ky", security group "unmolded-grime-decompose-hammock" has no resources attached to it
+In VPC "test-vpc2-ky", security group "heroics-diffused-book-estranged" has no resources attached to it
+In VPC "test-vpc3-ky", security group "surrogate-putdown-crank-unspoken" has no resources attached to it
+In VPC "zn-vpc1", security group "vanish-counting-unblessed-stable" has no resources attached to it
+In VPC "zn-vpc1", security group "zn-vpc1-sg" has no resources attached to it
+In VPC "zn-vpc2", security group "disrupt-stem-mulch-moneybags" has no resources attached to it
+In VPC "zn-vpc2", security group "zn-vpc2-sg" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "rules of network ACLs that are shadowed by higher priority rules" issues:

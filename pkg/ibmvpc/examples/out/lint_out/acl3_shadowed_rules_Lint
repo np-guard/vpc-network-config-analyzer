@@ -9,7 +9,7 @@ ________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-network acl "demilune-humorless-captain-lurex" of VPC "test-vpc1-ky" has no resources attached to it
+In VPC "test-vpc1-ky", network acl "demilune-humorless-captain-lurex" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "NACLs implying different connectivity for endpoints inside a subnet" issues:
@@ -24,7 +24,7 @@ ________________________________________________________________________________
 
 "SG for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-security group "barbecue-frayed-varied-average" of VPC "test-vpc1-ky" has no resources attached to it
+In VPC "test-vpc1-ky", security group "barbecue-frayed-varied-average" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "rules of network ACLs that are shadowed by higher priority rules" issues:
