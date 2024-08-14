@@ -79,7 +79,7 @@ func (lint *basicLinter) string(lintDesc string, printAll bool) string {
 	var findingRes []string
 	if !printAll && len(lint.findings) > numFindingToPrint {
 		findingRes = findingsResAll[:numFindingToPrint]
-		suffix = fmt.Sprintf("\n...and %d more\n", len(lint.findings)-numFindingToPrint)
+		suffix = fmt.Sprintf("\n... (%d more)\n", len(lint.findings)-numFindingToPrint)
 	} else {
 		findingRes = findingsResAll
 	}

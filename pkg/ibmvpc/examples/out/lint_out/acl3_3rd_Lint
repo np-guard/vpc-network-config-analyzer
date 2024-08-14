@@ -3,7 +3,7 @@
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 TCP response is blocked
 In the connection from test-vpc1-ky/vsi2-ky[10.240.20.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-...and 3 more
+... (3 more)
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
