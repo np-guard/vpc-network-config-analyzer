@@ -24,7 +24,7 @@ func newSubnetCIDROverlap(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "Overlapping Subnet address spaces",
+			description: "Overlapping subnet address spaces",
 			enable:      true,
 		}}
 }

@@ -212,7 +212,7 @@ func (finding *ruleRedundant) string() string {
 		strResPrefix += "\t\tImplying rule"
 	}
 	if len(finding.containRules) > 1 {
-		strResPrefix += "s:\n\t\t"
+		strResPrefix += "s:\n\t\t\t"
 	} else {
 		strResPrefix += ": "
 	}
