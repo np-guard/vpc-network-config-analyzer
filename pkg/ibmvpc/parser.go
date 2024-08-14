@@ -505,24 +505,29 @@ func (rc *IBMresourcesContainer) getFipConfig(
 ) error {
 	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
-		var targetUID string
+		var targetUID, targetAddress string
 		switch target := targetIntf.(type) {
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
-			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType {
+			switch *target.ResourceType {
+
+			case commonvpc.NetworkInterfaceResourceType:
+				targetUID = *target.ID
+			case commonvpc.VirtualNetworkInterfaceResourceType:
+				targetAddress = *target.PrimaryIP.Address
+			default:
 				logging.Debugf(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
 						*target.ResourceType)))
 				continue
 			}
-			targetUID = *target.ID
 		default:
 			logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
-		if targetUID == "" {
+		if targetUID == "" && targetAddress == "" {
 			continue
 		}
 
@@ -530,7 +535,11 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		var vpcUID string
 		var vpcConfig *vpcmodel.VPCConfig
 		for vpcUID, vpcConfig = range res.Configs() {
-			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
+			if targetUID != ""{
+				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
+			}else{
+				srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == targetAddress })
+			}
 			if len(srcNodes) > 0 {
 				break
 			}
