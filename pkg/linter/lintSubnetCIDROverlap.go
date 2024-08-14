@@ -24,7 +24,7 @@ func newSubnetCIDROverlap(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "Overlapping CIDR ranges between different subnets",
+			description: "Overlapping Subnet address spaces",
 			enable:      true,
 		}}
 }
@@ -75,19 +75,12 @@ func (finding *overlapSubnets) vpc() []vpcmodel.VPCResourceIntf {
 func (finding *overlapSubnets) string() string {
 	subnet1 := finding.overlapSubnets[0]
 	subnet2 := finding.overlapSubnets[1]
-	overlapStr := ""
-	if finding.overlapIPBlocks.String() == subnet1.CIDR() && subnet1.CIDR() == subnet2.CIDR() {
-		overlapStr = " overlap in the entire subnets' CIDR range"
-	} else {
-		overlapStr = fmt.Sprintf(" overlap in %s", finding.overlapIPBlocks.String())
-	}
-
-	return fmt.Sprintf("VPC %s's %s and VPC %s's %s ", subnet1.VPC().Name(), subnetStr(subnet1),
-		subnet2.VPC().Name(), subnetStr(subnet2)) + overlapStr
+	return fmt.Sprintf("VPC %q's %s and VPC \"%s\"'s %s overlap", subnet1.VPC().Name(), subnetStr(subnet1),
+		subnet2.VPC().Name(), subnetStr(subnet2))
 }
 
 func subnetStr(subnet vpcmodel.Subnet) string {
-	return fmt.Sprintf("subnet %s of cidr %s", subnet.Name(), subnet.CIDR())
+	return fmt.Sprintf("subnet %q [%s]", subnet.Name(), subnet.CIDR())
 }
 
 // for json: details of overlapping subnets

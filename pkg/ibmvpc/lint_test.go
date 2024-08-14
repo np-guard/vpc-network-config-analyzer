@@ -91,10 +91,10 @@ func TestAllLintWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
-		tt.mode = commonvpc.OutputGeneration
-		t.Run(tt.name, func(t *testing.T) {
+		tt.Mode = commonvpc.OutputGeneration
+		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			tt.runLintTest(t)
+			runLintTest(tt, t)
 		})
 	}
 	fmt.Println("done")

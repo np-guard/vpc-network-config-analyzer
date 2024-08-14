@@ -27,7 +27,7 @@ func newSGSplitSubnet(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of security groups implying different connectivity for different endpoints within a subnet",
+			description: "SGs implying different connectivity for endpoints inside a subnet",
 			enable:      false,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
@@ -41,7 +41,7 @@ func newNACLSplitSubnet(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of network ACLs implying different connectivity for different endpoints within a subnet",
+			description: "NACLs implying different connectivity for endpoints inside a subnet",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
@@ -101,7 +101,7 @@ func (finding *splitRuleSubnet) string() string {
 	rule := finding.rule
 	subnetsStrSlice := make([]string, len(finding.splitSubnets))
 	for i, subnet := range finding.splitSubnets {
-		subnetsStrSlice[i] = fmt.Sprintf("%s (%s)", subnet.Name(), subnet.CIDR())
+		subnetsStrSlice[i] = fmt.Sprintf("\"%s\" (%s)", subnet.Name(), subnet.CIDR())
 	}
 	subnetStr := strings.Join(subnetsStrSlice, ", ")
 	if len(subnetsStrSlice) > 1 {
@@ -109,7 +109,7 @@ func (finding *splitRuleSubnet) string() string {
 	} else {
 		subnetStr = "subnet " + subnetStr
 	}
-	return fmt.Sprintf("In VPC %s, %s %s rule's indexed %d splits %s. Splitting rule details: %s",
+	return fmt.Sprintf("In VPC %q, %s %q rule [%d] splits %s.\n\tRule's details: %s",
 		finding.vpc()[0].Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex, subnetStr,
 		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }

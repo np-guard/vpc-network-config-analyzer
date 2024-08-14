@@ -75,7 +75,7 @@ func getVPCFromEndpointElem(ep vpcmodel.EndpointElem) vpcmodel.VPCResourceIntf {
 func (finding *blockedTCPResponseConn) string() string {
 	vpcSrcName := finding.getVpcName(0)
 	vpcDstName := finding.getVpcName(1)
-	srcToDstStr := fmt.Sprintf("from %v%s to %v%s",
+	srcToDstStr := fmt.Sprintf("from \"%v%s\" to \"%v%s\"",
 		vpcSrcName, finding.src.Name(), vpcDstName, finding.dst.Name())
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,

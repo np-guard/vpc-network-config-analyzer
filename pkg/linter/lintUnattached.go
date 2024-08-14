@@ -8,6 +8,7 @@ package linter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -76,8 +77,8 @@ func (finding *nonConnectedTable) vpc() []vpcmodel.VPCResourceIntf {
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("%s %s of VPC %s has no resources attached to it", finding.layerName, finding.table.FilterName,
-		finding.vpc()[0].Name())
+	return fmt.Sprintf("%s %q of VPC %q has no resources attached to it", strings.ToLower(finding.layerName),
+		finding.table.FilterName, finding.vpc()[0].Name())
 }
 
 type nonConnectedTableJSON struct {
