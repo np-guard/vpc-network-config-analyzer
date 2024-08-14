@@ -514,6 +514,7 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			case commonvpc.NetworkInterfaceResourceType:
 				targetUID = *target.ID
 			case commonvpc.VirtualNetworkInterfaceResourceType:
+				// in vni we do not have the uid reference, we get the result by the IP:
 				targetAddress = *target.PrimaryIP.Address
 			default:
 				logging.Debugf(ignoreFIPWarning(*fip.Name,
@@ -624,6 +625,7 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 			targetType := *targetIntfRef.ResourceType
 			switch targetType {
 			case commonvpc.VirtualNetworkInterfaceResourceType:
+				// in vni we do not have the uid reference, we get the result by the IP:
 				address := *targetIntfRef.PrimaryIP.Address
 				ns := getCertainNodes(c.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })
 				if len(ns) == 1 {
