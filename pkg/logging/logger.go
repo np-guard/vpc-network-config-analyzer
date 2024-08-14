@@ -51,6 +51,10 @@ func DebugVerbosity() bool   { return logger.verbosity == HighVerbosity }
 func InfoVerbosity() bool    { return logger.verbosity == HighVerbosity }
 func WarningVerbosity() bool { return logger.verbosity >= MediumVerbosity }
 
+func Debug(msg string) {
+	Debugf("%s", msg)
+}
+
 // Debugf writes a debug message to the log (only if DefaultLogger verbosity is set to HighVerbosity)
 func Debugf(format string, o ...interface{}) {
 	if DebugVerbosity() {
