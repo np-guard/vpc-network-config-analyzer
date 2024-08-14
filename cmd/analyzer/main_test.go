@@ -222,7 +222,7 @@ func TestMainWithExpectedOut(t *testing.T) {
 			}
 			actualOutputStr := string(actualOutput)
 			if cleanStr(expectedOutputStr) != cleanStr(actualOutputStr) {
-  				t.Fatalf("output mismatch expected-vs-actual on test name: %s", tt.name)
+				t.Fatalf("output mismatch expected-vs-actual on test name: %s", tt.name)
 			}
 		})
 	}
