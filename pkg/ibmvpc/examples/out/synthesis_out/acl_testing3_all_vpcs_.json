@@ -74,6 +74,21 @@
                 }
             ],
             "dst": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            },
+            "src": {
+                "name": "vsi3c-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
                 "name": "vsi3c-ky",
                 "type": "instance"
             },
@@ -137,6 +152,21 @@
                 }
             ],
             "dst": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            },
+            "src": {
+                "name": "vsi3b-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
                 "name": "vsi3c-ky",
                 "type": "instance"
             },
@@ -187,6 +217,21 @@
             "dst": {
                 "name": "vsi1-ky",
                 "type": "instance"
+            },
+            "src": {
+                "name": "vsi3a-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
             },
             "src": {
                 "name": "vsi3a-ky",
@@ -254,6 +299,84 @@
             "src": {
                 "name": "vsi1-ky",
                 "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "vsi3c-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "vsi3b-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "vsi3a-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                },
+                {
+                    "protocol": "ICMP"
+                }
+            ],
+            "dst": {
+                "name": "vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "db-endpoint-gateway-ky",
+                "type": "vpe"
             }
         }
     ]
