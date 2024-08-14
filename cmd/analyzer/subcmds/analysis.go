@@ -93,6 +93,8 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		return fmt.Errorf("output generation error: %w", err)
 	}
 
-	fmt.Println(analysisOut)
+	if inArgs.outputFile == "" {
+		fmt.Println(analysisOut)
+	}
 	return nil
 }
