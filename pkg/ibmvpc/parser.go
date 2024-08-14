@@ -25,6 +25,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+// IBMresourcesContainer implements commonvpc.ResourceContainer
 type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
@@ -56,6 +57,8 @@ func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesCon
 	return rc1, nil
 }
 
+// VpcConfigsFromFiles gets file names and returns vpc configs from it
+// vpcID, resourceGroup and regions are used to filter the vpc configs
 func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
@@ -90,6 +93,9 @@ func (rc *IBMresourcesContainer) ParseResourcesFromFile(fileName string) error {
 	return nil
 }
 
+// filterByVpcResourceGroupAndRegions returns a map to filtered resources,
+// if certain VPC to analyze, regions or resourceGroup is specified by the user,
+// skip resources configured outside that VPC
 func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resourceGroup string,
 	regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)

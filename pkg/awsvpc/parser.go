@@ -28,6 +28,7 @@ import (
 const defaultRegionName = "default-region"
 const resourceName = "Name"
 
+// AWSresourcesContainer implements commonvpc.ResourceContainer
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
@@ -66,6 +67,9 @@ func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesCon
 	return rc1, nil
 }
 
+// VpcConfigsFromFiles gets file names and returns vpc configs from it
+// vpcID, resourceGroup and regions are used to filter the vpc configs.
+// resourceGroup nad regions are not supported yet for aws
 func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {

@@ -23,6 +23,7 @@ const (
 	protocolICMP = "icmp"
 )
 
+// AWSSGAnalyzer implements commonvpc.SpecificSGAnalyzer
 type AWSSGAnalyzer struct {
 	sgResource         *types.SecurityGroup
 	referencedIPblocks []*ipblock.IPBlock
@@ -177,6 +178,7 @@ func convertProtocol(ipProtocol string) string {
 	}
 }
 
+// GetSGRule gets index of the rule and returns the rule results line and obj
 func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
@@ -208,6 +210,7 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 }
 
+// GetSGRules returns ingress and egress rule objects
 func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
 	ingressRules = []*commonvpc.SGRule{}
 	egressRules = []*commonvpc.SGRule{}
@@ -229,14 +232,17 @@ func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.S
 	return ingressRules, egressRules, nil
 }
 
+// SetSGmap gets sgMap (a map from sg groupID to SecurityGroup obj) and save it in AWSSGAnalyzer
 func (sga *AWSSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
+// ReferencedIPblocks returns referencedIPblocks filed
 func (sga *AWSSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
+// GetNumberOfRules returns number of egress and ingress rules of the securityGroup obj in AWSSGAnalyzer
 func (sga *AWSSGAnalyzer) GetNumberOfRules() int {
 	return len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
 }

@@ -17,6 +17,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
+// IBMSGAnalyzer implements commonvpc.SpecificSGAnalyzer
 type IBMSGAnalyzer struct {
 	SgResource         *vpc1.SecurityGroup
 	sgMap              map[string]*commonvpc.SecurityGroup
@@ -182,6 +183,7 @@ func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSec
 	return
 }
 
+// GetSGRule gets index of the rule and returns the rule results line and obj
 func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	rule := sga.SgResource.Rules[index]
@@ -202,6 +204,7 @@ func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
 }
 
+// GetSGRules returns ingress and egress rule objects
 func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
 	ingressRules = []*commonvpc.SGRule{}
 	egressRules = []*commonvpc.SGRule{}
@@ -226,14 +229,17 @@ func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.S
 	return ingressRules, egressRules, nil
 }
 
+// ReferencedIPblocks returns referencedIPblocks filed
 func (sga *IBMSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
+// SetSGmap gets sgMap (a map from sg name to SecurityGroup obj) and save it in IBMSGAnalyzer
 func (sga *IBMSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
+// GetNumberOfRules returns number of egress and ingress rules of the securityGroup obj in IBMSGAnalyzer
 func (sga *IBMSGAnalyzer) GetNumberOfRules() int {
 	return len(sga.SgResource.Rules)
 }
