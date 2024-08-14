@@ -21,8 +21,8 @@ type ruleNonRelevantCIDR struct {
 	disjoint    bool // is the relevant src/dst block disjoint to the VPC address range;
 }
 
-// ruleNonRelevantCIDRNACLLint: NACL rules that are references CIDRs not in the vpc
-func newRuleNonRelevantCIDRNACLLint(name string, configs map[string]*vpcmodel.VPCConfig,
+// NACL rules that references CIDRs not in the vpc
+func newNACLRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
@@ -35,8 +35,8 @@ func newRuleNonRelevantCIDRNACLLint(name string, configs map[string]*vpcmodel.VP
 		checkForFilter: findRuleNonRelevantCIDR}
 }
 
-// ruleNonRelevantCIDRSGLint: SG rules that are references CIDRs not in the vpc
-func newRuleNonRelevantCIDRSGLint(name string, configs map[string]*vpcmodel.VPCConfig,
+// SG rules that references CIDRs not in the vpc
+func newSGRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConfig,
 	_ map[string]*vpcmodel.VPCConnectivity) linter {
 	return &filterLinter{
 		basicLinter: basicLinter{
