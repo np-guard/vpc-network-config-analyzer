@@ -6,9 +6,9 @@ ________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc0-ky", network acl "stimulus-surpass-backup-museum" has no resources attached to it
-In VPC "test-vpc1-ky", network acl "unsaid-numerate-alto-dried" has no resources attached to it
-In VPC "test-vpc2-ky", network acl "sixtieth-resurrect-pledge-wince" has no resources attached to it
+In VPC "test-vpc0-ky", network ACL "stimulus-surpass-backup-museum" has no resources attached to it
+In VPC "test-vpc1-ky", network ACL "unsaid-numerate-alto-dried" has no resources attached to it
+In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no resources attached to it
 ... (3 more)
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________

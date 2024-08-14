@@ -1,6 +1,6 @@
 "NACL for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", network acl "corrode-kilogram-cola-mandated" has no resources attached to it
+In VPC "test-vpc1-ky", network ACL "corrode-kilogram-cola-mandated" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "SG for which there are no resources attached to" issues:

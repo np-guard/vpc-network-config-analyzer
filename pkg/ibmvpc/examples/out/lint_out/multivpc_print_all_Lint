@@ -6,12 +6,12 @@ ________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc0-ky", network acl "stimulus-surpass-backup-museum" has no resources attached to it
-In VPC "test-vpc1-ky", network acl "unsaid-numerate-alto-dried" has no resources attached to it
-In VPC "test-vpc2-ky", network acl "sixtieth-resurrect-pledge-wince" has no resources attached to it
-In VPC "test-vpc3-ky", network acl "thickness-persevere-kindred-composite" has no resources attached to it
-In VPC "zn-vpc1", network acl "washout-accurate-shiny-fringe" has no resources attached to it
-In VPC "zn-vpc2", network acl "creatable-chive-turbojet-share" has no resources attached to it
+In VPC "test-vpc0-ky", network ACL "stimulus-surpass-backup-museum" has no resources attached to it
+In VPC "test-vpc1-ky", network ACL "unsaid-numerate-alto-dried" has no resources attached to it
+In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no resources attached to it
+In VPC "test-vpc3-ky", network ACL "thickness-persevere-kindred-composite" has no resources attached to it
+In VPC "zn-vpc1", network ACL "washout-accurate-shiny-fringe" has no resources attached to it
+In VPC "zn-vpc2", network ACL "creatable-chive-turbojet-share" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Overlapping subnet address spaces" issues:
