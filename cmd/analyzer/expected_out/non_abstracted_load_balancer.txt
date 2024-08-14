@@ -1,8 +1,6 @@
 Endpoint connectivity for VPC lb-vpc
-Public Internet (all ranges) => app-alb[LB private IP][10.240.0.6] : protocol: ICMP,UDP
-Public Internet (all ranges) => app-alb[LB private IP][10.240.0.6] : protocol: TCP * 
-Public Internet (all ranges) => app-alb[LB private IP][10.240.64.6] : protocol: ICMP,UDP
-Public Internet (all ranges) => app-alb[LB private IP][10.240.64.6] : protocol: TCP * 
+Public Internet (all ranges) => app-alb[LB private IP][10.240.0.6] : All Connections
+Public Internet (all ranges) => app-alb[LB private IP][10.240.64.6] : All Connections
 Public Internet (all ranges) => vsi0-test-sub[10.240.4.4] : All Connections
 app-alb[LB private IP][10.240.0.6],vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => app-alb[LB private IP][10.240.0.6],vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] : All Connections
 app-alb[LB private IP][10.240.0.6],vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] : All Connections
@@ -10,37 +8,17 @@ app-alb[LB private IP][10.240.64.6],vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.
 app-alb[LB private IP][10.240.64.6],vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] => vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] : All Connections
 service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi0-app-sub0[10.240.0.5] : All Connections
 service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi0-app-sub1[10.240.64.5] : All Connections
-vsi0-app-sub0[10.240.0.5] => service-alb[LB private IP][10.240.68.8] : All Connections
 vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => app-alb[LB private IP][10.240.64.6] : All Connections
-vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
+vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
 vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] => vsi0-test-sub[10.240.4.4] : All Connections
-vsi0-app-sub1[10.240.64.5] => service-alb[LB private IP][10.240.68.8] : All Connections
 vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] => app-alb[LB private IP][10.240.0.6] : All Connections
-vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] => vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
+vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] => service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
 vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] => vsi0-test-sub[10.240.4.4] : All Connections
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.0.6] : protocol: ICMP,UDP
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.0.6] : protocol: TCP * 
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.64.6] : protocol: ICMP,UDP
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.64.6] : protocol: TCP * 
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => service-alb[LB private IP][10.240.68.8] : protocol: ICMP,UDP
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => service-alb[LB private IP][10.240.68.8] : protocol: TCP * 
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
+vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.0.6],vsi1-app-sub0[10.240.0.4] : All Connections
+vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => app-alb[LB private IP][10.240.64.6],vsi1-app-sub1[10.240.64.4] : All Connections
+vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
 vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi0-test-sub[10.240.4.4] : All Connections
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi1-app-sub0[10.240.0.4] : All Connections
-vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] => vsi1-app-sub1[10.240.64.4] : All Connections
 vsi0-test-sub[10.240.4.4] => Public Internet (all ranges) : All Connections
-vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.0.6] : protocol: ICMP,UDP
-vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.0.6] : protocol: TCP * 
-vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.64.6] : protocol: ICMP,UDP
-vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.64.6] : protocol: TCP * 
-vsi0-test-sub[10.240.4.4] => service-alb[LB private IP][10.240.68.8] : protocol: ICMP,UDP
-vsi0-test-sub[10.240.4.4] => service-alb[LB private IP][10.240.68.8] : protocol: TCP * 
-vsi0-test-sub[10.240.4.4] => vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] : All Connections
-vsi0-test-sub[10.240.4.4] => vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] : All Connections
-vsi0-test-sub[10.240.4.4] => vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
-vsi1-app-sub0[10.240.0.4] => service-alb[LB private IP][10.240.68.8] : protocol: ICMP,UDP
-vsi1-app-sub0[10.240.0.4] => service-alb[LB private IP][10.240.68.8] : protocol: TCP * 
-vsi1-app-sub1[10.240.64.4] => service-alb[LB private IP][10.240.68.8] : protocol: ICMP,UDP
-vsi1-app-sub1[10.240.64.4] => service-alb[LB private IP][10.240.68.8] : protocol: TCP * 
-
-TCP connections for which response is not permitted are marked with * 
+vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.0.6],vsi0-app-sub0[10.240.0.5],vsi1-app-sub0[10.240.0.4] : All Connections
+vsi0-test-sub[10.240.4.4] => app-alb[LB private IP][10.240.64.6],vsi0-app-sub1[10.240.64.5],vsi1-app-sub1[10.240.64.4] : All Connections
+vsi0-test-sub[10.240.4.4] => service-alb[LB private IP][10.240.68.8],vsi0-service-sub[10.240.68.5],vsi1-service-sub[10.240.68.4] : All Connections
