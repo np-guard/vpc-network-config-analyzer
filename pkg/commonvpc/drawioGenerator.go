@@ -54,7 +54,7 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	subnetTn := drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
-	subnetTn.SetIsPublic(s.isPublic)
+	subnetTn.SetIsPrivate(s.IsPrivate())
 	return subnetTn
 }
 
