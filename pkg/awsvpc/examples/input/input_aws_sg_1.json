@@ -125,8 +125,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -164,7 +164,12 @@
             "StateReason": null,
             "StateTransitionReason": "",
             "SubnetId": "SubnetId:6",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "dashboard"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-07-01T06:28:12Z",
@@ -193,7 +198,7 @@
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:14",
+            "ClientToken": "ClientToken:12",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -213,7 +218,7 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:18",
+            "InstanceId": "InstanceId:15",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
@@ -251,8 +256,8 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:20",
-                            "GroupName": "GroupName:21"
+                            "GroupId": "GroupId:17",
+                            "GroupName": "GroupName:18"
                         }
                     ],
                     "InterfaceType": "interface",
@@ -260,21 +265,21 @@
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
                     "MacAddress": "06:67:3c:5f:d1:ab",
-                    "NetworkInterfaceId": "NetworkInterfaceId:19",
+                    "NetworkInterfaceId": "NetworkInterfaceId:16",
                     "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:15",
+                    "PrivateDnsName": "PrivateDnsName:13",
                     "PrivateIpAddress": "10.240.20.141",
                     "PrivateIpAddresses": [
                         {
                             "Association": null,
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:15",
+                            "PrivateDnsName": "PrivateDnsName:13",
                             "PrivateIpAddress": "10.240.20.141"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:17",
+                    "SubnetId": "SubnetId:14",
                     "VpcId": "VpcId:5"
                 }
             ],
@@ -282,8 +287,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -292,7 +297,7 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:15",
+            "PrivateDnsName": "PrivateDnsName:13",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
@@ -300,15 +305,15 @@
             },
             "PrivateIpAddress": "10.240.20.141",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:16",
-            "PublicIpAddress": "1.0.0.2",
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:20",
-                    "GroupName": "GroupName:21"
+                    "GroupId": "GroupId:17",
+                    "GroupName": "GroupName:18"
                 }
             ],
             "SourceDestCheck": true,
@@ -320,8 +325,13 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:17",
-            "Tags": [],
+            "SubnetId": "SubnetId:14",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "app2"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
@@ -350,7 +360,7 @@
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:22",
+            "ClientToken": "ClientToken:19",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -370,7 +380,7 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:24",
+            "InstanceId": "InstanceId:21",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
@@ -408,8 +418,8 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:20",
-                            "GroupName": "GroupName:21"
+                            "GroupId": "GroupId:17",
+                            "GroupName": "GroupName:18"
                         }
                     ],
                     "InterfaceType": "interface",
@@ -417,21 +427,21 @@
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
                     "MacAddress": "06:73:f5:12:c9:c1",
-                    "NetworkInterfaceId": "NetworkInterfaceId:25",
+                    "NetworkInterfaceId": "NetworkInterfaceId:22",
                     "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:23",
+                    "PrivateDnsName": "PrivateDnsName:20",
                     "PrivateIpAddress": "10.240.20.131",
                     "PrivateIpAddresses": [
                         {
                             "Association": null,
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:23",
+                            "PrivateDnsName": "PrivateDnsName:20",
                             "PrivateIpAddress": "10.240.20.131"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:17",
+                    "SubnetId": "SubnetId:14",
                     "VpcId": "VpcId:5"
                 }
             ],
@@ -439,8 +449,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -449,7 +459,7 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:23",
+            "PrivateDnsName": "PrivateDnsName:20",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
@@ -457,15 +467,15 @@
             },
             "PrivateIpAddress": "10.240.20.131",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:16",
-            "PublicIpAddress": "1.0.0.2",
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:20",
-                    "GroupName": "GroupName:21"
+                    "GroupId": "GroupId:17",
+                    "GroupName": "GroupName:18"
                 }
             ],
             "SourceDestCheck": true,
@@ -477,8 +487,13 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:17",
-            "Tags": [],
+            "SubnetId": "SubnetId:14",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "app1"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
@@ -507,7 +522,7 @@
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:26",
+            "ClientToken": "ClientToken:23",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -527,7 +542,7 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:29",
+            "InstanceId": "InstanceId:26",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
@@ -565,8 +580,8 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:31",
-                            "GroupName": "GroupName:32"
+                            "GroupId": "GroupId:28",
+                            "GroupName": "GroupName:29"
                         }
                     ],
                     "InterfaceType": "interface",
@@ -574,21 +589,21 @@
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
                     "MacAddress": "06:bc:b5:a3:ec:fd",
-                    "NetworkInterfaceId": "NetworkInterfaceId:30",
+                    "NetworkInterfaceId": "NetworkInterfaceId:27",
                     "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:27",
+                    "PrivateDnsName": "PrivateDnsName:24",
                     "PrivateIpAddress": "10.240.30.108",
                     "PrivateIpAddresses": [
                         {
                             "Association": null,
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:27",
+                            "PrivateDnsName": "PrivateDnsName:24",
                             "PrivateIpAddress": "10.240.30.108"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:28",
+                    "SubnetId": "SubnetId:25",
                     "VpcId": "VpcId:5"
                 }
             ],
@@ -596,8 +611,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -606,7 +621,7 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:27",
+            "PrivateDnsName": "PrivateDnsName:24",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
@@ -614,15 +629,15 @@
             },
             "PrivateIpAddress": "10.240.30.108",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:16",
-            "PublicIpAddress": "1.0.0.2",
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:31",
-                    "GroupName": "GroupName:32"
+                    "GroupId": "GroupId:28",
+                    "GroupName": "GroupName:29"
                 }
             ],
             "SourceDestCheck": true,
@@ -634,8 +649,13 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:28",
-            "Tags": [],
+            "SubnetId": "SubnetId:25",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "mydb"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
@@ -664,7 +684,7 @@
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:33",
+            "ClientToken": "ClientToken:30",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -684,7 +704,7 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:37",
+            "InstanceId": "InstanceId:34",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
@@ -712,8 +732,8 @@
                         "CarrierIp": null,
                         "CustomerOwnedIp": null,
                         "IpOwnerId": "amazon",
-                        "PublicDnsName": "PublicDnsName:35",
-                        "PublicIp": "1.0.0.4"
+                        "PublicDnsName": "PublicDnsName:32",
+                        "PublicIp": "1.0.0.3"
                     },
                     "Attachment": {
                         "AttachTime": "2024-07-01T06:28:23Z",
@@ -728,8 +748,8 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:39",
-                            "GroupName": "GroupName:40"
+                            "GroupId": "GroupId:36",
+                            "GroupName": "GroupName:37"
                         }
                     ],
                     "InterfaceType": "interface",
@@ -737,9 +757,9 @@
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
                     "MacAddress": "06:f6:72:de:f8:d1",
-                    "NetworkInterfaceId": "NetworkInterfaceId:38",
+                    "NetworkInterfaceId": "NetworkInterfaceId:35",
                     "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:34",
+                    "PrivateDnsName": "PrivateDnsName:31",
                     "PrivateIpAddress": "10.240.10.122",
                     "PrivateIpAddresses": [
                         {
@@ -747,17 +767,17 @@
                                 "CarrierIp": null,
                                 "CustomerOwnedIp": null,
                                 "IpOwnerId": "amazon",
-                                "PublicDnsName": "PublicDnsName:35",
-                                "PublicIp": "1.0.0.4"
+                                "PublicDnsName": "PublicDnsName:32",
+                                "PublicIp": "1.0.0.3"
                             },
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:34",
+                            "PrivateDnsName": "PrivateDnsName:31",
                             "PrivateIpAddress": "10.240.10.122"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:36",
+                    "SubnetId": "SubnetId:33",
                     "VpcId": "VpcId:5"
                 }
             ],
@@ -765,8 +785,8 @@
             "Placement": {
                 "Affinity": null,
                 "AvailabilityZone": "eu-north-1a",
-                "GroupId": "GroupId:12",
-                "GroupName": "GroupName:13",
+                "GroupId": null,
+                "GroupName": "",
                 "HostId": null,
                 "HostResourceGroupArn": null,
                 "PartitionNumber": null,
@@ -775,7 +795,7 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:34",
+            "PrivateDnsName": "PrivateDnsName:31",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
@@ -783,15 +803,15 @@
             },
             "PrivateIpAddress": "10.240.10.122",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:35",
-            "PublicIpAddress": "1.0.0.3",
+            "PublicDnsName": "PublicDnsName:32",
+            "PublicIpAddress": "1.0.0.2",
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:39",
-                    "GroupName": "GroupName:40"
+                    "GroupId": "GroupId:36",
+                    "GroupName": "GroupName:37"
                 }
             ],
             "SourceDestCheck": true,
@@ -803,8 +823,13 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:36",
-            "Tags": [],
+            "SubnetId": "SubnetId:33",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "proxy"
+                }
+            ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
             "UsageOperationUpdateTime": "2024-07-01T06:28:23Z",
@@ -820,18 +845,23 @@
                     "VpcId": "VpcId:5"
                 }
             ],
-            "InternetGatewayId": "InternetGatewayId:41",
+            "InternetGatewayId": "InternetGatewayId:38",
             "OwnerId": "OwnerId:8",
-            "Tags": []
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "internet_gw"
+                }
+            ]
         },
         {
             "Attachments": [
                 {
                     "State": "available",
-                    "VpcId": "VpcId:43"
+                    "VpcId": "VpcId:40"
                 }
             ],
-            "InternetGatewayId": "InternetGatewayId:42",
+            "InternetGatewayId": "InternetGatewayId:39",
             "OwnerId": "OwnerId:8",
             "Tags": []
         }
@@ -840,18 +870,18 @@
         {
             "Associations": [
                 {
-                    "NetworkAclAssociationId": "aclassoc-0e8f2fa7490865b97",
-                    "NetworkAclId": "NetworkAclId:44",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:42",
+                    "NetworkAclId": "NetworkAclId:41",
+                    "SubnetId": "SubnetId:43"
+                },
+                {
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:44",
+                    "NetworkAclId": "NetworkAclId:41",
                     "SubnetId": "SubnetId:45"
                 },
                 {
-                    "NetworkAclAssociationId": "aclassoc-0390e95e2fae0582e",
-                    "NetworkAclId": "NetworkAclId:44",
-                    "SubnetId": "SubnetId:46"
-                },
-                {
-                    "NetworkAclAssociationId": "aclassoc-0ce6f53c9301554f7",
-                    "NetworkAclId": "NetworkAclId:44",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:46",
+                    "NetworkAclId": "NetworkAclId:41",
                     "SubnetId": "SubnetId:47"
                 }
             ],
@@ -898,32 +928,32 @@
                 }
             ],
             "IsDefault": true,
-            "NetworkAclId": "NetworkAclId:44",
+            "NetworkAclId": "NetworkAclId:41",
             "OwnerId": "OwnerId:8",
             "Tags": [],
-            "VpcId": "VpcId:43"
+            "VpcId": "VpcId:40"
         },
         {
             "Associations": [
                 {
-                    "NetworkAclAssociationId": "aclassoc-0e5a62109b4cce442",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:49",
                     "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:17"
+                    "SubnetId": "SubnetId:14"
                 },
                 {
-                    "NetworkAclAssociationId": "aclassoc-0939866f176f6b31f",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:50",
                     "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:36"
+                    "SubnetId": "SubnetId:33"
                 },
                 {
-                    "NetworkAclAssociationId": "aclassoc-0212f8b335be5c1a9",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:51",
                     "NetworkAclId": "NetworkAclId:48",
                     "SubnetId": "SubnetId:6"
                 },
                 {
-                    "NetworkAclAssociationId": "aclassoc-057d57a50906bb185",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:52",
                     "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:28"
+                    "SubnetId": "SubnetId:25"
                 }
             ],
             "Entries": [
@@ -978,8 +1008,8 @@
     "security_groups": [
         {
             "Description": "SG for db instance",
-            "GroupId": "GroupId:31",
-            "GroupName": "GroupName:32",
+            "GroupId": "GroupId:28",
+            "GroupName": "GroupName:29",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -996,11 +1026,11 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:20",
-                            "GroupName": "GroupName:49",
+                            "GroupId": "GroupId:17",
+                            "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:50",
-                            "VpcId": "VpcId:51",
+                            "UserId": "UserId:53",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1013,8 +1043,8 @@
         },
         {
             "Description": "default VPC security group",
-            "GroupId": "GroupId:52",
-            "GroupName": "GroupName:53",
+            "GroupId": "GroupId:54",
+            "GroupName": "GroupName:55",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -1026,11 +1056,11 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:52",
-                            "GroupName": "GroupName:49",
+                            "GroupId": "GroupId:54",
+                            "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:50",
-                            "VpcId": "VpcId:51",
+                            "UserId": "UserId:53",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1053,14 +1083,28 @@
                 }
             ],
             "OwnerId": "OwnerId:8",
-            "Tags": [],
-            "VpcId": "VpcId:43"
+            "Tags": null,
+            "VpcId": "VpcId:40"
         },
         {
             "Description": "SG for app instances",
-            "GroupId": "GroupId:20",
-            "GroupName": "GroupName:21",
+            "GroupId": "GroupId:17",
+            "GroupName": "GroupName:18",
             "IpPermissions": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.240.40.0/24",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                },
                 {
                     "FromPort": 9080,
                     "IpProtocol": "tcp",
@@ -1071,11 +1115,11 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:39",
-                            "GroupName": "GroupName:49",
+                            "GroupId": "GroupId:36",
+                            "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:50",
-                            "VpcId": "VpcId:51",
+                            "UserId": "UserId:53",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1092,11 +1136,11 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:31",
-                            "GroupName": "GroupName:49",
+                            "GroupId": "GroupId:28",
+                            "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:50",
-                            "VpcId": "VpcId:51",
+                            "UserId": "UserId:53",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1108,8 +1152,8 @@
         },
         {
             "Description": "default VPC security group",
-            "GroupId": "GroupId:54",
-            "GroupName": "GroupName:53",
+            "GroupId": "GroupId:56",
+            "GroupName": "GroupName:55",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -1121,11 +1165,11 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:54",
-                            "GroupName": "GroupName:49",
+                            "GroupId": "GroupId:56",
+                            "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:50",
-                            "VpcId": "VpcId:51",
+                            "UserId": "UserId:53",
+                            "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
@@ -1148,7 +1192,7 @@
                 }
             ],
             "OwnerId": "OwnerId:8",
-            "Tags": [],
+            "Tags": null,
             "VpcId": "VpcId:5"
         },
         {
@@ -1193,8 +1237,8 @@
         },
         {
             "Description": "Allow all inbound and traffic",
-            "GroupId": "GroupId:39",
-            "GroupName": "GroupName:40",
+            "GroupId": "GroupId:36",
+            "GroupName": "GroupName:37",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -1255,9 +1299,14 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:55",
-            "SubnetId": "SubnetId:17",
-            "Tags": [],
+            "SubnetArn": "SubnetArn:57",
+            "SubnetId": "SubnetId:14",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "application"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -1282,9 +1331,14 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:56",
-            "SubnetId": "SubnetId:36",
-            "Tags": [],
+            "SubnetArn": "SubnetArn:58",
+            "SubnetId": "SubnetId:33",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "edge"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -1309,10 +1363,10 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:57",
-            "SubnetId": "SubnetId:46",
-            "Tags": [],
-            "VpcId": "VpcId:43"
+            "SubnetArn": "SubnetArn:59",
+            "SubnetId": "SubnetId:45",
+            "Tags": null,
+            "VpcId": "VpcId:40"
         },
         {
             "AssignIpv6AddressOnCreation": false,
@@ -1336,9 +1390,14 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:58",
+            "SubnetArn": "SubnetArn:60",
             "SubnetId": "SubnetId:6",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "dashoard"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -1363,10 +1422,10 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:59",
+            "SubnetArn": "SubnetArn:61",
             "SubnetId": "SubnetId:47",
-            "Tags": [],
-            "VpcId": "VpcId:43"
+            "Tags": null,
+            "VpcId": "VpcId:40"
         },
         {
             "AssignIpv6AddressOnCreation": false,
@@ -1390,10 +1449,10 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:60",
-            "SubnetId": "SubnetId:45",
-            "Tags": [],
-            "VpcId": "VpcId:43"
+            "SubnetArn": "SubnetArn:62",
+            "SubnetId": "SubnetId:43",
+            "Tags": null,
+            "VpcId": "VpcId:40"
         },
         {
             "AssignIpv6AddressOnCreation": false,
@@ -1417,9 +1476,14 @@
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:61",
-            "SubnetId": "SubnetId:28",
-            "Tags": [],
+            "SubnetArn": "SubnetArn:63",
+            "SubnetId": "SubnetId:25",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "db"
+                }
+            ],
             "VpcId": "VpcId:5"
         }
     ],
@@ -1442,7 +1506,12 @@
             "IsDefault": false,
             "OwnerId": "OwnerId:8",
             "State": "available",
-            "Tags": [],
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "vpc0"
+                }
+            ],
             "VpcId": "VpcId:5"
         },
         {
@@ -1463,8 +1532,9 @@
             "IsDefault": true,
             "OwnerId": "OwnerId:8",
             "State": "available",
-            "Tags": [],
-            "VpcId": "VpcId:43"
+            "Tags": null,
+            "VpcId": "VpcId:40"
         }
-    ]
+    ],
+    "config-file-git-sha1": "$Id: 3d3d4001b3e199117167105cfc3e008a862ab769 $"
 }

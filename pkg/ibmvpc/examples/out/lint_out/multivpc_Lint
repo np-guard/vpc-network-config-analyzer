@@ -9,9 +9,8 @@ ________________________________________________________________________________
 network ACL creatable-chive-turbojet-share of VPC zn-vpc2 has no resources attached to it
 network ACL sixtieth-resurrect-pledge-wince of VPC test-vpc2-ky has no resources attached to it
 network ACL stimulus-surpass-backup-museum of VPC test-vpc0-ky has no resources attached to it
-network ACL thickness-persevere-kindred-composite of VPC test-vpc3-ky has no resources attached to it
-network ACL unsaid-numerate-alto-dried of VPC test-vpc1-ky has no resources attached to it
-network ACL washout-accurate-shiny-fringe of VPC zn-vpc1 has no resources attached to it
+... (3 more)
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Overlapping CIDR ranges between different subnets" issues:
@@ -24,11 +23,8 @@ ________________________________________________________________________________
 security group disrupt-stem-mulch-moneybags of VPC zn-vpc2 has no resources attached to it
 security group heroics-diffused-book-estranged of VPC test-vpc2-ky has no resources attached to it
 security group relenting-sixfold-moisturize-emcee of VPC test-vpc0-ky has no resources attached to it
-security group surrogate-putdown-crank-unspoken of VPC test-vpc3-ky has no resources attached to it
-security group unmolded-grime-decompose-hammock of VPC test-vpc1-ky has no resources attached to it
-security group vanish-counting-unblessed-stable of VPC zn-vpc1 has no resources attached to it
-security group zn-vpc1-sg of VPC zn-vpc1 has no resources attached to it
-security group zn-vpc2-sg of VPC zn-vpc2 has no resources attached to it
+... (5 more)
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "rules of network ACLs that are shadowed by higher priority rules" issues:
@@ -44,23 +40,3 @@ In VPC test-vpc0-ky network ACL acl2-ky's rule 5 is redundant. It is shadowed by
 		Shadowing rules:
 		index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
 		index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "security group rules that are implied by other rules" issues

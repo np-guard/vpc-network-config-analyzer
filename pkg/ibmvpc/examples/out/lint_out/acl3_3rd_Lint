@@ -3,9 +3,8 @@
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 TCP response is blocked
 In the connection from test-vpc1-ky/vsi2-ky[10.240.20.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
-In the connection from test-vpc1-ky/vsi3c-ky[10.240.30.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+... (3 more)
+
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "NACL for which there are no resources attached to" issues:
@@ -31,23 +30,3 @@ In VPC test-vpc1-ky network ACL acl2-ky's ingress rule indexed 3 with destinatio
 
 In VPC test-vpc1-ky network ACL acl2-ky's ingress rule indexed 4 with destination 147.235.219.206/31 is disjoint to the VPC's Address Range 10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24
 	Rule's details: index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "Overlapping CIDR ranges between different subnets" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of network ACLs that are shadowed by higher priority rules" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups implying different connectivity for different endpoints within a subnet" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "rules of security groups that references CIDRs not in the relevant VPC address range" issues
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-no lint "security group rules that are implied by other rules" issues
