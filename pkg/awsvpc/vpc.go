@@ -79,10 +79,6 @@ func (igw *InternetGateway) RouterDefined(src, dst vpcmodel.Node) bool {
 	return vpcmodel.HasNode(igw.Sources(), src) && dst.IsExternal()
 }
 
-func (igw *InternetGateway) AppliedFiltersKinds() map[string]bool {
-	return map[string]bool{vpcmodel.NaclLayer: true, vpcmodel.SecurityGroupLayer: true}
-}
-
 func (igw *InternetGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
 	return nil
 }
