@@ -1,6 +1,10 @@
-"Access control tables for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"NACL for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 network ACL corrode-kilogram-cola-mandated of VPC test-vpc1-ky has no resources attached to it
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 security group shininess-disavow-whinny-canal of VPC test-vpc1-ky has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

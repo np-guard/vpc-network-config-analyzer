@@ -25,15 +25,16 @@ const delimBetweenLintsChars = 200
 type linterGenerator func(string, map[string]*vpcmodel.VPCConfig, map[string]*vpcmodel.VPCConnectivity) linter
 
 var linterGenerators = map[string]linterGenerator{
-	"rules-splitting-subnets-NACLS":            newFilterRuleSplitSubnetLintNACL,
-	"rules-splitting-subnets-SecurityGroups":   newFilterRuleSplitSubnetLintSG,
-	"overlapping-subnets":                      newOverlappingSubnetsLint,
-	"redundant tables":                         newRedundantTablesLint,
-	"rules-referring-non-relevant-CIDRs-SG":    newRuleNonRelevantCIDRSGLint,
-	"rules-referring-non-relevant-CIDRs-NACLs": newRuleNonRelevantCIDRNACLLint,
-	"blocked-TCP-response":                     newBlockedTCPResponseLint,
-	"rules-shadowed-NACL":                      newRuleShadowedNACLLint,
-	"rules-redundant-SG":                       newRuleRedundantSGRuleLint,
+	"nacl-split-subnet":           newNACLSplitSubnet,
+	"sg-split-subnet":             newSGSplitSubnet,
+	"subnet-cidr-overlap":         newSubnetCIDROverlap,
+	"nacl-unattached":             newNACLUnattachedLint,
+	"sg-unattached":               newSGUnattachedLint,
+	"sg-rule-cidr-out-of-range":   newSGRuleCIDROutOfRange,
+	"nacl-rule-cidr-out-of-range": newNACLRuleCIDROutOfRange,
+	"tcp-response-blocked":        newTCPResponseBlocked,
+	"nacl-rule-shadowed":          newNACLRuleShadowed,
+	"sg-rule-implied":             newSGRuleImplied,
 }
 
 func ValidLintersNames() string {
