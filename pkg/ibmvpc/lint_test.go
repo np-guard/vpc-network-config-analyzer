@@ -54,6 +54,12 @@ var lintTests = []*vpcGeneralTest{
 		enable:      []string{"sg-split-subnet"},
 	},
 	{
+		name:          "multivpc_print_all",
+		inputConfig:   "tgw_larger_example",
+		printAllLints: true,
+		enable:        []string{"sg-split-subnet"},
+	},
+	{
 		name:        "multivpc_partly_overlap",
 		inputConfig: "tgw_larger_example_partly_overlap",
 		enable:      []string{"sg-split-subnet"},
