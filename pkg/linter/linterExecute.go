@@ -68,7 +68,7 @@ func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vp
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
 // LinterExecute executes linters one by one
-func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
 	nodesConn, err := computeConnectivity(configs)
 	if err != nil {
@@ -93,7 +93,7 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig,
 		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) > 0 {
 			issueFound = true
-			thisLintStr = thisLinter.string(thisLinter.lintDescription(), false) // todo connect to cli
+			thisLintStr = thisLinter.string(thisLinter.lintDescription(), printAllFindings)
 			strPerLint = append(strPerLint, thisLintStr)
 		}
 	}

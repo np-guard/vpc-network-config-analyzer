@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	enable  = "enable"
-	disable = "disable"
+	enable       = "enable"
+	disable      = "disable"
+	printAllFlag = "print-all"
 )
 
 func NewLintCommand(args *inArgs) *cobra.Command {
@@ -37,6 +38,8 @@ func NewLintCommand(args *inArgs) *cobra.Command {
 	usageStr := " specific linters, specified as linter names separated by comma.\nlinters: " + validLintersNames
 	cmd.Flags().StringSliceVar(&args.enableLinters, enable, []string{}, enable+usageStr)
 	cmd.Flags().StringSliceVar(&args.disableLinters, disable, []string{}, disable+usageStr)
+	cmd.Flags().BoolVar(&args.printAllLinters, printAllFlag, false, "print all linters finding (so not limit"+
+		"to 3)")
 	return cmd
 }
 
@@ -49,7 +52,8 @@ func lintVPCConfigs(cmd *cobra.Command, args *inArgs) error {
 		return err1
 	}
 	// potential errors already handled
-	_, _, err2 := linter.LinterExecute(multiConfigs.Configs(), args.enableLinters, args.disableLinters)
+	_, _, err2 := linter.LinterExecute(multiConfigs.Configs(), args.printAllLinters,
+		args.enableLinters, args.disableLinters)
 	return err2
 }
 
