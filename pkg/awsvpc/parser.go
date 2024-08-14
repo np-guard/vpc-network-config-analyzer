@@ -432,7 +432,7 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	if !logging.DebugVerbosity() {
 		return
 	}
-	logging.Debugf("VPCs to analyze:")
+	logging.Debug("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
 		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
@@ -446,22 +446,22 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
-	logging.Debugf("Nodes:")
+	logging.Debug("Nodes:")
 	for _, n := range c.Nodes {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("Subnets:")
+	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("NodeSets:")
+	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("FilterResources:")
+	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
 		case *commonvpc.SecurityGroupLayer:
@@ -469,7 +469,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(sg.Members) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				logging.Debug(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				commonvpc.PrintSGRules(sg)
 			}
 		case *commonvpc.NaclLayer:
@@ -477,11 +477,11 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(nacl.Subnets) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				logging.Debug(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				commonvpc.PrintNACLRules(nacl)
 			}
 		default:
-			logging.Debugf("layer not supported yet")
+			logging.Debug("layer not supported yet")
 		}
 	}
 }

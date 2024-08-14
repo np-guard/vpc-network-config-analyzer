@@ -252,7 +252,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	logging.Debugf(strings.Repeat("-", lineSectionLen))
+	logging.Debug(strings.Repeat("-", lineSectionLen))
 }
 
 func PrintSGRules(sg *SecurityGroup) {
@@ -263,7 +263,7 @@ func PrintSGRules(sg *SecurityGroup) {
 		for k := range sg.Members {
 			keys = append(keys, k)
 		}
-		logging.Debugf("members: " + strings.Join(keys, ", "))
+		logging.Debugf("members: %s", strings.Join(keys, ", "))
 	}
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := sg.Analyzer.SgAnalyzer.GetSGRule(i)
@@ -273,7 +273,7 @@ func PrintSGRules(sg *SecurityGroup) {
 
 func PrintRule(ruleStr string, index int, err error) {
 	if err == nil {
-		logging.Debugf(ruleStr)
+		logging.Debug(ruleStr)
 	} else {
 		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}

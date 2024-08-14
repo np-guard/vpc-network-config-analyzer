@@ -1,9 +1,3 @@
-"Access control tables for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-network ACL demilune-humorless-captain-lurex of VPC test-vpc1-ky has no resources attached to it
-security group barbecue-frayed-varied-average of VPC test-vpc1-ky has no resources attached to it
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
 "Blocked TCP response" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the connection from test-vpc1-ky/db-endpoint-gateway-ky[10.240.30.7] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
@@ -12,6 +6,16 @@ In the connection from test-vpc1-ky/vsi2-ky[10.240.20.4] to test-vpc1-ky/vsi1-ky
 In the connection from test-vpc1-ky/vsi3a-ky[10.240.30.5] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3b-ky[10.240.30.6] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
 In the connection from test-vpc1-ky/vsi3c-ky[10.240.30.4] to test-vpc1-ky/vsi1-ky[10.240.10.4] TCP response is blocked
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"NACL for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+network ACL demilune-humorless-captain-lurex of VPC test-vpc1-ky has no resources attached to it
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG for which there are no resources attached to" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+security group barbecue-frayed-varied-average of VPC test-vpc1-ky has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "rules of network ACLs implying different connectivity for different endpoints within a subnet" issues:

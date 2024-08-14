@@ -24,44 +24,44 @@ var lintTests = []*vpcGeneralTest{
 	{
 		name:        "basic_acl3",
 		inputConfig: "acl_testing3",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "acl3_shadowed_rules",
 		inputConfig: "acl_testing3_with_redundant_rules",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "acl3_shadowed_rules_other_lints_disabled",
 		inputConfig: "acl_testing3_with_redundant_rules",
-		disable: []string{"rules-splitting-subnets-NACLS", "overlapping-subnets", "redundant tables",
-			"rules-referring-non-relevant-CIDRs-SG", "rules-referring-non-relevant-CIDRs-NACLs",
-			"blocked-TCP-response", "rules-redundant-SG"},
+		disable: []string{"nacl-split-subnet", "subnet-cidr-overlap", "nacl-unattached",
+			"sg-unattached", "sg-rule-cidr-out-of-range", "nacl-rule-cidr-out-of-range",
+			"tcp-response-blocked", "sg-rule-implied"},
 	},
 	{
 		name:        "acl3_3rd",
 		inputConfig: "acl_testing3_3rd",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "basic_sg1",
 		inputConfig: "sg_testing1_new",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "multivpc",
 		inputConfig: "tgw_larger_example",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "multivpc_partly_overlap",
 		inputConfig: "tgw_larger_example_partly_overlap",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 	{
 		name:        "PartialTCPRespond",
 		inputConfig: "sg_testing1_new_respond_partly",
-		enable:      []string{"rules-splitting-subnets-SecurityGroups"},
+		enable:      []string{"sg-split-subnet"},
 	},
 }
 
