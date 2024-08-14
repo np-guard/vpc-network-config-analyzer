@@ -511,14 +511,14 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
 			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType {
-				logging.Debugf(ignoreFIPWarning(*fip.Name,
+				logging.Debug(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
 						*target.ResourceType)))
 				continue
 			}
 			targetUID = *target.ID
 		default:
-			logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+			logging.Debug(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 			continue
 		}
 
@@ -1483,26 +1483,26 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 //nolint:gocyclo // one function to print all parsed resources for debug mode
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
-	logging.Debugf("Nodes:")
+	logging.Debug("Nodes:")
 	for _, n := range c.Nodes {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("Subnets:")
+	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("LoadBalancers:")
+	logging.Debug("LoadBalancers:")
 	for _, lb := range c.LoadBalancers {
-		logging.Debugf(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
+		logging.Debug(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
 	}
-	logging.Debugf("NodeSets:")
+	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("FilterResources:")
+	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
 		case *commonvpc.NaclLayer:
@@ -1510,7 +1510,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(nacl.Subnets) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				logging.Debug(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				commonvpc.PrintNACLRules(nacl)
 			}
 		case *commonvpc.SecurityGroupLayer:
@@ -1518,34 +1518,34 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(sg.Members) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				logging.Debug(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				commonvpc.PrintSGRules(sg)
 			}
 		}
 	}
-	logging.Debugf("RoutingResources:")
+	logging.Debug("RoutingResources:")
 	for _, r := range c.RoutingResources {
-		logging.Debugf(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
+		logging.Debug(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
 		if tgw, ok := r.(*TransitGateway); ok {
 			printTGWAvailableRoutes(tgw)
 		}
 	}
-	logging.Debugf("RoutingTables:")
+	logging.Debug("RoutingTables:")
 	for _, r := range c.RoutingTables {
-		logging.Debugf(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
+		logging.Debug(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
 		if rt, ok := r.(*ingressRoutingTable); ok {
-			logging.Debugf("ingress routing table")
-			logging.Debugf(rt.string())
+			logging.Debug("ingress routing table")
+			logging.Debug(rt.string())
 		}
 		if rt, ok := r.(*egressRoutingTable); ok {
-			logging.Debugf("egress routing table")
-			logging.Debugf(rt.string())
-			logging.Debugf("subnets:")
+			logging.Debug("egress routing table")
+			logging.Debug(rt.string())
+			logging.Debug("subnets:")
 			subnetsList := make([]string, len(rt.subnets))
 			for i := range rt.subnets {
 				subnetsList[i] = rt.subnets[i].Name()
 			}
-			logging.Debugf(strings.Join(subnetsList, ","))
+			logging.Debug(strings.Join(subnetsList, ","))
 		}
 	}
 }
