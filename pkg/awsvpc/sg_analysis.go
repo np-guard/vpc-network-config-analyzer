@@ -39,7 +39,7 @@ func getSGName(sg *types.SecurityGroup) *string {
 	if sg.GroupName != nil && *sg.GroupName != "" {
 		sgName = sg.GroupName
 	}
-	return sgName
+	return getResourceName(sg.Tags, sgName)
 }
 
 func (sga *AWSSGAnalyzer) Name() *string {
