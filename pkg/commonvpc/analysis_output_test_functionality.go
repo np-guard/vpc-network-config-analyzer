@@ -416,4 +416,3 @@ func RunExplainTest(tt *VpcGeneralTest, t *testing.T, rc ResourcesContainer) {
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
-

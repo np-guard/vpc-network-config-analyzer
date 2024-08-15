@@ -715,7 +715,6 @@ func TestAllWithGeneration(t *testing.T) {
 	fmt.Println("done")
 }*/
 
-
 func TestInputValiditySingleVPCContext(t *testing.T) {
 	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
 	require.NotNil(t, vpcConfigSg1, "vpcConfigSg1 equals nil")
