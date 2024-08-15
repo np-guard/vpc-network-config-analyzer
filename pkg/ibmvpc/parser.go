@@ -512,13 +512,13 @@ func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
 			// in vni we do not have the uid reference, we get the result by the IP:
 			targetKey = *target.PrimaryIP.Address
 		default:
-			logging.Debugf(ignoreFIPWarning(*fip.Name,
+			logging.Debug(ignoreFIPWarning(*fip.Name,
 				fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
 					*target.ResourceType)))
 			return nil, nil
 		}
 	default:
-		logging.Debugf(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
+		logging.Debug(ignoreFIPWarning(*fip.Name, "target (FloatingIPTargetIntf) is not of the expected type"))
 		return nil, nil
 	}
 
