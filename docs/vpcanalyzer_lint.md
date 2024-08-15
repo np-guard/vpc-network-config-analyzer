@@ -1,6 +1,6 @@
 ## vpcanalyzer lint
 
-provides a detailed report of potential issues in the given VPC configuration
+Provide a detailed report of potential issues in the given VPC configuration
 
 ### Synopsis
 
@@ -28,9 +28,7 @@ vpcanalyzer explain [flags]
 
 ```
       --disable strings         disable specific linters, specified as linter names separated by comma.
-                                linters: sg-rule-implied,sg-split-subnet,subnet-cidr-overlap,nacl-unattached,sg-unattached,nacl-rule-cidr-out-of-range,nacl-split-subnet,sg-rule-cidr-out-of-range,tcp-response-blocked,nacl-rule-shadowed    
       --enable strings          enable specific linters, specified as linter names separated by comma.
-                                linters: sg-rule-implied,sg-split-subnet,subnet-cidr-overlap,nacl-unattached,sg-unattached,nacl-rule-cidr-out-of-range,nacl-split-subnet,sg-rule-cidr-out-of-range,tcp-response-blocked,nacl-rule-shadowed    
       --print-all               print all findings (do not limit findings of each linter to 3)
 
 ```
@@ -51,7 +49,7 @@ vpcanalyzer explain [flags]
 
 ### Example
 ```
-> go run analyzer lint -q -c input/input_tgw_larger_example.json
+> go run analyzer lint -q -c pkg/ibmvpc/examples/input/input_tgw_larger_example.json
 "Blocked TCP response" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi11-ky[10.240.11.4]" TCP response is blocked
