@@ -25,7 +25,7 @@ Path is disabled; The relevant rules are:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
 			index: 0, direction: inbound , src: 192.168.32.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
 		security group kube-clusterid:1 allows connection with the following allow rules
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
