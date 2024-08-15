@@ -14,6 +14,22 @@ In VPC "zn-vpc1", network ACL "washout-accurate-shiny-fringe" has no resources a
 In VPC "zn-vpc2", network ACL "creatable-chive-turbojet-share" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
+"Network-ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
+	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
+		Shadowing rules:
+			index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
+			index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
+
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher priority rules
+	Rule details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
+		Shadowing rules:
+			index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
+			index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Overlapping subnet address spaces" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 VPC "test-vpc2-ky"'s subnet "subnet21-ky" [10.240.64.0/24] and VPC "zn-vpc2"'s subnet "zn-vpc2-net1" [10.240.64.0/24] overlap
@@ -29,18 +45,3 @@ In VPC "zn-vpc1", security group "vanish-counting-unblessed-stable" has no resou
 In VPC "zn-vpc1", security group "zn-vpc1-sg" has no resources attached to it
 In VPC "zn-vpc2", security group "disrupt-stem-mulch-moneybags" has no resources attached to it
 In VPC "zn-vpc2", security group "zn-vpc2-sg" has no resources attached to it
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"rules of network ACLs that are shadowed by higher priority rules" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
-	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
-		Shadowing rules:
-			index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
-			index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
-
-In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher priority rules
-	Rule details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
-		Shadowing rules:
-			index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
-			index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow

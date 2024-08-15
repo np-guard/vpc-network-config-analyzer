@@ -6,18 +6,18 @@ provides a detailed report of potential issues in the given VPC configuration
 
 The following linters are supported:
 
-| Name                            | Description                                                                              |
-|---------------------------------|------------------------------------------------------------------------------------------|
-| **nacl-split-subnet**           | Network ACLs implying different connectivity for endpoints inside a subnet               | 
-| **sg-split-subnet**             | SGs implying different connectivity for endpoints inside a subnet                        |  
-| **subnet-cidr-overlap**         | Overlapping subnet address spaces                                                        |  
-| **nacl-unattached**             | Network ACL not applied to any resources                                                 |  
-| **sg-unattached**               | SG not applied to any resources                                                          |  
-| **sg-rule-cidr-out-of-range**   | rules of security groups that reference CIDRs not in the relevant VPC address range      |
-| **nacl-rule-cidr-out-of-range** | rules of network Network ACLs that reference CIDRs not in the relevant VPC address range |
-| **tcp-response-blocked**        | Blocked TCP response                                                                     |
-| **nacl-rule-shadowed**          | rules of network Network ACLs that are shadowed by higher priority rules                 |
-| **sg-rule-implied**             | security group rules that are implied by other rules                                     |
+| Name                            | Description                                                                |
+|---------------------------------|----------------------------------------------------------------------------|
+| **nacl-split-subnet**           | Network ACLs implying different connectivity for endpoints inside a subnet | 
+| **sg-split-subnet**             | SGs implying different connectivity for endpoints inside a subnet          |  
+| **subnet-cidr-overlap**         | Overlapping subnet address spaces                                          |  
+| **nacl-unattached**             | Network ACL not applied to any resources                                   |  
+| **sg-unattached**               | SG not applied to any resources                                            |  
+| **sg-rule-cidr-out-of-range**   | Security-group rules referencing CIDRs outside of the VPC address space    |
+| **nacl-rule-cidr-out-of-range** | Network ACL rules referencing CIDRs outside of the VPC address space       |
+| **tcp-response-blocked**        | Blocked TCP response                                                       |
+| **nacl-rule-shadowed**          | Network-ACL rules shadowed by higher priority rules                        |
+| **sg-rule-implied**             | Security-group rules implied by other rules                                |
 
 
 ```

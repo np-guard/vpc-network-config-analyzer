@@ -13,22 +13,8 @@ In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no reso
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"Overlapping subnet address spaces" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-VPC "test-vpc2-ky"'s subnet "subnet21-ky" [10.240.64.0/24] and VPC "zn-vpc2"'s subnet "zn-vpc2-net1" [10.240.64.0/24] overlap
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"SG not applied to any resources" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc0-ky", security group "relenting-sixfold-moisturize-emcee" has no resources attached to it
-In VPC "test-vpc1-ky", security group "unmolded-grime-decompose-hammock" has no resources attached to it
-In VPC "test-vpc2-ky", security group "heroics-diffused-book-estranged" has no resources attached to it
-... (5 more)
-
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"rules of network ACLs that are shadowed by higher priority rules" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network-ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
 	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
 		Shadowing rules:
@@ -40,3 +26,17 @@ In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher prio
 		Shadowing rules:
 			index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
 			index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"Overlapping subnet address spaces" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+VPC "test-vpc2-ky"'s subnet "subnet21-ky" [10.240.64.0/24] and VPC "zn-vpc2"'s subnet "zn-vpc2-net1" [10.240.64.0/24] overlap
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc0-ky", security group "relenting-sixfold-moisturize-emcee" has no resources attached to it
+In VPC "test-vpc1-ky", security group "unmolded-grime-decompose-hammock" has no resources attached to it
+In VPC "test-vpc2-ky", security group "heroics-diffused-book-estranged" has no resources attached to it
+... (5 more)
