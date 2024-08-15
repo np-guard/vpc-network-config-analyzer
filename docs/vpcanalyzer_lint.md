@@ -1,25 +1,23 @@
-## vpcanalyzer explain
-
-Explain connectivity between two endpoints
-
-### Synopsis
+## vpcanalyzer lint
 
 provides a detailed report of potential issues in the given VPC configuration
 
+### Synopsis
+
 The following linters are supported:
 
-| Name                            | Description                                                                      |
-|---------------------------------|----------------------------------------------------------------------------------|
-| **nacl-split-subnet**           |   NACLs implying different connectivity for endpoints inside a subnet                                                                               | 
-| **sg-split-subnet**             |  SGs implying different connectivity for endpoints inside a subnet                                                                                |  
-| **subnet-cidr-overlap**         |    Overlapping subnet address spaces                                                                              |  
-| **nacl-unattached**             |    NACL not applied to any resources                                                                              |  
-| **sg-unattached**               |   SG not applied to any resources                                                                               |  
-| **sg-rule-cidr-out-of-range**   |rules of security groups that reference CIDRs not in the relevant VPC address range |
-| **nacl-rule-cidr-out-of-range** |  rules of network ACLs that reference CIDRs not in the relevant VPC address range                                                                                 |
-| **tcp-response-blocked**        |  Blocked TCP response                                                                             |
-| **nacl-rule-shadowed**          | rules of network ACLs that are shadowed by higher priority rules                                                                              |
-| **sg-rule-implied**             | security group rules that are implied by other rules                                                                              |
+| Name                            | Description                                                                         |
+|---------------------------------|-------------------------------------------------------------------------------------|
+| **nacl-split-subnet**           | NACLs implying different connectivity for endpoints inside a subnet                 | 
+| **sg-split-subnet**             | SGs implying different connectivity for endpoints inside a subnet                   |  
+| **subnet-cidr-overlap**         | Overlapping subnet address spaces                                                   |  
+| **nacl-unattached**             | NACL not applied to any resources                                                   |  
+| **sg-unattached**               | SG not applied to any resources                                                     |  
+| **sg-rule-cidr-out-of-range**   | rules of security groups that reference CIDRs not in the relevant VPC address range |
+| **nacl-rule-cidr-out-of-range** | rules of network NACLs that reference CIDRs not in the relevant VPC address range   |
+| **tcp-response-blocked**        | Blocked TCP response                                                                |
+| **nacl-rule-shadowed**          | rules of network NACLs that are shadowed by higher priority rules                   |
+| **sg-rule-implied**             | security group rules that are implied by other rules                                |
 
 
 ```
