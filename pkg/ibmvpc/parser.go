@@ -334,23 +334,24 @@ func getCertainNodes(allNodes []vpcmodel.Node, shouldTakeNode func(vpcmodel.Node
 	return
 }
 
-func updateFilteredOutNetworkInterfacesUIDs(instance *datamodel.Instance, filterOutUIDs map[string]bool) {
+func updateFilteredOutNetworkInterfaces(instance *datamodel.Instance, filterOutInstances map[string]bool) {
 	for j := range instance.NetworkInterfaces {
 		networkInterface := instance.NetworkInterfaces[j]
-		filterOutUIDs[*networkInterface.ID] = true
+		filterOutInstances[*networkInterface.ID] = true
+		filterOutInstances[*networkInterface.PrimaryIP.Address] = true
 	}
 }
 
 func (rc *IBMresourcesContainer) getInstancesConfig(
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	res *vpcmodel.MultipleVPCConfigs,
-	filteredOutUIDs map[string]bool,
+	filteredOutInstances map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
 	for _, instance := range rc.InstanceList {
 		vpcUID := *instance.VPC.CRN
 		if skipByVPC[vpcUID] {
-			updateFilteredOutNetworkInterfacesUIDs(instance, filteredOutUIDs)
+			updateFilteredOutNetworkInterfaces(instance, filteredOutInstances)
 			continue
 		}
 		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
@@ -475,8 +476,8 @@ func ignoreFIPWarning(fipName, details string) string {
 	return fmt.Sprintf("ignoring floatingIP %s: %s", fipName, details)
 }
 
-func warnSkippedFip(filteredOutUIDs map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
-	if !filteredOutUIDs[targetUID] {
+func warnSkippedFip(filteredOutInstances map[string]bool, targetUID string, fip *datamodel.FloatingIP) {
+	if !filteredOutInstances[targetUID] {
 		logging.Warnf("skipping Floating IP %s - could not find attached network interface\n", *fip.Name)
 	}
 }
@@ -496,20 +497,20 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc vpcmodel.VPC, srcNo
 }
 
 func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
-	filteredOutUIDs map[string]bool,
+	filteredOutInstances map[string]bool,
 	fip *datamodel.FloatingIP) (srcNodes []vpcmodel.Node, vpcConfig *vpcmodel.VPCConfig) {
 	targetIntf := fip.Target
-	var targetUID, targetAddress string
+	var targetKey string
 	switch target := targetIntf.(type) {
 	case *vpc1.FloatingIPTargetNetworkInterfaceReference:
-		targetUID = *target.ID
+		targetKey = *target.ID
 	case *vpc1.FloatingIPTarget:
-		targetUID = *target.ID
 		switch *target.ResourceType {
 		case commonvpc.NetworkInterfaceResourceType:
+			targetKey = *target.ID
 		case commonvpc.VirtualNetworkInterfaceResourceType:
 			// in vni we do not have the uid reference, we get the result by the IP:
-			targetAddress = *target.PrimaryIP.Address
+			targetKey = *target.PrimaryIP.Address
 		default:
 			logging.Debugf(ignoreFIPWarning(*fip.Name,
 				fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
@@ -521,23 +522,20 @@ func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
 		return nil, nil
 	}
 
-	if targetUID == "" && targetAddress == "" {
+	if targetKey == "" {
 		return nil, nil
 	}
 
 	for _, vpcConfig = range res.Configs() {
 		srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool {
-			if targetAddress != "" {
-				return n.CidrOrAddress() == targetAddress
-			}
-			return n.UID() == targetUID
+			return n.UID() == targetKey || n.CidrOrAddress() == targetKey
 		})
 		if len(srcNodes) > 0 {
 			break
 		}
 	}
 	if len(srcNodes) == 0 {
-		warnSkippedFip(filteredOutUIDs, targetUID, fip)
+		warnSkippedFip(filteredOutInstances, targetKey, fip)
 	}
 
 	return srcNodes, vpcConfig
@@ -545,11 +543,11 @@ func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
 
 func (rc *IBMresourcesContainer) getFipConfig(
 	res *vpcmodel.MultipleVPCConfigs,
-	filteredOutUIDs map[string]bool,
+	filteredOutInstances map[string]bool,
 	skipByVPC map[string]bool,
 ) {
 	for _, fip := range rc.FloatingIPList {
-		srcNodes, vpcConfig := getNodesOfFloatingIP(res, filteredOutUIDs, fip)
+		srcNodes, vpcConfig := getNodesOfFloatingIP(res, filteredOutInstances, fip)
 		if len(srcNodes) == 0 {
 			continue
 		}
@@ -625,7 +623,7 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 				// in vni we do not have the uid reference, we get the result by the IP:
 				address := *targetIntfRef.PrimaryIP.Address
 				ns := getCertainNodes(c.Nodes, func(n vpcmodel.Node) bool { return n.CidrOrAddress() == address })
-				if len(ns) == 1 {
+				if len(ns) > 0 {
 					sgResource.Members[address] = ns[0]
 				}
 			case commonvpc.NetworkInterfaceResourceType:
