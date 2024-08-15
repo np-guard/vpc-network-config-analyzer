@@ -1,5 +1,5 @@
-"rules of network ACLs that are shadowed by higher priority rules" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] is shadowed by higher priority rules
 	Rule details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
 		Shadowing rules:
