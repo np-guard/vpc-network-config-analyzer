@@ -36,6 +36,9 @@ func (igw *InternetGateway) SourcesSubnets() []vpcmodel.Subnet {
 	}
 	return res
 }
+func (igw *InternetGateway) VPC() vpcmodel.VPCResourceIntf {
+	return igw.vpc
+}
 func (igw *InternetGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
 	igw.destinations = destinations
 }
