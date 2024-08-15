@@ -513,8 +513,8 @@ func getNodesOfFloatingIP(res *vpcmodel.MultipleVPCConfigs,
 			targetKey = *target.PrimaryIP.Address
 		default:
 			logging.Debug(ignoreFIPWarning(*fip.Name,
-				fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
-					*target.ResourceType)))
+				fmt.Sprintf("target.ResourceType %s is not supported (only %s supported)",
+					*target.ResourceType, commonvpc.NetworkInterfaceResourceType)))
 			return nil, nil
 		}
 	default:
