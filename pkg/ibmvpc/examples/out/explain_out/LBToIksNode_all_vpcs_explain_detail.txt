@@ -29,7 +29,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -70,7 +70,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -111,7 +111,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -152,7 +152,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -193,7 +193,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -234,7 +234,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -275,7 +275,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -312,7 +312,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
@@ -344,7 +344,7 @@ Path is enabled; The relevant rules are:
 		security group kube-clusterid:1 allows connection with the following allow rules
 			index: 3, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
 			index: 4, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			index: 6, direction: inbound,  conns: protocol: icmp,  icmpType: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			index: 6, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		security group ky-test-default-sg allows connection with the following allow rules
 			index: 2, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
