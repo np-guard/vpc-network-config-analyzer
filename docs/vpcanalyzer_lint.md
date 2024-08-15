@@ -51,7 +51,7 @@ vpcanalyzer explain [flags]
 
 ### Example
 ```
-> go run analyzer lint -q -c input/input_tgw_larger_example.json
+> go run analyzer lint -q -c pkg/ibmvpc/examples/input/input_tgw_larger_example.json
 "Blocked TCP response" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi11-ky[10.240.11.4]" TCP response is blocked
