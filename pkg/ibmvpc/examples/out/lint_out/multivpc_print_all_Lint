@@ -14,7 +14,7 @@ In VPC "zn-vpc1", network ACL "washout-accurate-shiny-fringe" has no resources a
 In VPC "zn-vpc2", network ACL "creatable-chive-turbojet-share" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"Network-ACL rules shadowed by higher priority rules" issues:
+"Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
 	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow

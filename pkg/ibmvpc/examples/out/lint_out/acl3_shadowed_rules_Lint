@@ -22,6 +22,16 @@ In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [4] with destination 1
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
+"Network ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] is shadowed by higher priority rules
+	Rule details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
+		Shadowing rules:
+			index: 1, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: protocol: icmp, action: allow
+			index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
 "Network ACLs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] splits subnet "subnet2-ky" (10.240.20.0/24).
@@ -30,16 +40,6 @@ In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [1] splits subnet "subnet3-ky"
 	Rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [3] splits subnet "subnet3-ky" (10.240.30.0/24).
 	Rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"Network-ACL rules shadowed by higher priority rules" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] is shadowed by higher priority rules
-	Rule details: index: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow
-		Shadowing rules:
-			index: 1, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: protocol: icmp, action: allow
-			index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
-
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "SG not applied to any resources" issues:

@@ -13,11 +13,11 @@ The following linters are supported:
 | **subnet-cidr-overlap**         | Overlapping subnet address spaces                                          |  
 | **nacl-unattached**             | Network ACL not applied to any resources                                   |  
 | **sg-unattached**               | SG not applied to any resources                                            |  
-| **sg-rule-cidr-out-of-range**   | Security-group rules referencing CIDRs outside of the VPC address space    |
+| **sg-rule-cidr-out-of-range**   | Security group rules referencing CIDRs outside of the VPC address space    |
 | **nacl-rule-cidr-out-of-range** | Network ACL rules referencing CIDRs outside of the VPC address space       |
 | **tcp-response-blocked**        | Blocked TCP response                                                       |
-| **nacl-rule-shadowed**          | Network-ACL rules shadowed by higher priority rules                        |
-| **sg-rule-implied**             | Security-group rules implied by other rules                                |
+| **nacl-rule-shadowed**          | Network ACL rules shadowed by higher priority rules                        |
+| **sg-rule-implied**             | Security group rules implied by other rules                                |
 
 
 ```

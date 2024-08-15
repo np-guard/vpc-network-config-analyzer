@@ -13,7 +13,7 @@ In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no reso
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"Network-ACL rules shadowed by higher priority rules" issues:
+"Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
 	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
