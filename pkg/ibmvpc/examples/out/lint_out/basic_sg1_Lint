@@ -20,8 +20,8 @@ In VPC "test-vpc1-ky", security group "sg1-ky" rule [4] splits subnet "subnet3-k
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"Security group rules implied by other rules   " issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Security group rules implied by other rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", security group "sg2-ky" rule [6] is implied by other rules
 	Rule details: index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
 		Implying rules:

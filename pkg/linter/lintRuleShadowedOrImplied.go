@@ -49,7 +49,7 @@ func newSGRuleImplied(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "Security group rules implied by other rules   ",
+			description: "Security group rules implied by other rules",
 			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
