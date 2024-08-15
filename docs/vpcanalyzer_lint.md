@@ -29,7 +29,6 @@ vpcanalyzer explain [flags]
 ```
       --disable strings         disable specific linters, specified as linter names separated by comma.
       --enable strings          enable specific linters, specified as linter names separated by comma.
-                                linters: sg-rule-implied,sg-split-subnet,subnet-cidr-overlap,nacl-unattached,sg-unattached,nacl-rule-cidr-out-of-range,nacl-split-subnet,sg-rule-cidr-out-of-range,tcp-response-blocked,nacl-rule-shadowed    
       --print-all               print all findings (do not limit findings of each linter to 3)
 
 ```
