@@ -41,7 +41,7 @@ func newNACLSplitSubnet(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "NACLs implying different connectivity for endpoints inside a subnet",
+			description: "Network ACLs implying different connectivity for endpoints inside a subnet",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,

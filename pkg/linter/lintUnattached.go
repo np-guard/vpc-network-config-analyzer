@@ -18,7 +18,7 @@ func newNACLUnattachedLint(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "NACL not applied to any resources",
+			description: "Network ACL not applied to any resources",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
