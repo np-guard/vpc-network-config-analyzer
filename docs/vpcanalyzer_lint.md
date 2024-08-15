@@ -1,6 +1,6 @@
 ## vpcanalyzer lint
 
-provides a detailed report of potential issues in the given VPC configuration
+Provide a detailed report of potential issues in the given VPC configuration
 
 ### Synopsis
 
