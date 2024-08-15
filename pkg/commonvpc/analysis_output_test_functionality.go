@@ -411,8 +411,8 @@ func RunExplainTest(tt *VpcGeneralTest, t *testing.T, rc ResourcesContainer) {
 
 	// generate actual output for all use cases specified for this test
 	err := RunTestPerUseCase(t, tt, vpcConfigs, vpcmodel.Explain, tt.Mode, explainOut, explanationArgs)
-	require.Equal(t, tt.ErrPerUseCase[vpcmodel.Explain], err, "comparing actual err to expected err")
+	require.Equal(t, tt.ErrPerUseCase[vpcmodel.Explain], err, "comparing explain actual err to expected err")
 	for uc, outFile := range tt.ActualOutput {
-		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
+		fmt.Printf("explain test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
