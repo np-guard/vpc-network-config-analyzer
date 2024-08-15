@@ -7,13 +7,13 @@ In the connection from "test-vpc1-ky/vsi3b-ky[10.240.30.6]" to "test-vpc1-ky/vsi
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"NACL not applied to any resources" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network ACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "demilune-humorless-captain-lurex" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"NACLs implying different connectivity for endpoints inside a subnet" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network ACLs implying different connectivity for endpoints inside a subnet" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [1] splits subnet "subnet3-ky" (10.240.30.0/24).
 	Rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [3] splits subnet "subnet3-ky" (10.240.30.0/24).

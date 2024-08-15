@@ -1,5 +1,5 @@
-"NACL not applied to any resources" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network ACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "corrode-kilogram-cola-mandated" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

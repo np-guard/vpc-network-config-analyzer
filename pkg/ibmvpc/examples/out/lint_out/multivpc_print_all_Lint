@@ -4,8 +4,8 @@ In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi
 In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi12-ky[10.240.12.4]" TCP response is blocked
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"NACL not applied to any resources" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+"Network ACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "stimulus-surpass-backup-museum" has no resources attached to it
 In VPC "test-vpc1-ky", network ACL "unsaid-numerate-alto-dried" has no resources attached to it
 In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no resources attached to it
