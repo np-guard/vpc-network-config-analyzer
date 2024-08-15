@@ -703,16 +703,16 @@ func TestAll(t *testing.T) {
 // uncomment the function below for generating the expected output files instead of comparing
 /*
 func TestAllWithGeneration(t *testing.T) {
-// tests is the list of tests to run
-for testIdx := range explainTests {
-tt := explainTests[testIdx]
-tt.mode = outputGeneration
-t.Run(tt.name, func(t *testing.T) {
-t.Parallel()
-tt.runExplainTest(t)
-})
-}
-fmt.Println("done")
+	// tests is the list of tests to run
+	for testIdx := range explainTests {
+		tt := explainTests[testIdx]
+		tt.Mode = commonvpc.OutputGeneration
+		t.Run(tt.Name, func(t *testing.T) {
+			t.Parallel()
+			runExplainTest(tt, t)
+		})
+	}
+	fmt.Println("done")
 }*/
 
 func runExplainTest(tt *commonvpc.VpcGeneralTest, t *testing.T) {
