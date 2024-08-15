@@ -116,7 +116,7 @@ func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resou
 func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs(common.IBM)       // map from VPC UID to its config
-	filteredOut := map[string]bool{}                        // store networkInterface UIDs filtered out by skipByVPC
+	filteredOutInstances := map[string]bool{}               // store networkInterface UID/addresses filtered out by skipByVPC
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
 	var err error
 
@@ -132,7 +132,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
 
 	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
-	err = rc.getInstancesConfig(subnetIDToNetIntf, res, filteredOut, shouldSkipVpcIds)
+	err = rc.getInstancesConfig(subnetIDToNetIntf, res, filteredOutInstances, shouldSkipVpcIds)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 		return nil, err
 	}
 
-	rc.getFipConfig(res, filteredOut, shouldSkipVpcIds)
+	rc.getFipConfig(res, filteredOutInstances, shouldSkipVpcIds)
 
 	err = rc.getVPEconfig(res, shouldSkipVpcIds)
 	if err != nil {
