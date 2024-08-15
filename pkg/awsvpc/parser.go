@@ -154,10 +154,10 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 }
 
 // get name from tags, if not fount return alternateName
-func getResourceName(tags []types.Tag, alternateName string) string {
+func getResourceName(tags []types.Tag, alternateName *string) *string {
 	for _, tag := range tags {
 		if *tag.Key == resourceName {
-			return *tag.Value
+			return tag.Value
 		}
 	}
 	return alternateName
@@ -171,8 +171,8 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 		if skipByVPC[*vpc.VpcId] {
 			continue // skip vpc not specified to analyze
 		}
-		vpcName := getResourceName(vpc.Tags, *vpc.VpcId)
-		vpcNodeSet, err := commonvpc.NewVPC(vpcName, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
+		vpcName := getResourceName(vpc.Tags, vpc.VpcId)
+		vpcNodeSet, err := commonvpc.NewVPC(*vpcName, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
 		if err != nil {
 			return err
 		}
@@ -202,8 +202,8 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		if err != nil {
 			return err
 		}
-		instanceName := getResourceName(instance.Tags, *instance.InstanceId)
-		vsiNode, err := commonvpc.NewVSI(instanceName, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
+		instanceName := getResourceName(instance.Tags, instance.InstanceId)
+		vsiNode, err := commonvpc.NewVSI(*instanceName, *instance.InstanceId, *instance.Placement.AvailabilityZone, vpc, res)
 		if err != nil {
 			return err
 		}
@@ -244,14 +244,14 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 		if skipByVPC[*subnetObj.VpcId] {
 			continue
 		}
-		subnetName := getResourceName(subnetObj.Tags, *subnetObj.SubnetId)
-		subnet, err := commonvpc.UpdateConfigWithSubnet(subnetName,
+		subnetName := getResourceName(subnetObj.Tags, subnetObj.SubnetId)
+		subnet, err := commonvpc.UpdateConfigWithSubnet(*subnetName,
 			*subnetObj.SubnetId, *subnetObj.AvailabilityZone, *subnetObj.CidrBlock,
 			*subnetObj.VpcId, res, vpcInternalAddressRange, subnetNameToNetIntf)
 		if err != nil {
 			return nil, err
 		}
-		subnet.SetIsPublic(*subnetObj.MapPublicIpOnLaunch)
+		subnet.SetIsPrivate(!*subnetObj.MapPublicIpOnLaunch)
 	}
 	return vpcInternalAddressRange, nil
 }
@@ -278,7 +278,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool,
 	netIntfToSGs map[string][]types.GroupIdentifier) error {
-	sgMap := map[string]map[string]*commonvpc.SecurityGroup{} // map from vpc uid to map from sg name to its sg object
+	sgMap := map[string]map[string]*commonvpc.SecurityGroup{} // map from vpc uid to map from sg id to its sg object
 	sgLists := map[string][]*commonvpc.SecurityGroup{}
 	for i := range rc.SecurityGroupsList {
 		sg := rc.SecurityGroupsList[i]
@@ -290,8 +290,8 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		sgName := getResourceName(sg.Tags, *sg.GroupId)
-		commonvpc.NewSGResource(sgName, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
+		sgName := getSGName(sg)
+		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
 	for vpcUID, sgListInstance := range sgLists {
@@ -339,10 +339,10 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 		if err != nil {
 			return err
 		}
-		naclName := getResourceName(nacl.Tags, *nacl.NetworkAclId)
+		naclName := getResourceName(nacl.Tags, nacl.NetworkAclId)
 		naclResource := &commonvpc.NACL{
 			VPCResource: vpcmodel.VPCResource{
-				ResourceName: naclName,
+				ResourceName: *naclName,
 				ResourceUID:  *nacl.NetworkAclId,
 				ResourceType: commonvpc.ResourceTypeNACL,
 				VPCRef:       vpc,
@@ -384,10 +384,10 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) {
 	for _, igw := range rc.InternetGWList {
-		igwID := *igw.InternetGatewayId
+		igwID := igw.InternetGatewayId
 		igwName := getResourceName(igw.Tags, igwID)
 		if len(igw.Attachments) != 1 {
-			logging.Warnf("skipping internet gateway %s - it has %d vpcs attached\n", igwName, len(igw.Attachments))
+			logging.Warnf("skipping internet gateway %s - it has %d vpcs attached\n", *igwName, len(igw.Attachments))
 			continue
 		}
 		vpcUID := *igw.Attachments[0].VpcId
@@ -398,14 +398,14 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		subnets := vpc.Subnets()
 		// only public subnets can be a subnet of igw:
 		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
-			return !s.IsPublic()
+			return s.IsPrivate()
 		})
 
 		if len(subnets) == 0 {
-			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", igwName)
+			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", *igwName)
 			continue
 		}
-		routerIgw := newIGW(igwName, igwID, subnets, vpc)
+		routerIgw := newIGW(*igwName, *igwID, subnets, vpc)
 		res.Config(vpcUID).RoutingResources = append(res.Config(vpcUID).RoutingResources, routerIgw)
 		res.Config(vpcUID).UIDToResource[routerIgw.ResourceUID] = routerIgw
 	}
@@ -432,7 +432,7 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	if !logging.DebugVerbosity() {
 		return
 	}
-	logging.Debugf("VPCs to analyze:")
+	logging.Debug("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
 		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
@@ -446,22 +446,22 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 
 func printConfig(c *vpcmodel.VPCConfig) {
 	separator := " "
-	logging.Debugf("Nodes:")
+	logging.Debug("Nodes:")
 	for _, n := range c.Nodes {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("Subnets:")
+	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("NodeSets:")
+	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debugf(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
 	}
-	logging.Debugf("FilterResources:")
+	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {
 		switch filters := f.(type) {
 		case *commonvpc.SecurityGroupLayer:
@@ -469,7 +469,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(sg.Members) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
+				logging.Debug(strings.Join([]string{sg.ResourceType, sg.ResourceName, sg.UID()}, separator))
 				commonvpc.PrintSGRules(sg)
 			}
 		case *commonvpc.NaclLayer:
@@ -477,11 +477,11 @@ func printConfig(c *vpcmodel.VPCConfig) {
 				if len(nacl.Subnets) == 0 {
 					continue
 				}
-				logging.Debugf(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
+				logging.Debug(strings.Join([]string{nacl.ResourceType, nacl.ResourceName, nacl.UID()}, separator))
 				commonvpc.PrintNACLRules(nacl)
 			}
 		default:
-			logging.Debugf("layer not supported yet")
+			logging.Debug("layer not supported yet")
 		}
 	}
 }

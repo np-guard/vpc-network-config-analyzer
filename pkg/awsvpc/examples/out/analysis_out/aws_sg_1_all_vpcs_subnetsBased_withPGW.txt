@@ -1,26 +1,26 @@
-Subnet connectivity for VPC VpcId:43
+Subnet connectivity for VPC VpcId:40
+SubnetId:43 => Public Internet (all ranges) : All Connections
+SubnetId:43 => SubnetId:45 : All Connections
+SubnetId:43 => SubnetId:47 : All Connections
 SubnetId:45 => Public Internet (all ranges) : All Connections
-SubnetId:45 => SubnetId:46 : All Connections
+SubnetId:45 => SubnetId:43 : All Connections
 SubnetId:45 => SubnetId:47 : All Connections
-SubnetId:46 => Public Internet (all ranges) : All Connections
-SubnetId:46 => SubnetId:45 : All Connections
-SubnetId:46 => SubnetId:47 : All Connections
 SubnetId:47 => Public Internet (all ranges) : All Connections
+SubnetId:47 => SubnetId:43 : All Connections
 SubnetId:47 => SubnetId:45 : All Connections
-SubnetId:47 => SubnetId:46 : All Connections
 
-Subnet connectivity for VPC VpcId:5
-SubnetId:17 => SubnetId:28 : All Connections
-SubnetId:17 => SubnetId:36 : All Connections
-SubnetId:17 => SubnetId:6 : All Connections
-SubnetId:28 => SubnetId:17 : All Connections
-SubnetId:28 => SubnetId:36 : All Connections
-SubnetId:28 => SubnetId:6 : All Connections
-SubnetId:36 => Public Internet (all ranges) : All Connections
-SubnetId:36 => SubnetId:17 : All Connections
-SubnetId:36 => SubnetId:28 : All Connections
-SubnetId:36 => SubnetId:6 : All Connections
-SubnetId:6 => Public Internet (all ranges) : All Connections
-SubnetId:6 => SubnetId:17 : All Connections
-SubnetId:6 => SubnetId:28 : All Connections
-SubnetId:6 => SubnetId:36 : All Connections
+Subnet connectivity for VPC vpc0
+application => dashoard : All Connections
+application => db : All Connections
+application => edge : All Connections
+dashoard => Public Internet (all ranges) : All Connections
+dashoard => application : All Connections
+dashoard => db : All Connections
+dashoard => edge : All Connections
+db => application : All Connections
+db => dashoard : All Connections
+db => edge : All Connections
+edge => Public Internet (all ranges) : All Connections
+edge => application : All Connections
+edge => dashoard : All Connections
+edge => db : All Connections

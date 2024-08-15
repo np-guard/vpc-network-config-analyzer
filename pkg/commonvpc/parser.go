@@ -134,7 +134,9 @@ func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.
 	return subnetNode, nil
 }
 
-func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyzer,
+// pairingID is the identifier for the sgs, in ibm it is the name of the sg, and in aws it is groupID
+// it is used later in sg analysis
+func NewSGResource(name, uid, pairingID string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyzer,
 	sgMap map[string]map[string]*SecurityGroup,
 	sgLists map[string][]*SecurityGroup) *SecurityGroup {
 	sgResource := &SecurityGroup{
@@ -150,7 +152,7 @@ func NewSGResource(name, uid string, vpc vpcmodel.VPC, analyzer SpecificSGAnalyz
 	if _, ok := sgMap[vpc.UID()]; !ok {
 		sgMap[vpc.UID()] = map[string]*SecurityGroup{}
 	}
-	sgMap[vpc.UID()][name] = sgResource
+	sgMap[vpc.UID()][pairingID] = sgResource
 	sgLists[vpc.UID()] = append(sgLists[vpc.UID()], sgResource)
 	return sgResource
 }
@@ -271,7 +273,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 }
 
 func PrintLineSection() {
-	logging.Debugf(strings.Repeat("-", lineSectionLen))
+	logging.Debug(strings.Repeat("-", lineSectionLen))
 }
 
 func PrintSGRules(sg *SecurityGroup) {
@@ -282,7 +284,7 @@ func PrintSGRules(sg *SecurityGroup) {
 		for k := range sg.Members {
 			keys = append(keys, k)
 		}
-		logging.Debugf("members: " + strings.Join(keys, ", "))
+		logging.Debugf("members: %s", strings.Join(keys, ", "))
 	}
 	for i := 0; i < numRules; i++ {
 		strRule, _, _, err := sg.Analyzer.SgAnalyzer.GetSGRule(i)
@@ -292,7 +294,7 @@ func PrintSGRules(sg *SecurityGroup) {
 
 func PrintRule(ruleStr string, index int, err error) {
 	if err == nil {
-		logging.Debugf(ruleStr)
+		logging.Debug(ruleStr)
 	} else {
 		logging.Debugf("err for rule %d: %s\n", index, err.Error())
 	}

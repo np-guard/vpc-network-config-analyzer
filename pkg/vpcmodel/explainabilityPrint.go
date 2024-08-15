@@ -125,7 +125,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	loadBalancerRule := g.CommonProperties.expDetails.loadBalancerRule
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
-	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Deny()
+	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Deny(false)
 	ingressBlocking := !expDetails.ingressEnabled && needIngress
 	egressBlocking := !expDetails.egressEnabled && needEgress
 	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
@@ -194,6 +194,13 @@ func respondDetailsHeader(d *detailedConn) string {
 	}
 }
 
+func isAtPrivateSubnet(endpoint EndpointElem) bool {
+	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
+		return internalNode.Subnet().IsPrivate()
+	}
+	return false
+}
+
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,
@@ -206,6 +213,12 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
+	case isAtPrivateSubnet(dst) && src.IsExternal():
+		return fmt.Sprintf("%v\tthe subnet of %v is not public and does not enable inbound external connectivity\n",
+			noConnection, dst.Name())
+	case isAtPrivateSubnet(src) && dst.IsExternal():
+		return fmt.Sprintf("%v\tThe dst is external but the subnet of %v is not public\n",
+			noConnection, src.Name())
 	case externalRouter == nil && src.IsExternal():
 		return fmt.Sprintf("%v\tThere is no resource enabling inbound external connectivity\n", noConnection)
 	case externalRouter == nil && dst.IsExternal():

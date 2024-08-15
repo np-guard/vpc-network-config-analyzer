@@ -67,6 +67,7 @@ type inArgs struct {
 	explanationArgs       *vpcmodel.ExplanationArgs
 	enableLinters         []string
 	disableLinters        []string
+	printAllLinters       bool
 }
 
 func NewRootCommand() *cobra.Command {

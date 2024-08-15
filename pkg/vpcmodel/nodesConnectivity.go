@@ -117,11 +117,6 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			continue
 		}
 		src, dst := switchSrcDstNodes(!isIngress, peerNode, capturedNode)
-		loadBalancerRule := c.getLoadBalancerRule(src, dst)
-		if loadBalancerRule != nil && loadBalancerRule.Deny() {
-			allLayersRes[peerNode] = NoConns()
-			continue
-		}
 
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
@@ -168,6 +163,11 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 				routerConnRes = routerConnRes.Intersect(perLayerRes[layer][peerNode])
 			}
 			allLayersRes[peerNode] = routerConnRes
+		}
+		loadBalancerRule := c.getLoadBalancerRule(src, dst)
+		if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
+			allLayersRes[peerNode] = NoConns()
+			continue
 		}
 	}
 	return allLayersRes, perLayerRes, nil

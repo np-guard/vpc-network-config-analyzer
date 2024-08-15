@@ -9,7 +9,7 @@ SubnetId:26 => Public Internet (all ranges) : All Connections
 SubnetId:26 => SubnetId:24 : All Connections
 SubnetId:26 => SubnetId:25 : All Connections
 
-Subnet connectivity for VPC VpcId:5
-SubnetId:17 => SubnetId:6 : All Connections
-SubnetId:6 => Public Internet (all ranges) : All Connections
-SubnetId:6 => SubnetId:17 : All Connections
+Subnet connectivity for VPC vpc1
+subnet1 => Public Internet (all ranges) : All Connections
+subnet1 => subnet2 : All Connections
+subnet2 => subnet1 : All Connections
