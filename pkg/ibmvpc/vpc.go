@@ -332,7 +332,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 		}
 		return connection.None(), nil
 	}
-	if src.Kind() == vpcmodel.ResourceTypeSubnet {
+	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {

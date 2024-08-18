@@ -276,7 +276,7 @@ func icmpConn() *connection.Set {
 
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {
 	intfNode := &commonvpc.NetworkInterface{
-		VPCResource:  vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: vpcmodel.ResourceTypeNetworkInterface},
+		VPCResource:  vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: commonvpc.ResourceTypeNetworkInterface},
 		InternalNode: vpcmodel.InternalNode{AddressStr: address, IPBlockObj: newIPBlockFromCIDROrAddressWithoutValidation(address)},
 		Vsi:          vsiName,
 	}
@@ -294,7 +294,7 @@ func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnet
 
 func addSubnet(config *vpcmodel.VPCConfig, name, cidr, zone string) *commonvpc.Subnet {
 	subnetNode := &commonvpc.Subnet{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: vpcmodel.ResourceTypeSubnet},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, Zone: zone, ResourceType: commonvpc.ResourceTypeSubnet},
 		Cidr:        cidr,
 		IPblock:     newIPBlockFromCIDROrAddressWithoutValidation(cidr),
 	}
@@ -319,7 +319,7 @@ func addNACL(config *vpcmodel.VPCConfig, name string, subnets map[string]*common
 
 	// create the new nacl
 	naclResource := &commonvpc.NACL{
-		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: vpcmodel.ResourceTypeNACL},
+		VPCResource: vpcmodel.VPCResource{ResourceName: name, ResourceUID: name, ResourceType: commonvpc.ResourceTypeNACL},
 		Analyzer:    analyzer, /*&commonvpc.NACLAnalyzer{
 			//naclResource:    nacl,
 			analyzedSubnets: map[string]*commonvpc.AnalysisResultPerSubnet{},

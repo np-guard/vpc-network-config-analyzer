@@ -665,7 +665,7 @@ func updateTGWWithAdvertisedRoute(tgw *TransitGateway, vpc *commonvpc.VPC, cidr 
 
 func getTGWs(vpcConfig *vpcmodel.VPCConfig) (res []*TransitGateway) {
 	for _, router := range vpcConfig.RoutingResources {
-		if router.Kind() == vpcmodel.ResourceTypeTGW {
+		if router.Kind() == commonvpc.ResourceTypeTGW {
 			res = append(res, router.(*TransitGateway))
 		}
 	}

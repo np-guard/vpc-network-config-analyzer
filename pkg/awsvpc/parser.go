@@ -262,7 +262,7 @@ func parseSGTargets(sgResources map[string]map[string]*commonvpc.SecurityGroup,
 	for vpcUID, sgs := range sgResources {
 		config := configs.Config(vpcUID)
 		for _, node := range config.Nodes {
-			if node.Kind() == vpcmodel.ResourceTypeNetworkInterface {
+			if node.Kind() == commonvpc.ResourceTypeNetworkInterface {
 				if intfNodeObj, ok := node.(*commonvpc.NetworkInterface); ok {
 					securityGroupIds := netIntfToSGs[intfNodeObj.ResourceUID]
 					for _, securityGroupID := range securityGroupIds {

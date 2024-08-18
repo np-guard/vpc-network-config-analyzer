@@ -74,7 +74,7 @@ func TestSGRule(t *testing.T) {
 	sgResource := &commonvpc.SecurityGroup{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  *sg.GroupId,
-			ResourceType: vpcmodel.ResourceTypeSG,
+			ResourceType: commonvpc.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},
@@ -121,7 +121,7 @@ func TestWithSgObj(t *testing.T) {
 	sgResource := &commonvpc.SecurityGroup{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceUID:  *sg.GroupId,
-			ResourceType: vpcmodel.ResourceTypeSG,
+			ResourceType: commonvpc.ResourceTypeSG,
 			VPCRef:       nil,
 			Region:       "",
 		},

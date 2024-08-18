@@ -75,11 +75,11 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 	res := &systemRTConfig{}
 	for _, router := range vpcConfig.RoutingResources {
 		switch router.Kind() {
-		case vpcmodel.ResourceTypeTGW:
+		case commonvpc.ResourceTypeTGW:
 			res.tgwList = append(res.tgwList, router.(*TransitGateway))
-		case vpcmodel.ResourceTypePublicGateway:
+		case commonvpc.ResourceTypePublicGateway:
 			res.pgwList = append(res.pgwList, router.(*PublicGateway))
-		case vpcmodel.ResourceTypeFloatingIP:
+		case commonvpc.ResourceTypeFloatingIP:
 			res.fipList = append(res.fipList, router.(*FloatingIP))
 		}
 	}

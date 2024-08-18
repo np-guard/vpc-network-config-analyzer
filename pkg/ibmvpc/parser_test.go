@@ -43,7 +43,7 @@ func TestRegionMethodVPC(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "ola",
 			ResourceUID:  "ola123",
-			ResourceType: vpcmodel.ResourceTypeVPC,
+			ResourceType: commonvpc.ResourceTypeVPC,
 			Region:       "us-east",
 		},
 		VPCnodes:               []vpcmodel.Node{},
@@ -61,7 +61,7 @@ func TestRegionMethodTGW(t *testing.T) {
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: "tgwName",
 			ResourceUID:  "tgwUID",
-			ResourceType: vpcmodel.ResourceTypeTGW,
+			ResourceType: commonvpc.ResourceTypeTGW,
 			Region:       "us-east",
 		},
 		vpcs:            nil,

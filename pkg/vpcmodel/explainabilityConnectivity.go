@@ -17,6 +17,8 @@ import (
 
 var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
 
+const ResourceTypeIKSNode = "IKSNodeNetworkInterface"
+
 // rulesInLayers contains specific rules across all layers (SGLayer/NACLLayer)
 // it maps from the layer name to the list of rules
 type rulesInLayers map[string][]RulesInTable
