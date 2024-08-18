@@ -6,7 +6,7 @@ Interpreted destination: InstanceId:15[10.240.20.141]
 Connections from InstanceId:7[10.240.40.184] to InstanceId:15[10.240.20.141]: All Connections
 
 Path:
-	InstanceId:7[10.240.40.184] -> security group GroupName:11 -> network ACL NetworkAclId:48 -> subnet dashoard -> 
+	InstanceId:7[10.240.40.184] -> security group GroupName:11 -> network ACL NetworkAclId:48 -> subnet dashoard ->
 	subnet application -> network ACL NetworkAclId:48 -> security group GroupName:18 -> InstanceId:15[10.240.20.141]
 
 
