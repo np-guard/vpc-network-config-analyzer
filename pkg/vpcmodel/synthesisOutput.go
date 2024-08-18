@@ -52,11 +52,9 @@ func handleExternals(srcName, cidrOrAddress string, externalsMap map[string]stri
 
 func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals) (
 	resourceName string,
-	resourceType spec.ResourceType,
-	err error) {
+	resourceType spec.ResourceType) {
 	resourceName, nifNumber := resource.DetailedResourceForSynthesisOut() // for synthesis output return two
 	if resource.IsExternal() {
-		resourceType = spec.ResourceTypeExternal
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external
 			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), externalsMap, externals)
@@ -80,14 +78,8 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 	sortGroupedLines(groupedLines)
 
 	for _, groupedLine := range groupedLines {
-		srcName, srcType, err := handleNameAndType(groupedLine.Src, externalsMap, externals)
-		if err != nil {
-			continue
-		}
-		dstName, dstType, err := handleNameAndType(groupedLine.Dst, externalsMap, externals)
-		if err != nil {
-			continue
-		}
+		srcName, srcType := handleNameAndType(groupedLine.Src, externalsMap, externals)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externalsMap, externals)
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
