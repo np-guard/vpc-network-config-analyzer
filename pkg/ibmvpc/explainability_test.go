@@ -938,7 +938,6 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		outputSlice[i] = explain.String()
 	}
 	outputString := strings.Join(outputSlice, "")
-	fmt.Println()
 	fmt.Println("\n\n", outputString)
 	require.Contains(t, outputString, "No connections from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
