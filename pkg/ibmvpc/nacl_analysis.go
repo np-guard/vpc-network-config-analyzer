@@ -17,6 +17,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
+// IBMNACLAnalyzer implements commonvpc.SpecificNACLAnalyzer
 type IBMNACLAnalyzer struct {
 	naclResource       *vpc1.NetworkACL
 	referencedIPblocks []*ipblock.IPBlock
@@ -30,6 +31,7 @@ func getPortsStr(minPort, maxPort int64) string {
 	return fmt.Sprintf("%d-%d", minPort, maxPort)
 }
 
+// return number of ingress and egress rules
 func (na *IBMNACLAnalyzer) GetNumberOfRules() int {
 	return len(na.naclResource.Rules)
 }
@@ -42,6 +44,7 @@ func (na *IBMNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return na.referencedIPblocks
 }
 
+// GetNACLRule gets index of the rule and returns the rule results line and obj
 func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
 	var direction, src, dst, action string
@@ -92,26 +95,9 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	return ruleStr, ruleRes, isIngress, nil
 }
 
+// GetNACLRules returns ingress and egress rule objects
 func (na *IBMNACLAnalyzer) GetNACLRules() (ingressRules, egressRules []*commonvpc.NACLRule, err error) {
-	ingressRules = []*commonvpc.NACLRule{}
-	egressRules = []*commonvpc.NACLRule{}
-	for index := range na.naclResource.Rules {
-		rule := na.naclResource.Rules[index]
-		_, ruleObj, isIngress, err := na.GetNACLRule(index)
-		if err != nil {
-			return nil, nil, err
-		}
-		if rule == nil {
-			continue
-		}
-		na.referencedIPblocks = append(na.referencedIPblocks, ruleObj.Src.Split()...)
-		na.referencedIPblocks = append(na.referencedIPblocks, ruleObj.Dst.Split()...)
-		ruleObj.Index = index
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
-	}
-	return ingressRules, egressRules, nil
+	ingressRules, egressRules, referencedIPblocks, err := commonvpc.GetNACLRules(na.GetNumberOfRules(), na)
+	na.referencedIPblocks = referencedIPblocks
+	return ingressRules, egressRules, err
 }

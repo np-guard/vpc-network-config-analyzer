@@ -298,6 +298,7 @@ func GetIPBlockResult(cidr, address, name *string,
 	return ipBlock, cidrRes, nil
 }
 
+// GetSGRules returns ingress and egress rule objects
 func GetSGRules(numRules int, sga SpecificSGAnalyzer) (ingressRules, egressRules []*SGRule, err error) {
 	ingressRules = []*SGRule{}
 	egressRules = []*SGRule{}
