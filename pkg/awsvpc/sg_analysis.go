@@ -18,7 +18,7 @@ import (
 
 const (
 	protocolTCP  = "tcp"
-	allProtocols = "-1"
+	allProtocols = "all"
 	protocolUDP  = "udp"
 	protocolICMP = "icmp"
 )
@@ -163,7 +163,7 @@ func convertProtocol(ipProtocol string) string {
 	// currently supports just tcp, udp and icmp
 	// todo remove hard coded numbers and support other protocol numbers
 	switch ipProtocol {
-	case allProtocols:
+	case "-1", allProtocols:
 		return allProtocols
 	case "6", protocolTCP:
 		return protocolTCP
