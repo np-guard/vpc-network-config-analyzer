@@ -28,7 +28,7 @@ func newNACLRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConf
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of network ACLs that reference CIDRs not in the relevant VPC address range",
+			description: "Network ACL rules referencing CIDRs outside of the VPC address space",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
@@ -42,7 +42,7 @@ func newSGRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConfig
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of security groups that reference CIDRs not in the relevant VPC address range",
+			description: "Security-group rules referencing CIDRs outside of the VPC address space",
 			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
