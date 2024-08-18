@@ -31,6 +31,10 @@ func TestMain(t *testing.T) {
 			args: "report endpoints -f aws.txt -c ../../pkg/awsvpc/examples/input/input_basic_config_with_sg.json -o txt",
 		},
 		{
+			name: "from_ziv",
+			args: "report endpoints -f ../../../from_ziv.html -c ../../../input_vni_example_from_ziv_modified.json -o html",
+		},
+		{
 			name: "aws_all_subnets",
 			args: "report subnets -f aws.txt -c ../../pkg/awsvpc/examples/input/input_aws_acl_1.json -o txt",
 		},
