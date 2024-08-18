@@ -214,7 +214,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
-				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc)
+				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instanceName, vpc)
 			if err != nil {
 				return err
 			}

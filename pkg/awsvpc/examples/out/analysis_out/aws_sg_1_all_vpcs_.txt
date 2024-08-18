@@ -2,16 +2,16 @@ Endpoint connectivity for VPC VpcId:64
 <nothing to report>
 
 Endpoint connectivity for VPC vpc0
-InstanceId:33[10.240.10.42] => InstanceId:40[10.240.20.245] : protocol: TCP dst-ports: 9080
-InstanceId:33[10.240.10.42] => InstanceId:48[10.240.40.217] : All Connections
-InstanceId:33[10.240.10.42] => InstanceId:60[10.240.20.43] : protocol: TCP dst-ports: 9080
-InstanceId:33[10.240.10.42] => Public Internet (all ranges) : All Connections
-InstanceId:40[10.240.20.245] => InstanceId:24[10.240.30.33] : protocol: TCP
-InstanceId:48[10.240.40.217] => InstanceId:24[10.240.30.33] : All Connections
-InstanceId:48[10.240.40.217] => InstanceId:33[10.240.10.42] : All Connections
-InstanceId:48[10.240.40.217] => InstanceId:40[10.240.20.245] : All Connections
-InstanceId:48[10.240.40.217] => InstanceId:60[10.240.20.43] : All Connections
-InstanceId:48[10.240.40.217] => Public Internet (all ranges) : All Connections
-InstanceId:60[10.240.20.43] => InstanceId:24[10.240.30.33] : protocol: TCP
-Public Internet (all ranges) => InstanceId:33[10.240.10.42] : All Connections
-Public Internet (all ranges) => InstanceId:48[10.240.40.217] : All Connections
+Public Internet (all ranges) => dashboard[10.240.40.217] : All Connections
+Public Internet (all ranges) => proxy[10.240.10.42] : All Connections
+app1[10.240.20.245] => mydb[10.240.30.33] : protocol: TCP
+app2[10.240.20.43] => mydb[10.240.30.33] : protocol: TCP
+dashboard[10.240.40.217] => Public Internet (all ranges) : All Connections
+dashboard[10.240.40.217] => app1[10.240.20.245] : All Connections
+dashboard[10.240.40.217] => app2[10.240.20.43] : All Connections
+dashboard[10.240.40.217] => mydb[10.240.30.33] : All Connections
+dashboard[10.240.40.217] => proxy[10.240.10.42] : All Connections
+proxy[10.240.10.42] => Public Internet (all ranges) : All Connections
+proxy[10.240.10.42] => app1[10.240.20.245] : protocol: TCP dst-ports: 9080
+proxy[10.240.10.42] => app2[10.240.20.43] : protocol: TCP dst-ports: 9080
+proxy[10.240.10.42] => dashboard[10.240.40.217] : All Connections
