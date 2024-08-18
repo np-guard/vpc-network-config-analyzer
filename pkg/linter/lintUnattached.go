@@ -18,7 +18,7 @@ func newNACLUnattachedLint(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "NACL for which there are no resources attached to",
+			description: "Network ACL not applied to any resources",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
@@ -31,7 +31,7 @@ func newSGUnattachedLint(name string, configs map[string]*vpcmodel.VPCConfig,
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "SG for which there are no resources attached to",
+			description: "SG not applied to any resources",
 			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
@@ -76,8 +76,8 @@ func (finding *nonConnectedTable) vpc() []vpcmodel.VPCResourceIntf {
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("%s %s of VPC %s has no resources attached to it", finding.layerName, finding.table.FilterName,
-		finding.vpc()[0].Name())
+	return fmt.Sprintf("In VPC %q, %s %q has no resources attached to it", finding.vpc()[0].Name(),
+		finding.layerName, finding.table.FilterName)
 }
 
 type nonConnectedTableJSON struct {
