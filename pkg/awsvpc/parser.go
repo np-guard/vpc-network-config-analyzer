@@ -298,28 +298,9 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
-	for vpcUID, sgListInstance := range sgLists {
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		sgLayer := &commonvpc.SecurityGroupLayer{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceType: vpcmodel.SecurityGroupLayer,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			SgList: sgListInstance}
-		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
-	}
-
-	for _, vpcSgMap := range sgMap {
-		for _, sg := range vpcSgMap {
-			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
-			if err != nil {
-				return err
-			}
-		}
+	err := commonvpc.UpdateConfigWithSGAndPrepareAnalyzer(res, sgLists, sgMap)
+	if err != nil {
+		return err
 	}
 
 	return nil

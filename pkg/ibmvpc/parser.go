@@ -671,29 +671,9 @@ func (rc *IBMresourcesContainer) getSGconfig(
 		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, *sg.Name, vpc, NewIBMSGAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
 	}
-	for vpcUID, sgListInstance := range sgLists {
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		sgLayer := &commonvpc.SecurityGroupLayer{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceType: vpcmodel.SecurityGroupLayer,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			SgList: sgListInstance}
-		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
-	}
-
-	for _, vpcSgMap := range sgMap {
-		for _, sg := range vpcSgMap {
-			// the name of SG is unique across all SG of the VPC
-			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
-			if err != nil {
-				return err
-			}
-		}
+	err := commonvpc.UpdateConfigWithSGAndPrepareAnalyzer(res, sgLists, sgMap)
+	if err != nil {
+		return err
 	}
 
 	return nil

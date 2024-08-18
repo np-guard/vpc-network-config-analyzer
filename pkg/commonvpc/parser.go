@@ -387,3 +387,34 @@ func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
 	}
 	return res
 }
+
+// UpdateConfigWithSGAndPrepareAnalyzer updates config with sg layer results and prepare analyzer
+func UpdateConfigWithSGAndPrepareAnalyzer(res *vpcmodel.MultipleVPCConfigs, sgLists map[string][]*SecurityGroup,
+	sgMap map[string]map[string]*SecurityGroup) error {
+	for vpcUID, sgListInstance := range sgLists {
+		vpc, err := GetVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+		sgLayer := &SecurityGroupLayer{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceType: vpcmodel.SecurityGroupLayer,
+				VPCRef:       vpc,
+				Region:       vpc.RegionName(),
+			},
+			SgList: sgListInstance}
+		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
+	}
+
+	for _, vpcSgMap := range sgMap {
+		for _, sg := range vpcSgMap {
+			// the name of SG is unique across all SG of the VPC
+			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
