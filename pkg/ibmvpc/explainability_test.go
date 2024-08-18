@@ -943,11 +943,11 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
 	require.Contains(t, outputString, "No connections from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
 		"\tThe dst is external but there is no resource enabling external connectivity", "no connection external dst entry")
-	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> network ACL ky-vpc1-acl1 -> subnet ky-vpc1-net1 -> ",
-		"connection vsi to vsi")
+	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> "+
+		"network ACL ky-vpc1-acl1 -> subnet ky-vpc1-net1 -> ", "connection vsi to vsi")
 	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
-	require.Contains(t, outputString, "subnet ky-vpc2-net1 -> network ACL ky-vpc2-acl1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
-		"connection vsi to vsi")
+	require.Contains(t, outputString, "subnet ky-vpc2-net1 -> network ACL ky-vpc2-acl1 ->"+
+		" security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]", "connection vsi to vsi")
 }
 
 func TestInputLBPrivateIP(t *testing.T) {
