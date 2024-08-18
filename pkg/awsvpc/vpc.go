@@ -57,7 +57,7 @@ func (igw *InternetGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceInt
 		}
 		return connection.None(), nil
 	}
-	if src.Kind() == vpcmodel.ResourceTypeSubnet {
+	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(igw.srcSubnets, srcSubnet) {

@@ -344,7 +344,7 @@ func (rc *AWSresourcesContainer) getNACLconfig(
 			VPCResource: vpcmodel.VPCResource{
 				ResourceName: *naclName,
 				ResourceUID:  *nacl.NetworkAclId,
-				ResourceType: vpcmodel.ResourceTypeNACL,
+				ResourceType: commonvpc.ResourceTypeNACL,
 				VPCRef:       vpc,
 				Region:       vpc.RegionName(),
 			},
@@ -417,7 +417,7 @@ func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, vpc vpcmodel.VP
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: igwName,
 			ResourceUID:  igwCRN,
-			ResourceType: vpcmodel.ResourceTypePublicGateway,
+			ResourceType: commonvpc.ResourceTypePublicGateway,
 			Region:       vpc.RegionName(),
 		},
 		src:        srcNodes,
