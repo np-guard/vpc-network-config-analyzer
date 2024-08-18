@@ -1,46 +1,47 @@
 "Blocked TCP response" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In the connection from test-vpc3-ky/vsi31-ky[10.240.31.4] to test-vpc1-ky/vsi11-ky[10.240.11.4] TCP response is blocked
-In the connection from test-vpc3-ky/vsi31-ky[10.240.31.4] to test-vpc1-ky/vsi12-ky[10.240.12.4] TCP response is blocked
+In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi11-ky[10.240.11.4]" TCP response is blocked
+In the connection from "test-vpc3-ky/vsi31-ky[10.240.31.4]" to "test-vpc1-ky/vsi12-ky[10.240.12.4]" TCP response is blocked
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"NACL for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-network ACL creatable-chive-turbojet-share of VPC zn-vpc2 has no resources attached to it
-network ACL sixtieth-resurrect-pledge-wince of VPC test-vpc2-ky has no resources attached to it
-network ACL stimulus-surpass-backup-museum of VPC test-vpc0-ky has no resources attached to it
-network ACL thickness-persevere-kindred-composite of VPC test-vpc3-ky has no resources attached to it
-network ACL unsaid-numerate-alto-dried of VPC test-vpc1-ky has no resources attached to it
-network ACL washout-accurate-shiny-fringe of VPC zn-vpc1 has no resources attached to it
+"Network ACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc0-ky", network ACL "stimulus-surpass-backup-museum" has no resources attached to it
+In VPC "test-vpc1-ky", network ACL "unsaid-numerate-alto-dried" has no resources attached to it
+In VPC "test-vpc2-ky", network ACL "sixtieth-resurrect-pledge-wince" has no resources attached to it
+In VPC "test-vpc3-ky", network ACL "thickness-persevere-kindred-composite" has no resources attached to it
+In VPC "zn-vpc1", network ACL "washout-accurate-shiny-fringe" has no resources attached to it
+In VPC "zn-vpc2", network ACL "creatable-chive-turbojet-share" has no resources attached to it
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
-"Overlapping CIDR ranges between different subnets" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-VPC test-vpc2-ky's subnet subnet21-ky of cidr 10.240.64.0/24 and VPC zn-vpc2's subnet zn-vpc2-net1 of cidr 10.240.64.0/24  overlap in the entire subnets' CIDR range
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"SG for which there are no resources attached to" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-security group disrupt-stem-mulch-moneybags of VPC zn-vpc2 has no resources attached to it
-security group heroics-diffused-book-estranged of VPC test-vpc2-ky has no resources attached to it
-security group relenting-sixfold-moisturize-emcee of VPC test-vpc0-ky has no resources attached to it
-security group surrogate-putdown-crank-unspoken of VPC test-vpc3-ky has no resources attached to it
-security group unmolded-grime-decompose-hammock of VPC test-vpc1-ky has no resources attached to it
-security group vanish-counting-unblessed-stable of VPC zn-vpc1 has no resources attached to it
-security group zn-vpc1-sg of VPC zn-vpc1 has no resources attached to it
-security group zn-vpc2-sg of VPC zn-vpc2 has no resources attached to it
-________________________________________________________________________________________________________________________________________________________________________________________________________
-
-"rules of network ACLs that are shadowed by higher priority rules" issues:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC test-vpc0-ky network ACL acl2-ky's rule 2 is redundant. It is shadowed by higher priority rules
-	Rule's details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
+"Network ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
+	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
 		Shadowing rules:
-		index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
-		index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
+			index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
+			index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
 
-In VPC test-vpc0-ky network ACL acl2-ky's rule 5 is redundant. It is shadowed by higher priority rules
-	Rule's details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher priority rules
+	Rule details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
 		Shadowing rules:
-		index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
-		index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+			index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
+			index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"Overlapping subnet address spaces" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+VPC "test-vpc2-ky"'s subnet "subnet21-ky" [10.240.64.0/24] and VPC "zn-vpc2"'s subnet "zn-vpc2-net1" [10.240.64.0/24] overlap
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "test-vpc0-ky", security group "relenting-sixfold-moisturize-emcee" has no resources attached to it
+In VPC "test-vpc1-ky", security group "unmolded-grime-decompose-hammock" has no resources attached to it
+In VPC "test-vpc2-ky", security group "heroics-diffused-book-estranged" has no resources attached to it
+In VPC "test-vpc3-ky", security group "surrogate-putdown-crank-unspoken" has no resources attached to it
+In VPC "zn-vpc1", security group "vanish-counting-unblessed-stable" has no resources attached to it
+In VPC "zn-vpc1", security group "zn-vpc1-sg" has no resources attached to it
+In VPC "zn-vpc2", security group "disrupt-stem-mulch-moneybags" has no resources attached to it
+In VPC "zn-vpc2", security group "zn-vpc2-sg" has no resources attached to it

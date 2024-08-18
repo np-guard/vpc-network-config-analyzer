@@ -28,7 +28,7 @@ func newNACLRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConf
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of network ACLs that references CIDRs not in the relevant VPC address range",
+			description: "Network ACL rules referencing CIDRs outside of the VPC address space",
 			enable:      true,
 		},
 		layer:          vpcmodel.NaclLayer,
@@ -42,7 +42,7 @@ func newSGRuleCIDROutOfRange(name string, configs map[string]*vpcmodel.VPCConfig
 		basicLinter: basicLinter{
 			configs:     configs,
 			name:        name,
-			description: "rules of security groups that references CIDRs not in the relevant VPC address range",
+			description: "Security-group rules referencing CIDRs outside of the VPC address space",
 			enable:      true,
 		},
 		layer:          vpcmodel.SecurityGroupLayer,
@@ -91,22 +91,16 @@ func (finding *ruleNonRelevantCIDR) vpc() []vpcmodel.VPCResourceIntf {
 
 func (finding *ruleNonRelevantCIDR) string() string {
 	rule := finding.rule
-	strPrefix := fmt.Sprintf("In VPC %s %s %s's ", finding.vpcResource.Name(), finding.rule.Filter.LayerName,
+	strPrefix := fmt.Sprintf("In VPC %q, %s %q ", finding.vpcResource.Name(), finding.rule.Filter.LayerName,
 		rule.Filter.FilterName)
 	if rule.IsIngress {
-		strPrefix += fmt.Sprintf("ingress rule indexed %d with destination %s", finding.rule.RuleIndex, finding.rule.DstCidr.String())
+		strPrefix += fmt.Sprintf("ingress rule [%d] with destination %s ", finding.rule.RuleIndex, finding.rule.DstCidr.String())
 	} else {
-		strPrefix += fmt.Sprintf("egress rule indexed %d with source %s", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
+		strPrefix += fmt.Sprintf("egress rule [%d] with source %s ", finding.rule.RuleIndex, finding.rule.SrcCidr.String())
 	}
-	var issueStr, strSuffix string
-	if finding.disjoint {
-		issueStr = " is disjoint to "
-	} else {
-		issueStr = " has disjoint parts with "
-	}
-	strSuffix = fmt.Sprintf("the VPC's Address Range %s\n\tRule's details: %s",
+	strSuffix := fmt.Sprintf("is outside of the VPC's Address Range (%s)\n\tRule details: %s",
 		finding.vpcResource.AddressRange().String(), rule.RuleDesc)
-	return strPrefix + issueStr + strSuffix
+	return strPrefix + strSuffix
 }
 
 // for json:

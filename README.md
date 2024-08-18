@@ -10,6 +10,8 @@ Run the `vpcanalyzer` CLI tool with one of the following commands.
 * `vpcanalyzer report` - provides a detailed report/diagram of VPC connectivity, as implied by the given VPC configuration. [Details](docs/vpcanalyzer_report.md).
 * `vpcanalyzer diff` - lists changes in connectivity (modified, added and removed connections) between two VPC configurations. [Details](docs/vpcanalyzer_diff.md).
 * `vpcanalyzer explain` - explains how the given VPC configuration affects connectivity between two endpoints. [Details](docs/vpcanalyzer_explain.md).
+* `vpcanalyzer lint` - provides a detailed report of potential issues in the given VPC configuration. [Details](docs/vpcanalyzer_lint.md).
+
 
 ### Global options
 ```

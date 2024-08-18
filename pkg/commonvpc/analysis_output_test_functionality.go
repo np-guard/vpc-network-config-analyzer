@@ -391,3 +391,28 @@ func TestAll(tt *VpcGeneralTest, t *testing.T, mode testMode, rc ResourcesContai
 		tt.RunTest(t, testDir, rc)
 	})
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+// explainability:
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+const explainOut = "explain_out"
+
+func RunExplainTest(tt *VpcGeneralTest, t *testing.T, rc ResourcesContainer) {
+	// all tests in explain mode
+	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.Explain}
+	// init test - set the input/output file names according to test name
+	tt.InitTest()
+
+	// get vpcConfigs obj from parsing + analyzing input config file
+	vpcConfigs := GetVPCConfigs(t, tt, true, rc)
+	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
+		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, tt.DetailExplain)
+
+	// generate actual output for all use cases specified for this test
+	err := RunTestPerUseCase(t, tt, vpcConfigs, vpcmodel.Explain, tt.Mode, explainOut, explanationArgs)
+	require.Equal(t, tt.ErrPerUseCase[vpcmodel.Explain], err, "comparing explain actual err to expected err")
+	for uc, outFile := range tt.ActualOutput {
+		fmt.Printf("explain test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
+	}
+}

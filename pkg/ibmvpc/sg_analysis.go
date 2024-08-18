@@ -171,8 +171,7 @@ func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSec
 		return
 	}
 	conns := commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
-	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.Protocol, conns)
-	ruleStr = getRuleStr(*ruleObj.Direction, connStr, remoteCidr, remoteSGName, localCidr)
+	ruleStr = getRuleStr(*ruleObj.Direction, conns.String(), remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
 		Remote:      commonvpc.NewRuleTarget(remote, remoteSGName),
