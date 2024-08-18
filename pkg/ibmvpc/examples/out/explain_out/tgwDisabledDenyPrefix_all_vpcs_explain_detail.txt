@@ -11,7 +11,7 @@ cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet20 -> 
+	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> | TGW local-tg-ky |
 
 

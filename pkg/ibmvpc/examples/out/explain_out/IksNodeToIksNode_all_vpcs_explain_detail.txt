@@ -6,8 +6,8 @@ Interpreted destination: iks-node[192.168.4.4]
 Connections from iks-node[192.168.8.4] to iks-node[192.168.4.4]: All Connections
 
 Path:
-	iks-node[192.168.8.4] -> security group[kube-clusterid:1, ky-test-default-sg] -> network ACL ky-test-private-2-others-acl -> ky-test-private-subnet-3 -> 
-	ky-test-private-subnet-2 -> network ACL ky-test-private-2-others-acl -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
+	iks-node[192.168.8.4] -> security group[kube-clusterid:1, ky-test-default-sg] -> network ACL ky-test-private-2-others-acl -> subnet ky-test-private-subnet-3 -> 
+	subnet ky-test-private-subnet-2 -> network ACL ky-test-private-2-others-acl -> security group[kube-clusterid:1, ky-test-default-sg] -> iks-node[192.168.4.4]
 
 
 Details:

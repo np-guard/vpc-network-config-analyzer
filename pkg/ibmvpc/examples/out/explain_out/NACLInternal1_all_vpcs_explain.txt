@@ -6,8 +6,8 @@ Interpreted destination: vsi2-ky[10.240.20.4]
 Connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4]: protocol: TCP,UDP
 
 Path:
-	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet1-ky -> 
-	subnet2-ky -> network ACL acl2-ky -> security group sg1-ky -> vsi2-ky[10.240.20.4]
+	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
+	subnet subnet2-ky -> network ACL acl2-ky -> security group sg1-ky -> vsi2-ky[10.240.20.4]
 
 ------------------------------------------------------------------------------------------------------------------------
 

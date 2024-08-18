@@ -453,7 +453,7 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 		slices.Contains(layers, NaclLayer)
 	// ingress: subnet should come before filters tables
 	if isIngress && subnetInPath {
-		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+		pathSlice = append(pathSlice, getSubnetStr(node))
 	}
 	blocked := false
 	for _, layer := range layers {
@@ -474,12 +474,17 @@ func pathFiltersOfIngressOrEgressStr(allRulesDetails *rulesDetails, node Endpoin
 	}
 	// egress: subnet should come after filter tables for internal nodes
 	if !isIngress && subnetInPath && !blocked {
-		pathSlice = append(pathSlice, node.(InternalNodeIntf).Subnet().Name())
+		pathSlice = append(pathSlice, getSubnetStr(node))
 	}
 	if isIngress && len(pathSlice) > 0 {
 		pathSlice[0] = newLineTab + pathSlice[0]
 	}
 	return pathSlice
+}
+
+func getSubnetStr(node EndpointElem) string {
+	subnet := node.(InternalNodeIntf).Subnet()
+	return strings.ToLower(subnet.Kind()) + space + subnet.Name()
 }
 
 // FilterKindName returns the name of a filter kind within filter layers - e.g. "security group".
