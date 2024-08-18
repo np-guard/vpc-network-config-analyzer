@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 const commaSeparator = ","
@@ -142,11 +143,7 @@ type EndpointElem interface {
 	ExtendedName(*VPCConfig) string
 	UID() string
 	IsExternal() bool
-	DrawioResourceIntf
-	// used for synthesis output.
-	// first out will be the name of the resource from the config,
-	// overridden in nif resource (if the vsi of the nif has one nif we return name of the vsi and number of nifs)
-	DetailedResourceForSynthesisOut() (name string, details int)
+	FormattableResource
 }
 
 type groupedConnLine struct {
@@ -223,6 +220,10 @@ func (g *groupedEndpointsElems) DetailedResourceForSynthesisOut() (name string, 
 	return g.Name(), 0
 }
 
+func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
+	return ""
+}
+
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
 		return g.Name()
@@ -265,6 +266,10 @@ func (g *groupedExternalNodes) Name() string {
 
 func (g *groupedExternalNodes) DetailedResourceForSynthesisOut() (name string, details int) {
 	return g.Name(), 0
+}
+
+func (g *groupedExternalNodes) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeExternal
 }
 
 func (g *groupedExternalNodes) CidrOrAddress() string {

@@ -14,6 +14,7 @@ import (
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -26,11 +27,26 @@ type Region struct {
 	Name string
 }
 
+func (r *Region) DetailedResourceForSynthesisOut() (name string, details int) {
+	return "", 0
+}
+func (r *Region) SynthesisKind() spec.ResourceType {
+	return ""
+}
+
 type Zone struct {
 	Name    string
 	Cidrs   []string
 	IPblock *ipblock.IPBlock
 	Vpc     *VPC // TODO: extend: zone can span over multiple VPCs
+}
+
+func (z *Zone) DetailedResourceForSynthesisOut() (name string, details int) {
+	return "", 0
+}
+
+func (z *Zone) SynthesisKind() spec.ResourceType {
+	return ""
 }
 
 func (z *Zone) VPC() *VPC {
@@ -58,6 +74,10 @@ func (ni *NetworkInterface) DetailedResourceForSynthesisOut() (name string, deta
 		return ni.VsiName(), 1
 	}
 	return ni.ResourceName, ni.numberOfNifsInVsi
+}
+
+func (ni *NetworkInterface) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeNif
 }
 
 func (ni *NetworkInterface) VsiName() string {
@@ -159,10 +179,17 @@ func (s *Subnet) IsPrivate() bool {
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
 	s.isPrivate = isPrivate
 }
+func (s *Subnet) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeSubnet
+}
 
 type Vsi struct {
 	vpcmodel.VPCResource
 	VPCnodes []vpcmodel.Node
+}
+
+func (v *Vsi) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeInstance
 }
 
 func (v *Vsi) Zone() (*Zone, error) {

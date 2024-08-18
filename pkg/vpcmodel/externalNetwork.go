@@ -10,6 +10,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 const (
@@ -69,6 +70,10 @@ func (exn *ExternalNetwork) Name() string {
 
 func (exn *ExternalNetwork) DetailedResourceForSynthesisOut() (name string, details int) {
 	return exn.Name(), 0
+}
+
+func (exn *ExternalNetwork) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeExternal
 }
 
 func (exn *ExternalNetwork) ExtendedName(c *VPCConfig) string {

@@ -16,6 +16,7 @@ import (
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -47,6 +48,10 @@ func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 // used for synthesis output
 func (r *ReservedIP) DetailedResourceForSynthesisOut() (name string, details int) {
 	return r.vpe, 0
+}
+
+func (r *ReservedIP) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeVpe
 }
 
 // PrivateIP implements vpcmodel.Node interface

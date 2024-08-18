@@ -7,16 +7,12 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/spec"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
-
-const skippingResource = "skipping resource %s, err: %v\n"
 
 type SynthesisOutputFormatter struct {
 }
@@ -54,21 +50,6 @@ func handleExternals(srcName, cidrOrAddress string, externalsMap map[string]stri
 	return name
 }
 
-func handleTypes(kind string) (spec.ResourceType, error) {
-	switch kind { // resourceTypes that can appear in connectivityMap.
-	case ResourceTypeSubnet:
-		return spec.ResourceTypeSubnet, nil
-	case ResourceTypeVSI:
-		return spec.ResourceTypeInstance, nil
-	case ResourceTypeNetworkInterface:
-		return spec.ResourceTypeNif, nil
-	case ResourceTypeReservedIP:
-		return spec.ResourceTypeVpe, nil
-	default:
-		return "", fmt.Errorf("resourceType %s is not supported yet", kind)
-	}
-}
-
 func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals) (
 	resourceName string,
 	resourceType spec.ResourceType,
@@ -80,13 +61,8 @@ func handleNameAndType(resource EndpointElem, externalsMap map[string]string, ex
 			// should be always true if src is external
 			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), externalsMap, externals)
 		}
-	} else {
-		resourceType, err = handleTypes(resource.Kind())
-		if err != nil {
-			logging.Warnf(skippingResource, resourceName, err)
-			return
-		}
 	}
+	resourceType = resource.SynthesisKind()
 
 	// if this nif's vsi has only one nif, we convert it to instance type with name of the instance
 	// because the name of the nif will be meaningless for the user if there is one generated nif.
