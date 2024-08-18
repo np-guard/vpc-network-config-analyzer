@@ -24,9 +24,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// todo - remove this when aws regions are supported:
-const defaultRegionName = "default-region"
-const resourceName = "Name"
+const resourceNameKey = "Name"
 
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
@@ -156,7 +154,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 // get name from tags, if not fount return alternateName
 func getResourceName(tags []types.Tag, alternateName *string) *string {
 	for _, tag := range tags {
-		if *tag.Key == resourceName {
+		if *tag.Key == resourceNameKey {
 			return tag.Value
 		}
 	}
@@ -172,7 +170,7 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 			continue // skip vpc not specified to analyze
 		}
 		vpcName := getResourceName(vpc.Tags, vpc.VpcId)
-		vpcNodeSet, err := commonvpc.NewVPC(*vpcName, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
+		vpcNodeSet, err := commonvpc.NewVPC(*vpcName, *vpc.VpcId, vpc.Region, nil, regionToStructMap)
 		if err != nil {
 			return err
 		}
@@ -194,6 +192,9 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, instance := range rc.InstancesList {
+		if instance.State.Name != types.InstanceStateNameRunning{
+			continue
+		}
 		vpcUID := *instance.VpcId
 		if skipByVPC[vpcUID] {
 			continue

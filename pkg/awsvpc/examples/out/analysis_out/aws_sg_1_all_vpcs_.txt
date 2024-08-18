@@ -1,17 +1,17 @@
-Endpoint connectivity for VPC VpcId:40
+Endpoint connectivity for VPC VpcId:64
 <nothing to report>
 
 Endpoint connectivity for VPC vpc0
-InstanceId:15[10.240.20.141] => InstanceId:26[10.240.30.108] : protocol: TCP
-InstanceId:21[10.240.20.131] => InstanceId:26[10.240.30.108] : protocol: TCP
-InstanceId:34[10.240.10.122] => InstanceId:15[10.240.20.141] : protocol: TCP dst-ports: 9080
-InstanceId:34[10.240.10.122] => InstanceId:21[10.240.20.131] : protocol: TCP dst-ports: 9080
-InstanceId:34[10.240.10.122] => InstanceId:7[10.240.40.184] : All Connections
-InstanceId:34[10.240.10.122] => Public Internet (all ranges) : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:15[10.240.20.141] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:21[10.240.20.131] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:26[10.240.30.108] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:34[10.240.10.122] : All Connections
-InstanceId:7[10.240.40.184] => Public Internet (all ranges) : All Connections
-Public Internet (all ranges) => InstanceId:34[10.240.10.122] : All Connections
-Public Internet (all ranges) => InstanceId:7[10.240.40.184] : All Connections
+InstanceId:33[10.240.10.42] => InstanceId:40[10.240.20.245] : protocol: TCP dst-ports: 9080
+InstanceId:33[10.240.10.42] => InstanceId:48[10.240.40.217] : All Connections
+InstanceId:33[10.240.10.42] => InstanceId:60[10.240.20.43] : protocol: TCP dst-ports: 9080
+InstanceId:33[10.240.10.42] => Public Internet (all ranges) : All Connections
+InstanceId:40[10.240.20.245] => InstanceId:24[10.240.30.33] : protocol: TCP
+InstanceId:48[10.240.40.217] => InstanceId:24[10.240.30.33] : All Connections
+InstanceId:48[10.240.40.217] => InstanceId:33[10.240.10.42] : All Connections
+InstanceId:48[10.240.40.217] => InstanceId:40[10.240.20.245] : All Connections
+InstanceId:48[10.240.40.217] => InstanceId:60[10.240.20.43] : All Connections
+InstanceId:48[10.240.40.217] => Public Internet (all ranges) : All Connections
+InstanceId:60[10.240.20.43] => InstanceId:24[10.240.30.33] : protocol: TCP
+Public Internet (all ranges) => InstanceId:33[10.240.10.42] : All Connections
+Public Internet (all ranges) => InstanceId:48[10.240.40.217] : All Connections
