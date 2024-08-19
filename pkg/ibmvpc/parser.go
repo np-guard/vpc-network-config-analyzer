@@ -371,7 +371,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.Name, *netintf.ID,
-				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vpc)
+				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, len(instance.NetworkInterfaces), vpc)
 			if err != nil {
 				return err
 			}

@@ -30,7 +30,7 @@ func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawi
 	return nil
 }
 
-// for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
+// for FormattableResource that are not VPCResourceIntf, we implement Kind():
 func (r *Region) Kind() string { return "Cloud" }
 func (z *Zone) Kind() string   { return "Zone" }
 
