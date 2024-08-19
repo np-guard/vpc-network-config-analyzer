@@ -6,7 +6,7 @@ Interpreted destination: 172.217.22.46/32 (external)
 Connections from vsi1-ky[10.240.1.4] to Public Internet 172.217.22.46/32: All Connections
 
 Path:
-	vsi1-ky[10.240.1.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet1-ky -> 
+	vsi1-ky[10.240.1.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
 	PublicGateway public-gw1-ky -> 
 	Public Internet 172.217.22.46/32
 
