@@ -29,6 +29,14 @@ type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
 
+func NewIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
+	ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+	}
+	return &IBMresourcesContainer{ResourcesContainerModel: *ibmResources}, nil
+}
+
 func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesContainer, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
