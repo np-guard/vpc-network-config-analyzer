@@ -37,10 +37,19 @@ var tests = []*commonvpc.VpcGeneralTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		Format:      vpcmodel.Text,
 	},
+	{
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
+	},
+	{
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.HTML,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
-/*
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
@@ -49,7 +58,6 @@ func TestAllWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
 func TestAllWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
