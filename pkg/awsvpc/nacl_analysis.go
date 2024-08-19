@@ -25,12 +25,11 @@ type AWSNACLAnalyzer struct {
 	// however, in aws, the priority is being config by the rule number, and the order has no meaning.
 	// so prioritiesEntries are the entries as in naclResource.Entries, sorted by the rule number:
 	prioritiesEntries []types.NetworkAclEntry
-
 }
 
 func NewAWSNACLAnalyzer(nacl *types.NetworkAcl) *AWSNACLAnalyzer {
 	prioritiesEntries := slices.Clone(nacl.Entries)
-	slices.SortFunc(prioritiesEntries,func(a,b types.NetworkAclEntry) int{return int(*a.RuleNumber)-int(*b.RuleNumber)})
+	slices.SortFunc(prioritiesEntries, func(a, b types.NetworkAclEntry) int { return int(*a.RuleNumber) - int(*b.RuleNumber) })
 	return &AWSNACLAnalyzer{naclResource: nacl, prioritiesEntries: prioritiesEntries}
 }
 
