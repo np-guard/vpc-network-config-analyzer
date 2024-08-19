@@ -1,0 +1,20 @@
+Endpoint connectivity for VPC VpcId:44
+<nothing to report>
+
+Endpoint connectivity for VPC mixed
+Public Internet 147.235.0.0/16 => p1[10.240.3.70] : protocol: TCP src-ports: 1-1024,5001-65535 dst-ports: 9080 * 
+Public Internet 147.235.0.0/16 => p1[10.240.3.70] : protocol: TCP src-ports: 1025-5000 dst-ports: 9080
+Public Internet 147.235.0.0/16 => p3[10.240.0.96] : protocol: TCP src-ports: 1-1024,5001-65535 dst-ports: 9080 * 
+Public Internet 147.235.0.0/16 => p3[10.240.0.96] : protocol: TCP src-ports: 1025-5000 dst-ports: 9080
+p1[10.240.3.70] => Public Internet 147.235.0.0/16 : protocol: TCP src-ports: 1-9079,9081-65535 dst-ports: 1025-5000 * 
+p1[10.240.3.70] => Public Internet 147.235.0.0/16 : protocol: TCP src-ports: 9080 dst-ports: 1025-5000
+p2[10.240.2.28] => p3[10.240.0.96] : All Connections
+p3[10.240.0.96] => Public Internet 147.235.0.0/16 : protocol: TCP src-ports: 1-9079,9081-65535 dst-ports: 1025-5000 * 
+p3[10.240.0.96] => Public Internet 147.235.0.0/16 : protocol: TCP src-ports: 9080 dst-ports: 1025-5000
+p3[10.240.0.96] => p2[10.240.2.28] : All Connections
+q1[10.240.32.91] => q2[10.240.32.122] : protocol: UDP
+q2[10.240.32.122] => q1[10.240.32.91] : protocol: UDP
+q2[10.240.32.122] => r1[10.240.48.198] : protocol: TCP dst-ports: 9080
+r1[10.240.48.198] => q2[10.240.32.122] : protocol: TCP dst-ports: 9080
+
+TCP connections for which response is not permitted are marked with * 

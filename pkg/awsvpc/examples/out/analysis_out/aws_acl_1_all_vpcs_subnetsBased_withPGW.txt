@@ -1,13 +1,13 @@
-Subnet connectivity for VPC VpcId:44
+Subnet connectivity for VPC VpcId:42
+SubnetId:47 => Public Internet (all ranges) : All Connections
+SubnetId:47 => SubnetId:49 : All Connections
+SubnetId:47 => SubnetId:51 : All Connections
 SubnetId:49 => Public Internet (all ranges) : All Connections
+SubnetId:49 => SubnetId:47 : All Connections
 SubnetId:49 => SubnetId:51 : All Connections
-SubnetId:49 => SubnetId:53 : All Connections
 SubnetId:51 => Public Internet (all ranges) : All Connections
+SubnetId:51 => SubnetId:47 : All Connections
 SubnetId:51 => SubnetId:49 : All Connections
-SubnetId:51 => SubnetId:53 : All Connections
-SubnetId:53 => Public Internet (all ranges) : All Connections
-SubnetId:53 => SubnetId:49 : All Connections
-SubnetId:53 => SubnetId:51 : All Connections
 
 Subnet connectivity for VPC prod_vpc
 pub0 => Public Internet 147.235.208.136/32 : All Connections
