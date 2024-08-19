@@ -1,13 +1,13 @@
-Explaining connectivity from 10.240.40.184 to 10.240.20.141 within vpc0
-Interpreted source: InstanceId:7[10.240.40.184]
-Interpreted destination: InstanceId:15[10.240.20.141]
-=======================================================================
+Explaining connectivity from 10.240.40.217 to 10.240.20.43 within vpc0
+Interpreted source: dashboard[10.240.40.217]
+Interpreted destination: app2[10.240.20.43]
+======================================================================
 
-Connections from InstanceId:7[10.240.40.184] to InstanceId:15[10.240.20.141]: All Connections
+Connections from dashboard[10.240.40.217] to app2[10.240.20.43]: All Connections
 
 Path:
-	InstanceId:7[10.240.40.184] -> security group GroupName:11 -> network ACL NetworkAclId:48 -> subnet dashoard -> 
-	subnet application -> network ACL NetworkAclId:48 -> security group GroupName:18 -> InstanceId:15[10.240.20.141]
+	dashboard[10.240.40.217] -> security group GroupName:51 -> network ACL NetworkAclId:65 -> subnet dashoard -> 
+	subnet application -> network ACL NetworkAclId:65 -> security group GroupName:43 -> app2[10.240.20.43]
 
 
 Details:

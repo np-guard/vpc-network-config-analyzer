@@ -37,6 +37,16 @@ var tests = []*commonvpc.VpcGeneralTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 		Format:      vpcmodel.Text,
 	},
+	{
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
+	},
+	{
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.HTML,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
