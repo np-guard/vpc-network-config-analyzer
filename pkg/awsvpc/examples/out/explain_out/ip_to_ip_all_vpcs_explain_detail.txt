@@ -21,7 +21,7 @@ Path is enabled; The relevant rules are:
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 2, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
 		security group GroupName:43 allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, target: 10.240.40.0/24
 
@@ -32,7 +32,7 @@ TCP response is enabled; The relevant rules are:
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 2, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
