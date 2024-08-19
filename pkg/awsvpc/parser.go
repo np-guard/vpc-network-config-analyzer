@@ -192,7 +192,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, instance := range rc.InstancesList {
-		if instance.State.Name != types.InstanceStateNameRunning{
+		if instance.State.Name != types.InstanceStateNameRunning {
 			continue
 		}
 		vpcUID := *instance.VpcId
