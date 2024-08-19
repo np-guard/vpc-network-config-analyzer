@@ -6,8 +6,8 @@ Interpreted destination: vsi1-ky[10.240.10.5]
 Connections from vsi3-ky[10.240.20.5] to vsi1-ky[10.240.10.5]: All Connections
 
 Path:
-	vsi3-ky[10.240.20.5] -> security group sg2-ky -> network ACL acl1-ky -> subnet2-ky -> 
-	subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.5]
+	vsi3-ky[10.240.20.5] -> security group sg2-ky -> network ACL acl1-ky -> subnet subnet2-ky -> 
+	subnet subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.5]
 
 
 Details:
