@@ -21,7 +21,7 @@ import (
 type AWSNACLAnalyzer struct {
 	naclResource       *types.NetworkAcl
 	referencedIPblocks []*ipblock.IPBlock
-	// all over the analyzer code, we assume that the acl rules are ordered by thier priority.
+	// all over the analyzer code, we assume that the acl rules are ordered by their priority.
 	// however, in aws, the priority is being config by the rule number, and the order has no meaning.
 	// so prioritiesEntries are the entries as in naclResource.Entries, sorted by the rule number:
 	prioritiesEntries []types.NetworkAclEntry
