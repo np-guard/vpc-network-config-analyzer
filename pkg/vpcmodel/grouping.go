@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 const commaSeparator = ","
@@ -142,7 +143,7 @@ type EndpointElem interface {
 	ExtendedName(*VPCConfig) string
 	UID() string
 	IsExternal() bool
-	DrawioResourceIntf
+	FormattableResource
 }
 
 type groupedConnLine struct {
@@ -215,6 +216,14 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
+func (g *groupedEndpointsElems) SynthesisResourceName() string {
+	return g.Name()
+}
+
+func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
+	return ""
+}
+
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
 		return g.Name()
@@ -253,6 +262,24 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+func (g *groupedExternalNodes) SynthesisResourceName() string {
+	return g.Name()
+}
+
+func (g *groupedExternalNodes) SynthesisKind() spec.ResourceType {
+	return spec.ResourceTypeExternal
+}
+
+// CidrOrAddress returns the cidr or a list of addresses of the external nodes group
+// this is needed for synthesis output
+func (g *groupedExternalNodes) CidrOrAddress() string {
+	isAllInternetRange, err := isEntirePublicInternetRange(*g)
+	if err == nil && isAllInternetRange {
+		return ipblock.CidrAll
+	}
+	return g.String()
 }
 
 func (g *groupedExternalNodes) ExtendedName(c *VPCConfig) string {
