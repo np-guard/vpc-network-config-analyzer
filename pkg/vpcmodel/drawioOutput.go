@@ -26,8 +26,8 @@ type edgeInfo struct {
 func (e *edgeInfo) IsExternal() bool {
 	return e.src.IsExternal() || e.dst.IsExternal()
 }
-func (e *edgeInfo) DetailedResourceForSynthesisOut() (name string, details int) {
-	return "", 0
+func (e *edgeInfo) SynthesisResourceName() string {
+	return ""
 }
 func (e *edgeInfo) SynthesisKind() spec.ResourceType {
 	return ""

@@ -216,8 +216,8 @@ func (g *groupedEndpointsElems) Name() string {
 	return listEndpointElemStr(*g, EndpointElem.Name)
 }
 
-func (g *groupedEndpointsElems) DetailedResourceForSynthesisOut() (name string, details int) {
-	return g.Name(), 0
+func (g *groupedEndpointsElems) SynthesisResourceName() string {
+	return g.Name()
 }
 
 func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
@@ -264,8 +264,8 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-func (g *groupedExternalNodes) DetailedResourceForSynthesisOut() (name string, details int) {
-	return g.Name(), 0
+func (g *groupedExternalNodes) SynthesisResourceName() string {
+	return g.Name()
 }
 
 func (g *groupedExternalNodes) SynthesisKind() spec.ResourceType {

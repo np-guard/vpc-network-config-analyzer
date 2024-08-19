@@ -70,8 +70,8 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
-func (m *mockNetIntf) DetailedResourceForSynthesisOut() (name string, details int) {
-	return m.name, 0
+func (m *mockNetIntf) SynthesisResourceName() string {
+	return m.name
 }
 func (m *mockNetIntf) SynthesisKind() spec.ResourceType {
 	return ""
@@ -115,8 +115,8 @@ func (m *mockSubnet) UID() string {
 func (m *mockSubnet) Name() string {
 	return m.name
 }
-func (m *mockSubnet) DetailedResourceForSynthesisOut() (name string, details int) {
-	return m.name, 0
+func (m *mockSubnet) SynthesisResourceName() string {
+	return m.name
 }
 func (m *mockSubnet) SynthesisKind() spec.ResourceType {
 	return ""

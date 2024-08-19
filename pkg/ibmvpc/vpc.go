@@ -46,8 +46,8 @@ func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 }
 
 // used for synthesis output
-func (r *ReservedIP) DetailedResourceForSynthesisOut() (name string, details int) {
-	return r.vpe, 0
+func (r *ReservedIP) SynthesisResourceName() string {
+	return r.vpe
 }
 
 func (r *ReservedIP) SynthesisKind() spec.ResourceType {

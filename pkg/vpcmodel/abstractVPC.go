@@ -59,8 +59,8 @@ func (n *VPCResource) Name() string {
 	return n.ResourceName
 }
 
-func (n *VPCResource) DetailedResourceForSynthesisOut() (name string, details int) {
-	return n.ResourceName, 0
+func (n *VPCResource) SynthesisResourceName() string {
+	return n.ResourceName
 }
 
 func (n *VPCResource) SynthesisKind() spec.ResourceType {

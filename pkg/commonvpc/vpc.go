@@ -27,8 +27,8 @@ type Region struct {
 	Name string
 }
 
-func (r *Region) DetailedResourceForSynthesisOut() (name string, details int) {
-	return "", 0
+func (r *Region) SynthesisResourceName() string {
+	return ""
 }
 func (r *Region) SynthesisKind() spec.ResourceType {
 	return ""
@@ -41,8 +41,8 @@ type Zone struct {
 	Vpc     *VPC // TODO: extend: zone can span over multiple VPCs
 }
 
-func (z *Zone) DetailedResourceForSynthesisOut() (name string, details int) {
-	return "", 0
+func (z *Zone) SynthesisResourceName() string {
+	return ""
 }
 
 func (z *Zone) SynthesisKind() spec.ResourceType {
@@ -69,14 +69,19 @@ type NetworkInterface struct {
 }
 
 // used for synthesis output, if number of nifs is > 1 we use vsi name and return number of nifs
-func (ni *NetworkInterface) DetailedResourceForSynthesisOut() (name string, details int) {
+func (ni *NetworkInterface) SynthesisResourceName() string {
 	if ni.numberOfNifsInVsi == 1 {
-		return ni.VsiName(), 1
+		return ni.VsiName()
 	}
-	return ni.ResourceName, ni.numberOfNifsInVsi
+	return ni.ResourceName
 }
 
 func (ni *NetworkInterface) SynthesisKind() spec.ResourceType {
+	// if this nif's vsi has only one nif, we convert it to instance type with name of the instance
+	// because the name of the nif will be meaningless for the user if there is one generated nif.
+	if ni.numberOfNifsInVsi == 1 {
+		return spec.ResourceTypeInstance
+	}
 	return spec.ResourceTypeNif
 }
 

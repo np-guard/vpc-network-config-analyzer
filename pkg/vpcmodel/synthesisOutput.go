@@ -29,9 +29,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = GetSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
 	case AllSubnets:
-		all = GetSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -54,7 +54,7 @@ func handleExternals(srcName, cidrOrAddress string, externalsMap map[string]stri
 func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals) (
 	resourceName string,
 	resourceType spec.ResourceType) {
-	resourceName, nifNumber := resource.DetailedResourceForSynthesisOut() // for synthesis output return two
+	resourceName = resource.SynthesisResourceName()
 	if resource.IsExternal() {
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external
@@ -62,16 +62,10 @@ func handleNameAndType(resource EndpointElem, externalsMap map[string]string, ex
 		}
 	}
 	resourceType = resource.SynthesisKind()
-
-	// if this nif's vsi has only one nif, we convert it to instance type with name of the instance
-	// because the name of the nif will be meaningless for the user if there is one generated nif.
-	if resourceType == spec.ResourceTypeNif && nifNumber == 1 {
-		resourceType = spec.ResourceTypeInstance
-	}
 	return
 }
 
-func GetSynthesisSpec(groupedLines []*groupedConnLine) spec.Spec {
+func getSynthesisSpec(groupedLines []*groupedConnLine) spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}

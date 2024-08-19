@@ -19,8 +19,6 @@ type FormattableResource interface {
 	ShowOnSubnetMode() bool
 	Kind() string
 	// used for synthesis output.
-	// first out will be the name of the resource from the config,
-	// overridden in nif resource (if the vsi of the nif has one nif we return name of the vsi and number of nifs)
-	DetailedResourceForSynthesisOut() (name string, details int)
+	SynthesisResourceName() string
 	SynthesisKind() spec.ResourceType
 }
