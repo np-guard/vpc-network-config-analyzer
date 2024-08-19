@@ -6,8 +6,8 @@ Interpreted destination: vsi3b-ky[10.240.30.4]
 Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
 
 Path:
-	vsi2-ky[10.240.20.4] -> security group sg2-ky -> network ACL acl2-ky -> subnet2-ky -> 
-	subnet3-ky -> network ACL acl3-ky -> security group sg2-ky -> vsi3b-ky[10.240.30.4]
+	vsi2-ky[10.240.20.4] -> security group sg2-ky -> network ACL acl2-ky -> subnet subnet2-ky -> 
+	subnet subnet3-ky -> network ACL acl3-ky -> security group sg2-ky -> vsi3b-ky[10.240.30.4]
 
 
 Details:

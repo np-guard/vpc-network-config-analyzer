@@ -6,8 +6,8 @@ Interpreted destination: vsi1-ky[10.240.10.4]
 Connections are allowed from vsi3a-ky[10.240.30.5] to vsi1-ky[10.240.10.4] using "protocol: UDP"
 
 Path:
-	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> network ACL acl3-ky -> subnet3-ky -> 
-	subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.4]
+	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
+	subnet subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.4]
 
 
 Details:
