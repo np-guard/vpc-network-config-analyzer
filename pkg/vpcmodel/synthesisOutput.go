@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"encoding/json"
 	"sort"
 	"strconv"
 
@@ -28,9 +29,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = GetSpec(conn.GroupedConnectivity.GroupedLines)
+		all = GetSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
 	case AllSubnets:
-		all = GetSpec(subnetsConn.GroupedConnectivity.GroupedLines)
+		all = GetSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -70,7 +71,7 @@ func handleNameAndType(resource EndpointElem, externalsMap map[string]string, ex
 	return
 }
 
-func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
+func GetSynthesisSpec(groupedLines []*groupedConnLine) spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
@@ -83,6 +84,7 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
+		// For now, ignoring responsiveness of TCP connection
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
@@ -95,48 +97,9 @@ func GetSpec(groupedLines []*groupedConnLine) spec.Spec {
 
 func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
 	sort.Slice(g, func(i, j int) bool {
-		if _, ok := g[i].(spec.AnyProtocol); ok {
-			// the other struct can not have the same protocol
-			return true
-		}
-		if _, ok := g[j].(spec.AnyProtocol); ok {
-			// the other struct can not have the same protocol
-			return false
-		}
-		if s1, ok := g[i].(spec.TcpUdp); ok {
-			// the other struct can be tcp, udp or icmp
-			if s2, ok := g[j].(spec.TcpUdp); ok {
-				switch {
-				case s1.Protocol != s2.Protocol:
-					return s1.Protocol > s2.Protocol
-
-				case s1.MinSourcePort != s2.MinSourcePort:
-					return s1.MinSourcePort > s2.MinSourcePort
-				case s1.MinDestinationPort != s2.MinDestinationPort:
-					return s1.MinDestinationPort > s2.MinDestinationPort
-				case s1.MaxSourcePort != s2.MaxSourcePort:
-					return s1.MaxSourcePort > s2.MaxSourcePort
-				default:
-					return s1.MaxDestinationPort > s2.MaxDestinationPort
-				}
-			}
-			// the other struct is icmp
-			return true
-		}
-
-		if _, ok := g[j].(spec.TcpUdp); ok {
-			// the other struct can be just icmp
-			return false
-		}
-
-		// both are icmp
-		s1, _ := g[i].(spec.Icmp)
-		// must be ok
-		s2, _ := g[j].(spec.Icmp)
-		if *s1.Code != *s2.Code {
-			return *s1.Code > *s2.Code
-		}
-		return *s1.Type > *s2.Type
+		iMarshal, _ := json.Marshal(g[i])
+		jMarshal, _ := json.Marshal(g[j])
+		return string(iMarshal) > string(jMarshal)
 	})
 	return g
 }

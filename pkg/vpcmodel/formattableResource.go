@@ -11,7 +11,8 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-// FormattableResource is the interface of all the resources that are converted to a drawio treeNodes
+// FormattableResource is an interface for resources that appear in the tool's output,
+// and for which the printed text may change according to the selected format
 type FormattableResource interface {
 	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
 	IsExternal() bool

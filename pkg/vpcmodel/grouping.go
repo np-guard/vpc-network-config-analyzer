@@ -272,10 +272,12 @@ func (g *groupedExternalNodes) SynthesisKind() spec.ResourceType {
 	return spec.ResourceTypeExternal
 }
 
+// CidrOrAddress returns the cidr or a list of addresses of the external nodes group
+// this is needed for synthesis output
 func (g *groupedExternalNodes) CidrOrAddress() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	if err == nil && isAllInternetRange {
-		return "0.0.0.0/0"
+		return ipblock.CidrAll
 	}
 	return g.String()
 }

@@ -22,15 +22,15 @@
         {
             "allowed-protocols": [
                 {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
                     "max_destination_port": 443,
                     "max_source_port": 65535,
                     "min_destination_port": 443,
                     "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
                     "protocol": "TCP"
                 },
                 {
@@ -68,15 +68,15 @@
         {
             "allowed-protocols": [
                 {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
                     "max_destination_port": 443,
                     "max_source_port": 65535,
                     "min_destination_port": 443,
                     "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
                     "protocol": "TCP"
                 },
                 {
@@ -129,15 +129,15 @@
         {
             "allowed-protocols": [
                 {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
                     "max_destination_port": 443,
                     "max_source_port": 65535,
                     "min_destination_port": 443,
                     "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
                     "protocol": "TCP"
                 },
                 {
@@ -160,15 +160,15 @@
         {
             "allowed-protocols": [
                 {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
                     "max_destination_port": 443,
                     "max_source_port": 65535,
                     "min_destination_port": 443,
                     "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
                     "protocol": "TCP"
                 },
                 {

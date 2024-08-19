@@ -297,6 +297,8 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		}
 		res, err = writeJSON(all, outFile)
 	case Synthesis:
+		// in synthesis format we need to follow json spec schema
+		// https://github.com/np-guard/models/blob/main/spec_schema.json
 		res, err = writeJSON(outputList[0].jsonStruct, outFile)
 	}
 	return res, err
