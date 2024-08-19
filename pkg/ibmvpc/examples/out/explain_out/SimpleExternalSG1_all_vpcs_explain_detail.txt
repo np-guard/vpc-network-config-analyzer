@@ -6,7 +6,7 @@ Interpreted destination: 161.26.0.0/16 (external)
 Connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16: protocol: UDP
 
 Path:
-	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet1-ky -> 
+	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
 	PublicGateway public-gw-ky -> 
 	Public Internet 161.26.0.0/16
 

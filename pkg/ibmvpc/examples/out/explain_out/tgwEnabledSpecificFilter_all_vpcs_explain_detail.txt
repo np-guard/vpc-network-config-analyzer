@@ -6,9 +6,9 @@ Interpreted destination: test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]: All Connections
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet20 -> 
+	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
-	subnet2 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi0-subnet2[10.240.4.4]
+	subnet subnet2 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi0-subnet2[10.240.4.4]
 
 
 Details:
