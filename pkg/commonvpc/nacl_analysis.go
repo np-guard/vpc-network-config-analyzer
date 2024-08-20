@@ -23,6 +23,7 @@ const (
 	DENY  string = "deny"
 )
 
+// NACLAnalyzer captures common nacl properties for aws and ibm: rules and AnalyzedSubnets
 type NACLAnalyzer struct {
 	NaclAnalyzer SpecificNACLAnalyzer
 	IngressRules []*NACLRule
@@ -38,6 +39,7 @@ type SpecificNACLAnalyzer interface {
 	GetNumberOfRules() int
 	GetNACLRule(index int) (ruleStr string, ruleRes *NACLRule, isIngress bool, err error)
 	Name() *string
+	SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock)
 }
 
 type AnalysisResultPerSubnet struct {
@@ -61,6 +63,7 @@ func NewNACLAnalyzer(analyzer SpecificNACLAnalyzer) (res *NACLAnalyzer, err erro
 	return res, err
 }
 
+// NACLRule represents an nacl rule, used in ibm and aws
 type NACLRule struct {
 	Src         *ipblock.IPBlock
 	Dst         *ipblock.IPBlock
@@ -476,4 +479,32 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 		}
 	}
 	return allowRelevant, denyRelevant, nil
+}
+
+// GetNACLRules returns ingress and egress rule objects
+func GetNACLRules(na SpecificNACLAnalyzer) (ingressRules,
+	egressRules []*NACLRule, err error) {
+	ingressRules = []*NACLRule{}
+	egressRules = []*NACLRule{}
+	var referencedIPblocks []*ipblock.IPBlock
+	for index := 0; index < na.GetNumberOfRules(); index++ {
+		_, ruleObj, isIngress, err := na.GetNACLRule(index)
+		if err != nil {
+			return nil, nil, err
+		}
+		if ruleObj == nil {
+			continue
+		}
+		referencedIPblocks = append(referencedIPblocks, ruleObj.Src.Split()...)
+		referencedIPblocks = append(referencedIPblocks, ruleObj.Dst.Split()...)
+		ruleObj.Index = index
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
+	}
+
+	na.SetReferencedIPblocks(referencedIPblocks)
+	return ingressRules, egressRules, nil
 }
