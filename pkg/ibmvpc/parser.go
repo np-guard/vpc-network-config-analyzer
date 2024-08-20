@@ -25,6 +25,7 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
+// IBMresourcesContainer implements commonvpc.ResourceContainer
 type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
@@ -64,6 +65,8 @@ func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesCon
 	return rc1, nil
 }
 
+// VpcConfigsFromFiles gets file names and returns vpc configs from it
+// vpcID, resourceGroup and regions are used to filter the vpc configs
 func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
@@ -98,6 +101,9 @@ func (rc *IBMresourcesContainer) ParseResourcesFromFile(fileName string) error {
 	return nil
 }
 
+// filterByVpcResourceGroupAndRegions returns a map to filtered resources,
+// if certain VPC to analyze, regions or resourceGroup is specified by the user,
+// skip resources configured outside that VPC
 func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resourceGroup string,
 	regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
@@ -673,29 +679,14 @@ func (rc *IBMresourcesContainer) getSGconfig(
 		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, *sg.Name, vpc, NewIBMSGAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
 	}
-	for vpcUID, sgListInstance := range sgLists {
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		sgLayer := &commonvpc.SecurityGroupLayer{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceType: vpcmodel.SecurityGroupLayer,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			SgList: sgListInstance}
-		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
+	err := commonvpc.UpdateConfigWithSG(res, sgLists)
+	if err != nil {
+		return err
 	}
 
-	for _, vpcSgMap := range sgMap {
-		for _, sg := range vpcSgMap {
-			// the name of SG is unique across all SG of the VPC
-			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
-			if err != nil {
-				return err
-			}
-		}
+	err = commonvpc.PrepareAnalyzers(sgMap)
+	if err != nil {
+		return err
 	}
 
 	return nil
