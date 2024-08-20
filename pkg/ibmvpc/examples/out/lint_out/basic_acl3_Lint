@@ -15,19 +15,19 @@ ________________________________________________________________________________
 "Network ACL rules referencing CIDRs outside of the VPC address space" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [3] with destination 147.235.219.207 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule details: index: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny
+	Rule details: name: acl2-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny
 
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [4] with destination 147.235.219.206/31 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule details: index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow
+	Rule details: name: acl2-in-2, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Network ACLs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [1] splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule details: index: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
+	Rule details: name: acl3-out-2, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [3] splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule details: index: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
+	Rule details: name: acl3-in-2, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "SG not applied to any resources" issues:
