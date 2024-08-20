@@ -57,7 +57,7 @@ type ResourcesContainer interface {
 }
 
 // NewNetworkInterface gets NetworkInterface properties and returns NetworkInterface object
-func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+func NewNetworkInterface(name, uid, zone, address, vsi string, numberOfNifs int, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -70,7 +70,8 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 		InternalNode: vpcmodel.InternalNode{
 			AddressStr: address,
 		},
-		Vsi: vsi,
+		Vsi:               vsi,
+		numberOfNifsInVsi: numberOfNifs,
 	}
 
 	if err := intfNode.SetIPBlockFromAddress(); err != nil {

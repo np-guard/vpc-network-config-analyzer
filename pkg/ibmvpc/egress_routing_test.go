@@ -113,11 +113,11 @@ func newBasicConfig(rps *routesPerSubnets) (*vpcmodel.VPCConfig, []*egressRoutin
 	subnet1, _ := commonvpc.NewSubnet("subnet1", "subnet1", "zoneA", "10.10.1.0/24", vpc1)
 	subnet2, _ := commonvpc.NewSubnet("subnet2", "subnet2", "zoneA", "10.10.3.0/24", vpc1)
 	subnet3, _ := commonvpc.NewSubnet("subnet3", "subnet3", "zoneA", "10.10.0.0/24", vpc1)
-	node1, _ := commonvpc.NewNetworkInterface("node1", "node1", "zoneA", "10.10.1.8", "vsi1", vpc1)
-	node2, _ := commonvpc.NewNetworkInterface("node2", "node2", "zoneA", "10.10.3.8", "vsi2", vpc1)
+	node1, _ := commonvpc.NewNetworkInterface("node1", "node1", "zoneA", "10.10.1.8", "vsi1", 1, vpc1)
+	node2, _ := commonvpc.NewNetworkInterface("node2", "node2", "zoneA", "10.10.3.8", "vsi2", 1, vpc1)
 	// 2 nodes below - same vsi, different network interfaces
-	node3, _ := commonvpc.NewNetworkInterface("node3", "node3", "zoneA", "10.10.1.5", "vsi3", vpc1)
-	node4, _ := commonvpc.NewNetworkInterface("node4", "node4", "zoneA", "10.10.0.5", "vsi3", vpc1)
+	node3, _ := commonvpc.NewNetworkInterface("node3", "node3", "zoneA", "10.10.1.5", "vsi3", 2, vpc1)
+	node4, _ := commonvpc.NewNetworkInterface("node4", "node4", "zoneA", "10.10.0.5", "vsi3", 2, vpc1)
 
 	allSubnets := []*commonvpc.Subnet{subnet1, subnet2, subnet3}
 	allNodes := []*commonvpc.NetworkInterface{node1, node2, node3, node4}
@@ -175,8 +175,9 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 	}
 }
 
-func newNetIntForTest(vsi, address, nodeName string) *commonvpc.NetworkInterface {
-	res, _ := commonvpc.NewNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, &commonvpc.VPC{})
+func newNetIntForTest(vsi, address, nodeName string,
+	numberOfNifs int) *commonvpc.NetworkInterface { //nolint:unparam // numberOfNifs is param
+	res, _ := commonvpc.NewNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, numberOfNifs, &commonvpc.VPC{})
 	return res
 }
 
@@ -189,8 +190,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.1.8",
 		dstIP:       "10.10.3.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")},
-			{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1", 1)},
+			{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2", 1)},
 			/*{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.3.8")}*/}), // (derived from system implicit RT )
 	},
 
@@ -200,7 +201,7 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.1.8",
 		dstIP:       "8.8.8.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1", 1)},
 			{VpcResource: newPGW("pgw1", "pgw1", "zoneA", nil, &commonvpc.VPC{})},
 			{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("8.8.8.8")}}), // (derived from system implicit RT )
 	},
@@ -211,7 +212,7 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.0.5",
 		dstIP:       "8.8.8.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi3", "10.10.0.5", "node4")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi3", "10.10.0.5", "node4", 1)},
 			{VpcResource: newFIP("fip1", "fip1", "zoneA", "", &commonvpc.VPC{}, nil)},
 			{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("8.8.8.8")}}), // (derived from system implicit RT )
 	},
@@ -223,7 +224,7 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.1.8",
 		dstIP:       "8.8.8.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1", 1)},
 			{NextHop: &vpcmodel.NextHopEntry{NextHop: newIPBlockFromCIDROrAddressWithoutValidation("10.10.1.5"),
 				OrigDest: newIPBlockFromCIDROrAddressWithoutValidation("8.8.8.8")}}}), // derived from RT built from routes1
 		// TODO: path from 10.10.1.5 -> external address : should be available via another network interface of the VSI (10.10.0.5) and then FIP ?
@@ -234,8 +235,8 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.1.8",
 		dstIP:       "10.10.3.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1")},
-			{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi1", "10.10.1.8", "node1", 1)},
+			{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2", 1)},
 			/*{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.3.8")}*/}), // (derived from system implicit RT )
 	},
 	{
@@ -244,7 +245,7 @@ var testRTAnalyzerTests = []*testRTAnalyzer{
 		srcIP:       "10.10.3.8",
 		dstIP:       "8.8.8.8",
 		expectedErr: "",
-		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2")},
+		expectedPath: vpcmodel.Path([]*vpcmodel.Endpoint{{VpcResource: newNetIntForTest("vsi2", "10.10.3.8", "node2", 1)},
 			{VpcResource: newPGW("pgw1", "pgw1", "zoneA", nil, &commonvpc.VPC{})},
 			{IPBlock: newIPBlockFromCIDROrAddressWithoutValidation("8.8.8.8")}}), // (derived from system implicit RT )
 		// TODO: what about SG? which one is enforced?

@@ -24,13 +24,19 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-// todo - remove this when aws regions are supported:
-const defaultRegionName = "default-region"
-const resourceName = "Name"
+const resourceNameKey = "Name"
 
 // AWSresourcesContainer implements commonvpc.ResourceContainer
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
+}
+
+func NewAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
+	awsResources, ok := rc.GetResources().(*aws.ResourcesContainer)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *aws.ResourcesContainerModel type")
+	}
+	return &AWSresourcesContainer{ResourcesContainer: *awsResources}, nil
 }
 
 // parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
@@ -160,7 +166,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 // get name from tags, if not fount return alternateName
 func getResourceName(tags []types.Tag, alternateName *string) *string {
 	for _, tag := range tags {
-		if *tag.Key == resourceName {
+		if *tag.Key == resourceNameKey {
 			return tag.Value
 		}
 	}
@@ -176,7 +182,7 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 			continue // skip vpc not specified to analyze
 		}
 		vpcName := getResourceName(vpc.Tags, vpc.VpcId)
-		vpcNodeSet, err := commonvpc.NewVPC(*vpcName, *vpc.VpcId, defaultRegionName, nil, regionToStructMap)
+		vpcNodeSet, err := commonvpc.NewVPC(*vpcName, *vpc.VpcId, vpc.Region, nil, regionToStructMap)
 		if err != nil {
 			return err
 		}
@@ -198,6 +204,9 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	skipByVPC map[string]bool) error {
 	for _, instance := range rc.InstancesList {
+		if instance.State.Name != types.InstanceStateNameRunning {
+			continue
+		}
 		vpcUID := *instance.VpcId
 		if skipByVPC[vpcUID] {
 			continue
@@ -217,7 +226,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
-				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instance.InstanceId, vpc)
+				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instanceName, len(instance.NetworkInterfaces), vpc)
 			if err != nil {
 				return err
 			}
