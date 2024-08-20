@@ -20,6 +20,7 @@ import (
 
 const protocolTCP = "tcp"
 
+// SGAnalyzer captures common securityGroup properties for aws and ibm: rules and connectivityMaps
 type SGAnalyzer struct {
 	SgAnalyzer   SpecificSGAnalyzer
 	ingressRules []*SGRule
@@ -54,6 +55,7 @@ func GetProperty(p *int64, defaultP int64) int64 {
 	return *p
 }
 
+// GetTCPUDPConns returns TCP or UDP connection
 func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
 	protocol := netp.ProtocolStringUDP
 	if p == protocolTCP {
@@ -62,6 +64,7 @@ func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int
 	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 }
 
+// GetICMPconn returns ICMP connection
 func GetICMPconn(icmpType, icmpCode *int64) *connection.Set {
 	typeMin := GetProperty(icmpType, connection.MinICMPType)
 	typeMax := GetProperty(icmpType, connection.MaxICMPType)
@@ -70,6 +73,7 @@ func GetICMPconn(icmpType, icmpCode *int64) *connection.Set {
 	return connection.ICMPConnection(typeMin, typeMax, codeMin, codeMax)
 }
 
+// RuleTarget represents a securityGroup rule target, used in ibm and aws
 type RuleTarget struct {
 	Cidr   *ipblock.IPBlock
 	SgName string // target specified is SG
@@ -154,6 +158,7 @@ func MapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGr
 	return connectivityMap
 }
 
+// PrepareAnalyzer used to map and analyze securityGroup rules and save the results
 func (sga *SGAnalyzer) PrepareAnalyzer(sgMap map[string]*SecurityGroup, currentSg *SecurityGroup) error {
 	if len(currentSg.Members) == 0 {
 		return nil // avoid analysis sg which is not applied to any members
@@ -291,4 +296,25 @@ func GetIPBlockResult(cidr, address, name *string,
 		logging.Debugf("SG rule references an empty IPBlock, rule will be ignored")
 	}
 	return ipBlock, cidrRes, nil
+}
+
+// GetSGRules returns ingress and egress rule objects
+func GetSGRules(sga SpecificSGAnalyzer) (ingressRules, egressRules []*SGRule, err error) {
+	ingressRules = []*SGRule{}
+	egressRules = []*SGRule{}
+	for index := 0; index < sga.GetNumberOfRules(); index++ {
+		_, ruleObj, isIngress, err := sga.GetSGRule(index)
+		if err != nil {
+			return nil, nil, err
+		}
+		if ruleObj == nil {
+			continue
+		}
+		if isIngress {
+			ingressRules = append(ingressRules, ruleObj)
+		} else {
+			egressRules = append(egressRules, ruleObj)
+		}
+	}
+	return ingressRules, egressRules, nil
 }

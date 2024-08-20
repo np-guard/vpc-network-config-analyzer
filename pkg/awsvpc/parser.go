@@ -26,6 +26,7 @@ import (
 
 const resourceNameKey = "Name"
 
+// AWSresourcesContainer implements commonvpc.ResourceContainer
 type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
@@ -72,6 +73,9 @@ func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesCon
 	return rc1, nil
 }
 
+// VpcConfigsFromFiles gets file names and returns vpc configs from it
+// vpcID, resourceGroup and regions are used to filter the vpc configs.
+// resourceGroup nad regions are not supported yet for aws
 func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
@@ -303,28 +307,14 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
-	for vpcUID, sgListInstance := range sgLists {
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		sgLayer := &commonvpc.SecurityGroupLayer{
-			VPCResource: vpcmodel.VPCResource{
-				ResourceType: vpcmodel.SecurityGroupLayer,
-				VPCRef:       vpc,
-				Region:       vpc.RegionName(),
-			},
-			SgList: sgListInstance}
-		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
+	err := commonvpc.UpdateConfigWithSG(res, sgLists)
+	if err != nil {
+		return err
 	}
 
-	for _, vpcSgMap := range sgMap {
-		for _, sg := range vpcSgMap {
-			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
-			if err != nil {
-				return err
-			}
-		}
+	err = commonvpc.PrepareAnalyzers(sgMap)
+	if err != nil {
+		return err
 	}
 
 	return nil
