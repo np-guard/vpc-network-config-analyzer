@@ -165,6 +165,8 @@ func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 		return mdOutSuffix, nil
 	case vpcmodel.JSON:
 		return JSONOutSuffix, nil
+	case vpcmodel.Synthesis:
+		return JSONOutSuffix, nil
 	case vpcmodel.DRAWIO:
 		return drawioOutSuffix, nil
 	case vpcmodel.ARCHDRAWIO:

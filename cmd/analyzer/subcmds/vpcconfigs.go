@@ -14,7 +14,6 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/factory"
-	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/awsvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/ibmvpc"
@@ -76,20 +75,23 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		return nil, err
 	}
 
-	var vpcConfigs *vpcmodel.MultipleVPCConfigs
-	// todo: when analysis for other providers is available, select provider according to flag
-	if inArgs.provider == common.IBM {
-		ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
-		if !ok {
-			return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
-		}
-		rc := ibmvpc.IBMresourcesContainer{ResourcesContainerModel: *ibmResources}
-		vpcConfigs, err = rc.VPCConfigsFromResources(inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	var commonRC commonvpc.ResourcesContainer
+	switch inArgs.provider {
+	case common.IBM:
+		commonRC, err = ibmvpc.NewIBMresourcesContainer(rc)
+	case common.AWS:
+		commonRC, err = awsvpc.NewAWSresourcesContainer(rc)
+	default:
 		return nil, fmt.Errorf(notSupportedYet, inArgs.provider.String())
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	vpcConfigs, err := commonRC.VPCConfigsFromResources(inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+	if err != nil {
+		return nil, err
 	}
 
 	// save collected resources in dump file
