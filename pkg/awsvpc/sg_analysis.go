@@ -18,7 +18,7 @@ import (
 
 const (
 	protocolTCP  = "tcp"
-	allProtocols = "-1"
+	allProtocols = "all"
 	protocolUDP  = "udp"
 	protocolICMP = "icmp"
 )
@@ -164,7 +164,7 @@ func convertProtocol(ipProtocol string) string {
 	// currently supports just tcp, udp and icmp
 	// todo remove hard coded numbers and support other protocol numbers
 	switch ipProtocol {
-	case allProtocols:
+	case "-1", allProtocols:
 		return allProtocols
 	case "6", protocolTCP:
 		return protocolTCP
@@ -183,13 +183,15 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
 	direction := commonvpc.Inbound
+	listIndex := index
 	if index < len(sga.sgResource.IpPermissions) {
 		isIngress = true
-		ruleObj = sga.sgResource.IpPermissions[index]
+		ruleObj = sga.sgResource.IpPermissions[listIndex]
 	} else {
 		direction = commonvpc.Outbound
 		isIngress = false
-		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
+		listIndex = index - len(sga.sgResource.IpPermissions)
+		ruleObj = sga.sgResource.IpPermissionsEgress[listIndex]
 	}
 	protocol := convertProtocol(*ruleObj.IpProtocol)
 	switch protocol {
@@ -207,7 +209,7 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	}
 	ruleRes.Local = ipblock.GetCidrAll()
 	ruleRes.Index = index
-	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
+	return fmt.Sprintf("index: %d, %v", listIndex, ruleStr), ruleRes, isIngress, nil
 }
 
 // GetSGRules returns ingress and egress rule objects
