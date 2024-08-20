@@ -1,23 +1,11 @@
 {
-    "collector_version": "0.11.0",
+    "collector_version": "0.14.0",
     "provider": "aws",
     "instances": [
         {
             "AmiLaunchIndex": 0,
             "Architecture": "x86_64",
-            "BlockDeviceMappings": [
-                {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "AssociatedResource": null,
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "DeleteOnTermination": true,
-                        "Status": "attached",
-                        "VolumeId": "vol-082ac89f51bb4efad",
-                        "VolumeOwnerId": null
-                    }
-                }
-            ],
+            "BlockDeviceMappings": [],
             "BootMode": "uefi-preferred",
             "CapacityReservationId": null,
             "CapacityReservationSpecification": {
@@ -44,13 +32,13 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:7",
+            "InstanceId": "InstanceId:3",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
             "KernelId": null,
-            "KeyName": "KeyName:4",
-            "LaunchTime": "2024-07-01T06:28:12Z",
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:00Z",
             "Licenses": null,
             "MaintenanceOptions": {
                 "AutoRecovery": "default"
@@ -61,70 +49,16 @@
                 "HttpPutResponseHopLimit": 2,
                 "HttpTokens": "required",
                 "InstanceMetadataTags": "disabled",
-                "State": "applied"
+                "State": "pending"
             },
             "Monitoring": {
                 "State": "disabled"
             },
-            "NetworkInterfaces": [
-                {
-                    "Association": {
-                        "CarrierIp": null,
-                        "CustomerOwnedIp": null,
-                        "IpOwnerId": "184765712638",
-                        "PublicDnsName": "PublicDnsName:3",
-                        "PublicIp": "1.0.0.1"
-                    },
-                    "Attachment": {
-                        "AttachTime": "2024-07-01T06:28:12Z",
-                        "AttachmentId": "eni-attach-096ad0149d709bf0a",
-                        "DeleteOnTermination": false,
-                        "DeviceIndex": 0,
-                        "EnaSrdSpecification": null,
-                        "NetworkCardIndex": 0,
-                        "Status": "attached"
-                    },
-                    "ConnectionTrackingConfiguration": null,
-                    "Description": "",
-                    "Groups": [
-                        {
-                            "GroupId": "GroupId:10",
-                            "GroupName": "GroupName:11"
-                        }
-                    ],
-                    "InterfaceType": "interface",
-                    "Ipv4Prefixes": null,
-                    "Ipv6Addresses": [],
-                    "Ipv6Prefixes": null,
-                    "MacAddress": "06:65:99:2f:ed:ab",
-                    "NetworkInterfaceId": "NetworkInterfaceId:9",
-                    "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:2",
-                    "PrivateIpAddress": "10.240.40.184",
-                    "PrivateIpAddresses": [
-                        {
-                            "Association": {
-                                "CarrierIp": null,
-                                "CustomerOwnedIp": null,
-                                "IpOwnerId": "184765712638",
-                                "PublicDnsName": "PublicDnsName:3",
-                                "PublicIp": "1.0.0.1"
-                            },
-                            "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:2",
-                            "PrivateIpAddress": "10.240.40.184"
-                        }
-                    ],
-                    "SourceDestCheck": true,
-                    "Status": "in-use",
-                    "SubnetId": "SubnetId:6",
-                    "VpcId": "VpcId:5"
-                }
-            ],
+            "NetworkInterfaces": [],
             "OutpostArn": null,
             "Placement": {
                 "Affinity": null,
-                "AvailabilityZone": "eu-north-1a",
+                "AvailabilityZone": "eu-north-1b",
                 "GroupId": null,
                 "GroupName": "",
                 "HostId": null,
@@ -135,63 +69,453 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:2",
-            "PrivateDnsNameOptions": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "PrivateIpAddress": "10.240.40.184",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:3",
-            "PublicIpAddress": "1.0.0.0",
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
-            "SecurityGroups": [
-                {
-                    "GroupId": "GroupId:10",
-                    "GroupName": "GroupName:11"
-                }
-            ],
-            "SourceDestCheck": true,
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
             "SpotInstanceRequestId": null,
             "SriovNetSupport": null,
             "State": {
-                "Code": 16,
-                "Name": "running"
+                "Code": 48,
+                "Name": "terminated"
             },
-            "StateReason": null,
-            "StateTransitionReason": "",
-            "SubnetId": "SubnetId:6",
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
             "Tags": [
                 {
                     "Key": "Name",
-                    "Value": "dashboard"
+                    "Value": "q2"
                 }
             ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
-            "UsageOperationUpdateTime": "2024-07-01T06:28:12Z",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:00Z",
             "VirtualizationType": "hvm",
-            "VpcId": "VpcId:5"
+            "VpcId": null
         },
         {
             "AmiLaunchIndex": 0,
             "Architecture": "x86_64",
-            "BlockDeviceMappings": [
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:4",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:5",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:00Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1b",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
+            "Tags": [
                 {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "AssociatedResource": null,
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "DeleteOnTermination": true,
-                        "Status": "attached",
-                        "VolumeId": "vol-0c22d83654819538d",
-                        "VolumeOwnerId": null
-                    }
+                    "Key": "Name",
+                    "Value": "q1"
                 }
             ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:00Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:6",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:7",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:38Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1b",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "q1"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:37Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:8",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:9",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:37Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1b",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "q2"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:37Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:10",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:11",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:00Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1c",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "r1"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:00Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
             "BootMode": "uefi-preferred",
             "CapacityReservationId": null,
             "CapacityReservationSpecification": {
@@ -218,13 +542,115 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:13",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:37Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1c",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "r1"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:37Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:14",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
             "InstanceId": "InstanceId:15",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
             "KernelId": null,
-            "KeyName": "KeyName:4",
-            "LaunchTime": "2024-07-01T06:28:13Z",
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:11Z",
             "Licenses": null,
             "MaintenanceOptions": {
                 "AutoRecovery": "default"
@@ -235,54 +661,12 @@
                 "HttpPutResponseHopLimit": 2,
                 "HttpTokens": "required",
                 "InstanceMetadataTags": "disabled",
-                "State": "applied"
+                "State": "pending"
             },
             "Monitoring": {
                 "State": "disabled"
             },
-            "NetworkInterfaces": [
-                {
-                    "Association": null,
-                    "Attachment": {
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "AttachmentId": "eni-attach-0a7c9ce73c4940fe3",
-                        "DeleteOnTermination": false,
-                        "DeviceIndex": 0,
-                        "EnaSrdSpecification": null,
-                        "NetworkCardIndex": 0,
-                        "Status": "attached"
-                    },
-                    "ConnectionTrackingConfiguration": null,
-                    "Description": "",
-                    "Groups": [
-                        {
-                            "GroupId": "GroupId:17",
-                            "GroupName": "GroupName:18"
-                        }
-                    ],
-                    "InterfaceType": "interface",
-                    "Ipv4Prefixes": null,
-                    "Ipv6Addresses": [],
-                    "Ipv6Prefixes": null,
-                    "MacAddress": "06:67:3c:5f:d1:ab",
-                    "NetworkInterfaceId": "NetworkInterfaceId:16",
-                    "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:13",
-                    "PrivateIpAddress": "10.240.20.141",
-                    "PrivateIpAddresses": [
-                        {
-                            "Association": null,
-                            "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:13",
-                            "PrivateIpAddress": "10.240.20.141"
-                        }
-                    ],
-                    "SourceDestCheck": true,
-                    "Status": "in-use",
-                    "SubnetId": "SubnetId:14",
-                    "VpcId": "VpcId:5"
-                }
-            ],
+            "NetworkInterfaces": [],
             "OutpostArn": null,
             "Placement": {
                 "Affinity": null,
@@ -297,70 +681,52 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:13",
-            "PrivateDnsNameOptions": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "PrivateIpAddress": "10.240.20.141",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
             "ProductCodes": [],
             "PublicDnsName": "",
             "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
-            "SecurityGroups": [
-                {
-                    "GroupId": "GroupId:17",
-                    "GroupName": "GroupName:18"
-                }
-            ],
-            "SourceDestCheck": true,
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
             "SpotInstanceRequestId": null,
             "SriovNetSupport": null,
             "State": {
-                "Code": 16,
-                "Name": "running"
+                "Code": 48,
+                "Name": "terminated"
             },
-            "StateReason": null,
-            "StateTransitionReason": "",
-            "SubnetId": "SubnetId:14",
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
             "Tags": [
                 {
                     "Key": "Name",
-                    "Value": "app2"
+                    "Value": "p3"
                 }
             ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
-            "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:11Z",
             "VirtualizationType": "hvm",
-            "VpcId": "VpcId:5"
+            "VpcId": null
         },
         {
             "AmiLaunchIndex": 0,
             "Architecture": "x86_64",
-            "BlockDeviceMappings": [
-                {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "AssociatedResource": null,
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "DeleteOnTermination": true,
-                        "Status": "attached",
-                        "VolumeId": "vol-041cdaec17cec500c",
-                        "VolumeOwnerId": null
-                    }
-                }
-            ],
+            "BlockDeviceMappings": [],
             "BootMode": "uefi-preferred",
             "CapacityReservationId": null,
             "CapacityReservationSpecification": {
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:19",
+            "ClientToken": "ClientToken:16",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -380,13 +746,13 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:21",
+            "InstanceId": "InstanceId:17",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
             "KernelId": null,
-            "KeyName": "KeyName:4",
-            "LaunchTime": "2024-07-01T06:28:13Z",
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:11Z",
             "Licenses": null,
             "MaintenanceOptions": {
                 "AutoRecovery": "default"
@@ -397,54 +763,12 @@
                 "HttpPutResponseHopLimit": 2,
                 "HttpTokens": "required",
                 "InstanceMetadataTags": "disabled",
-                "State": "applied"
+                "State": "pending"
             },
             "Monitoring": {
                 "State": "disabled"
             },
-            "NetworkInterfaces": [
-                {
-                    "Association": null,
-                    "Attachment": {
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "AttachmentId": "eni-attach-0e8f5a2be56071ac1",
-                        "DeleteOnTermination": false,
-                        "DeviceIndex": 0,
-                        "EnaSrdSpecification": null,
-                        "NetworkCardIndex": 0,
-                        "Status": "attached"
-                    },
-                    "ConnectionTrackingConfiguration": null,
-                    "Description": "",
-                    "Groups": [
-                        {
-                            "GroupId": "GroupId:17",
-                            "GroupName": "GroupName:18"
-                        }
-                    ],
-                    "InterfaceType": "interface",
-                    "Ipv4Prefixes": null,
-                    "Ipv6Addresses": [],
-                    "Ipv6Prefixes": null,
-                    "MacAddress": "06:73:f5:12:c9:c1",
-                    "NetworkInterfaceId": "NetworkInterfaceId:22",
-                    "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:20",
-                    "PrivateIpAddress": "10.240.20.131",
-                    "PrivateIpAddresses": [
-                        {
-                            "Association": null,
-                            "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:20",
-                            "PrivateIpAddress": "10.240.20.131"
-                        }
-                    ],
-                    "SourceDestCheck": true,
-                    "Status": "in-use",
-                    "SubnetId": "SubnetId:14",
-                    "VpcId": "VpcId:5"
-                }
-            ],
+            "NetworkInterfaces": [],
             "OutpostArn": null,
             "Placement": {
                 "Affinity": null,
@@ -459,70 +783,52 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:20",
-            "PrivateDnsNameOptions": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "PrivateIpAddress": "10.240.20.131",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
             "ProductCodes": [],
             "PublicDnsName": "",
             "PublicIpAddress": null,
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
-            "SecurityGroups": [
-                {
-                    "GroupId": "GroupId:17",
-                    "GroupName": "GroupName:18"
-                }
-            ],
-            "SourceDestCheck": true,
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
             "SpotInstanceRequestId": null,
             "SriovNetSupport": null,
             "State": {
-                "Code": 16,
-                "Name": "running"
+                "Code": 48,
+                "Name": "terminated"
             },
-            "StateReason": null,
-            "StateTransitionReason": "",
-            "SubnetId": "SubnetId:14",
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
             "Tags": [
                 {
                     "Key": "Name",
-                    "Value": "app1"
+                    "Value": "p1"
                 }
             ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
-            "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:11Z",
             "VirtualizationType": "hvm",
-            "VpcId": "VpcId:5"
+            "VpcId": null
         },
         {
             "AmiLaunchIndex": 0,
             "Architecture": "x86_64",
-            "BlockDeviceMappings": [
-                {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "AssociatedResource": null,
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "DeleteOnTermination": true,
-                        "Status": "attached",
-                        "VolumeId": "vol-0cd6045fc6bc289c9",
-                        "VolumeOwnerId": null
-                    }
-                }
-            ],
+            "BlockDeviceMappings": [],
             "BootMode": "uefi-preferred",
             "CapacityReservationId": null,
             "CapacityReservationSpecification": {
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:23",
+            "ClientToken": "ClientToken:18",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -542,13 +848,127 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:26",
+            "InstanceId": "InstanceId:19",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
             "KernelId": null,
-            "KeyName": "KeyName:4",
-            "LaunchTime": "2024-07-01T06:28:13Z",
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T09:08:11Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 10:49:58 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "p2"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T09:08:11Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "AssociatedResource": null,
+                        "AttachTime": "2024-08-18T11:18:38Z",
+                        "DeleteOnTermination": true,
+                        "Status": "attached",
+                        "VolumeId": "vol-062ea8196731ee60b",
+                        "VolumeOwnerId": null
+                    }
+                }
+            ],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:20",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:24",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T11:18:37Z",
             "Licenses": null,
             "MaintenanceOptions": {
                 "AutoRecovery": "default"
@@ -568,8 +988,8 @@
                 {
                     "Association": null,
                     "Attachment": {
-                        "AttachTime": "2024-07-01T06:28:13Z",
-                        "AttachmentId": "eni-attach-084e5dd743215a250",
+                        "AttachTime": "2024-08-18T11:18:37Z",
+                        "AttachmentId": "eni-attach-074176bec4fa58eeb",
                         "DeleteOnTermination": false,
                         "DeviceIndex": 0,
                         "EnaSrdSpecification": null,
@@ -580,31 +1000,31 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:28",
-                            "GroupName": "GroupName:29"
+                            "GroupId": "GroupId:27",
+                            "GroupName": "GroupName:28"
                         }
                     ],
                     "InterfaceType": "interface",
                     "Ipv4Prefixes": null,
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
-                    "MacAddress": "06:bc:b5:a3:ec:fd",
-                    "NetworkInterfaceId": "NetworkInterfaceId:27",
-                    "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:24",
-                    "PrivateIpAddress": "10.240.30.108",
+                    "MacAddress": "06:0e:0d:89:80:d3",
+                    "NetworkInterfaceId": "NetworkInterfaceId:26",
+                    "OwnerId": "OwnerId:25",
+                    "PrivateDnsName": "PrivateDnsName:21",
+                    "PrivateIpAddress": "10.240.30.33",
                     "PrivateIpAddresses": [
                         {
                             "Association": null,
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:24",
-                            "PrivateIpAddress": "10.240.30.108"
+                            "PrivateDnsName": "PrivateDnsName:21",
+                            "PrivateIpAddress": "10.240.30.33"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:25",
-                    "VpcId": "VpcId:5"
+                    "SubnetId": "SubnetId:23",
+                    "VpcId": "VpcId:22"
                 }
             ],
             "OutpostArn": null,
@@ -621,13 +1041,13 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:24",
+            "PrivateDnsName": "PrivateDnsName:21",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
                 "HostnameType": "ip-name"
             },
-            "PrivateIpAddress": "10.240.30.108",
+            "PrivateIpAddress": "10.240.30.33",
             "ProductCodes": [],
             "PublicDnsName": "",
             "PublicIpAddress": null,
@@ -636,8 +1056,8 @@
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:28",
-                    "GroupName": "GroupName:29"
+                    "GroupId": "GroupId:27",
+                    "GroupName": "GroupName:28"
                 }
             ],
             "SourceDestCheck": true,
@@ -649,7 +1069,7 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:25",
+            "SubnetId": "SubnetId:23",
             "Tags": [
                 {
                     "Key": "Name",
@@ -658,9 +1078,9 @@
             ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
-            "UsageOperationUpdateTime": "2024-07-01T06:28:13Z",
+            "UsageOperationUpdateTime": "2024-08-18T11:18:37Z",
             "VirtualizationType": "hvm",
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:22"
         },
         {
             "AmiLaunchIndex": 0,
@@ -670,10 +1090,10 @@
                     "DeviceName": "/dev/sda1",
                     "Ebs": {
                         "AssociatedResource": null,
-                        "AttachTime": "2024-07-01T06:28:24Z",
+                        "AttachTime": "2024-08-18T11:18:49Z",
                         "DeleteOnTermination": true,
                         "Status": "attached",
-                        "VolumeId": "vol-0bc4edb364b8a21ed",
+                        "VolumeId": "vol-08c0697bf0c0ea86b",
                         "VolumeOwnerId": null
                     }
                 }
@@ -684,7 +1104,7 @@
                 "CapacityReservationPreference": "open",
                 "CapacityReservationTarget": null
             },
-            "ClientToken": "ClientToken:30",
+            "ClientToken": "ClientToken:29",
             "CpuOptions": {
                 "AmdSevSnp": "",
                 "CoreCount": 1,
@@ -704,13 +1124,13 @@
             "Hypervisor": "xen",
             "IamInstanceProfile": null,
             "ImageId": "ami-0dabbb7306bfbd1d4",
-            "InstanceId": "InstanceId:34",
+            "InstanceId": "InstanceId:33",
             "InstanceLifecycle": "",
             "InstanceType": "t3.nano",
             "Ipv6Address": null,
             "KernelId": null,
-            "KeyName": "KeyName:4",
-            "LaunchTime": "2024-07-01T06:28:23Z",
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T11:18:48Z",
             "Licenses": null,
             "MaintenanceOptions": {
                 "AutoRecovery": "default"
@@ -732,12 +1152,12 @@
                         "CarrierIp": null,
                         "CustomerOwnedIp": null,
                         "IpOwnerId": "amazon",
-                        "PublicDnsName": "PublicDnsName:32",
-                        "PublicIp": "1.0.0.3"
+                        "PublicDnsName": "PublicDnsName:31",
+                        "PublicIp": "1.0.0.1"
                     },
                     "Attachment": {
-                        "AttachTime": "2024-07-01T06:28:23Z",
-                        "AttachmentId": "eni-attach-0703ad683c0f4276b",
+                        "AttachTime": "2024-08-18T11:18:48Z",
+                        "AttachmentId": "eni-attach-01dcf391ae71fc9a1",
                         "DeleteOnTermination": false,
                         "DeviceIndex": 0,
                         "EnaSrdSpecification": null,
@@ -748,37 +1168,37 @@
                     "Description": "",
                     "Groups": [
                         {
-                            "GroupId": "GroupId:36",
-                            "GroupName": "GroupName:37"
+                            "GroupId": "GroupId:35",
+                            "GroupName": "GroupName:36"
                         }
                     ],
                     "InterfaceType": "interface",
                     "Ipv4Prefixes": null,
                     "Ipv6Addresses": [],
                     "Ipv6Prefixes": null,
-                    "MacAddress": "06:f6:72:de:f8:d1",
-                    "NetworkInterfaceId": "NetworkInterfaceId:35",
-                    "OwnerId": "OwnerId:8",
-                    "PrivateDnsName": "PrivateDnsName:31",
-                    "PrivateIpAddress": "10.240.10.122",
+                    "MacAddress": "06:34:f2:00:5c:d1",
+                    "NetworkInterfaceId": "NetworkInterfaceId:34",
+                    "OwnerId": "OwnerId:25",
+                    "PrivateDnsName": "PrivateDnsName:30",
+                    "PrivateIpAddress": "10.240.10.42",
                     "PrivateIpAddresses": [
                         {
                             "Association": {
                                 "CarrierIp": null,
                                 "CustomerOwnedIp": null,
                                 "IpOwnerId": "amazon",
-                                "PublicDnsName": "PublicDnsName:32",
-                                "PublicIp": "1.0.0.3"
+                                "PublicDnsName": "PublicDnsName:31",
+                                "PublicIp": "1.0.0.1"
                             },
                             "Primary": true,
-                            "PrivateDnsName": "PrivateDnsName:31",
-                            "PrivateIpAddress": "10.240.10.122"
+                            "PrivateDnsName": "PrivateDnsName:30",
+                            "PrivateIpAddress": "10.240.10.42"
                         }
                     ],
                     "SourceDestCheck": true,
                     "Status": "in-use",
-                    "SubnetId": "SubnetId:33",
-                    "VpcId": "VpcId:5"
+                    "SubnetId": "SubnetId:32",
+                    "VpcId": "VpcId:22"
                 }
             ],
             "OutpostArn": null,
@@ -795,23 +1215,23 @@
             },
             "Platform": "",
             "PlatformDetails": "Linux/UNIX",
-            "PrivateDnsName": "PrivateDnsName:31",
+            "PrivateDnsName": "PrivateDnsName:30",
             "PrivateDnsNameOptions": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
                 "HostnameType": "ip-name"
             },
-            "PrivateIpAddress": "10.240.10.122",
+            "PrivateIpAddress": "10.240.10.42",
             "ProductCodes": [],
-            "PublicDnsName": "PublicDnsName:32",
-            "PublicIpAddress": "1.0.0.2",
+            "PublicDnsName": "PublicDnsName:31",
+            "PublicIpAddress": "1.0.0.0",
             "RamdiskId": null,
             "RootDeviceName": "/dev/sda1",
             "RootDeviceType": "ebs",
             "SecurityGroups": [
                 {
-                    "GroupId": "GroupId:36",
-                    "GroupName": "GroupName:37"
+                    "GroupId": "GroupId:35",
+                    "GroupName": "GroupName:36"
                 }
             ],
             "SourceDestCheck": true,
@@ -823,7 +1243,7 @@
             },
             "StateReason": null,
             "StateTransitionReason": "",
-            "SubnetId": "SubnetId:33",
+            "SubnetId": "SubnetId:32",
             "Tags": [
                 {
                     "Key": "Name",
@@ -832,9 +1252,813 @@
             ],
             "TpmSupport": null,
             "UsageOperation": "RunInstances",
-            "UsageOperationUpdateTime": "2024-07-01T06:28:23Z",
+            "UsageOperationUpdateTime": "2024-08-18T11:18:48Z",
             "VirtualizationType": "hvm",
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "AssociatedResource": null,
+                        "AttachTime": "2024-08-18T11:18:38Z",
+                        "DeleteOnTermination": true,
+                        "Status": "attached",
+                        "VolumeId": "vol-0d24026eed5abc8a0",
+                        "VolumeOwnerId": null
+                    }
+                }
+            ],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:37",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:40",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T11:18:38Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "applied"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [
+                {
+                    "Association": null,
+                    "Attachment": {
+                        "AttachTime": "2024-08-18T11:18:38Z",
+                        "AttachmentId": "eni-attach-0bf1316c077de095f",
+                        "DeleteOnTermination": false,
+                        "DeviceIndex": 0,
+                        "EnaSrdSpecification": null,
+                        "NetworkCardIndex": 0,
+                        "Status": "attached"
+                    },
+                    "ConnectionTrackingConfiguration": null,
+                    "Description": "",
+                    "Groups": [
+                        {
+                            "GroupId": "GroupId:42",
+                            "GroupName": "GroupName:43"
+                        }
+                    ],
+                    "InterfaceType": "interface",
+                    "Ipv4Prefixes": null,
+                    "Ipv6Addresses": [],
+                    "Ipv6Prefixes": null,
+                    "MacAddress": "06:87:07:09:5c:c7",
+                    "NetworkInterfaceId": "NetworkInterfaceId:41",
+                    "OwnerId": "OwnerId:25",
+                    "PrivateDnsName": "PrivateDnsName:38",
+                    "PrivateIpAddress": "10.240.20.245",
+                    "PrivateIpAddresses": [
+                        {
+                            "Association": null,
+                            "Primary": true,
+                            "PrivateDnsName": "PrivateDnsName:38",
+                            "PrivateIpAddress": "10.240.20.245"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Status": "in-use",
+                    "SubnetId": "SubnetId:39",
+                    "VpcId": "VpcId:22"
+                }
+            ],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "PrivateDnsName:38",
+            "PrivateDnsNameOptions": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "PrivateIpAddress": "10.240.20.245",
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [
+                {
+                    "GroupId": "GroupId:42",
+                    "GroupName": "GroupName:43"
+                }
+            ],
+            "SourceDestCheck": true,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 16,
+                "Name": "running"
+            },
+            "StateReason": null,
+            "StateTransitionReason": "",
+            "SubnetId": "SubnetId:39",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "app1"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T11:18:38Z",
+            "VirtualizationType": "hvm",
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "AssociatedResource": null,
+                        "AttachTime": "2024-08-18T11:18:49Z",
+                        "DeleteOnTermination": true,
+                        "Status": "attached",
+                        "VolumeId": "vol-080e7c74e3334a012",
+                        "VolumeOwnerId": null
+                    }
+                }
+            ],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:44",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:48",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T11:18:48Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "applied"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [
+                {
+                    "Association": {
+                        "CarrierIp": null,
+                        "CustomerOwnedIp": null,
+                        "IpOwnerId": "184765712638",
+                        "PublicDnsName": "PublicDnsName:46",
+                        "PublicIp": "1.0.0.3"
+                    },
+                    "Attachment": {
+                        "AttachTime": "2024-08-18T11:18:48Z",
+                        "AttachmentId": "eni-attach-01025f7c5d8697cae",
+                        "DeleteOnTermination": false,
+                        "DeviceIndex": 0,
+                        "EnaSrdSpecification": null,
+                        "NetworkCardIndex": 0,
+                        "Status": "attached"
+                    },
+                    "ConnectionTrackingConfiguration": null,
+                    "Description": "",
+                    "Groups": [
+                        {
+                            "GroupId": "GroupId:50",
+                            "GroupName": "GroupName:51"
+                        }
+                    ],
+                    "InterfaceType": "interface",
+                    "Ipv4Prefixes": null,
+                    "Ipv6Addresses": [],
+                    "Ipv6Prefixes": null,
+                    "MacAddress": "06:2f:7c:5c:81:35",
+                    "NetworkInterfaceId": "NetworkInterfaceId:49",
+                    "OwnerId": "OwnerId:25",
+                    "PrivateDnsName": "PrivateDnsName:45",
+                    "PrivateIpAddress": "10.240.40.217",
+                    "PrivateIpAddresses": [
+                        {
+                            "Association": {
+                                "CarrierIp": null,
+                                "CustomerOwnedIp": null,
+                                "IpOwnerId": "184765712638",
+                                "PublicDnsName": "PublicDnsName:46",
+                                "PublicIp": "1.0.0.3"
+                            },
+                            "Primary": true,
+                            "PrivateDnsName": "PrivateDnsName:45",
+                            "PrivateIpAddress": "10.240.40.217"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Status": "in-use",
+                    "SubnetId": "SubnetId:47",
+                    "VpcId": "VpcId:22"
+                }
+            ],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "PrivateDnsName:45",
+            "PrivateDnsNameOptions": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "PrivateIpAddress": "10.240.40.217",
+            "ProductCodes": [],
+            "PublicDnsName": "PublicDnsName:46",
+            "PublicIpAddress": "1.0.0.2",
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [
+                {
+                    "GroupId": "GroupId:50",
+                    "GroupName": "GroupName:51"
+                }
+            ],
+            "SourceDestCheck": true,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 16,
+                "Name": "running"
+            },
+            "StateReason": null,
+            "StateTransitionReason": "",
+            "SubnetId": "SubnetId:47",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "dashboard"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T11:18:48Z",
+            "VirtualizationType": "hvm",
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:52",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:53",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:48Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "p1"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:48Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:54",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:55",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:48Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "p2"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:48Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:56",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:57",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T10:52:48Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "pending"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "",
+            "PrivateDnsNameOptions": null,
+            "PrivateIpAddress": null,
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [],
+            "SourceDestCheck": null,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 48,
+                "Name": "terminated"
+            },
+            "StateReason": {
+                "Code": "Client.UserInitiatedShutdown",
+                "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+            },
+            "StateTransitionReason": "User initiated (2024-08-18 11:09:08 GMT)",
+            "SubnetId": null,
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "p3"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T10:52:48Z",
+            "VirtualizationType": "hvm",
+            "VpcId": null
+        },
+        {
+            "AmiLaunchIndex": 0,
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "AssociatedResource": null,
+                        "AttachTime": "2024-08-18T11:18:38Z",
+                        "DeleteOnTermination": true,
+                        "Status": "attached",
+                        "VolumeId": "vol-051a8914838f0545c",
+                        "VolumeOwnerId": null
+                    }
+                }
+            ],
+            "BootMode": "uefi-preferred",
+            "CapacityReservationId": null,
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open",
+                "CapacityReservationTarget": null
+            },
+            "ClientToken": "ClientToken:58",
+            "CpuOptions": {
+                "AmdSevSnp": "",
+                "CoreCount": 1,
+                "ThreadsPerCore": 2
+            },
+            "CurrentInstanceBootMode": "uefi",
+            "EbsOptimized": false,
+            "ElasticGpuAssociations": null,
+            "ElasticInferenceAcceleratorAssociations": null,
+            "EnaSupport": true,
+            "EnclaveOptions": {
+                "Enabled": false
+            },
+            "HibernationOptions": {
+                "Configured": false
+            },
+            "Hypervisor": "xen",
+            "IamInstanceProfile": null,
+            "ImageId": "ami-0dabbb7306bfbd1d4",
+            "InstanceId": "InstanceId:60",
+            "InstanceLifecycle": "",
+            "InstanceType": "t3.nano",
+            "Ipv6Address": null,
+            "KernelId": null,
+            "KeyName": "KeyName:2",
+            "LaunchTime": "2024-08-18T11:18:38Z",
+            "Licenses": null,
+            "MaintenanceOptions": {
+                "AutoRecovery": "default"
+            },
+            "MetadataOptions": {
+                "HttpEndpoint": "enabled",
+                "HttpProtocolIpv6": "disabled",
+                "HttpPutResponseHopLimit": 2,
+                "HttpTokens": "required",
+                "InstanceMetadataTags": "disabled",
+                "State": "applied"
+            },
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "NetworkInterfaces": [
+                {
+                    "Association": null,
+                    "Attachment": {
+                        "AttachTime": "2024-08-18T11:18:38Z",
+                        "AttachmentId": "eni-attach-0d01c6a02556d4f88",
+                        "DeleteOnTermination": false,
+                        "DeviceIndex": 0,
+                        "EnaSrdSpecification": null,
+                        "NetworkCardIndex": 0,
+                        "Status": "attached"
+                    },
+                    "ConnectionTrackingConfiguration": null,
+                    "Description": "",
+                    "Groups": [
+                        {
+                            "GroupId": "GroupId:42",
+                            "GroupName": "GroupName:43"
+                        }
+                    ],
+                    "InterfaceType": "interface",
+                    "Ipv4Prefixes": null,
+                    "Ipv6Addresses": [],
+                    "Ipv6Prefixes": null,
+                    "MacAddress": "06:31:71:0b:74:1b",
+                    "NetworkInterfaceId": "NetworkInterfaceId:61",
+                    "OwnerId": "OwnerId:25",
+                    "PrivateDnsName": "PrivateDnsName:59",
+                    "PrivateIpAddress": "10.240.20.43",
+                    "PrivateIpAddresses": [
+                        {
+                            "Association": null,
+                            "Primary": true,
+                            "PrivateDnsName": "PrivateDnsName:59",
+                            "PrivateIpAddress": "10.240.20.43"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Status": "in-use",
+                    "SubnetId": "SubnetId:39",
+                    "VpcId": "VpcId:22"
+                }
+            ],
+            "OutpostArn": null,
+            "Placement": {
+                "Affinity": null,
+                "AvailabilityZone": "eu-north-1a",
+                "GroupId": null,
+                "GroupName": "",
+                "HostId": null,
+                "HostResourceGroupArn": null,
+                "PartitionNumber": null,
+                "SpreadDomain": null,
+                "Tenancy": "default"
+            },
+            "Platform": "",
+            "PlatformDetails": "Linux/UNIX",
+            "PrivateDnsName": "PrivateDnsName:59",
+            "PrivateDnsNameOptions": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "PrivateIpAddress": "10.240.20.43",
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "PublicIpAddress": null,
+            "RamdiskId": null,
+            "RootDeviceName": "/dev/sda1",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [
+                {
+                    "GroupId": "GroupId:42",
+                    "GroupName": "GroupName:43"
+                }
+            ],
+            "SourceDestCheck": true,
+            "SpotInstanceRequestId": null,
+            "SriovNetSupport": null,
+            "State": {
+                "Code": 16,
+                "Name": "running"
+            },
+            "StateReason": null,
+            "StateTransitionReason": "",
+            "SubnetId": "SubnetId:39",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "app2"
+                }
+            ],
+            "TpmSupport": null,
+            "UsageOperation": "RunInstances",
+            "UsageOperationUpdateTime": "2024-08-18T11:18:38Z",
+            "VirtualizationType": "hvm",
+            "VpcId": "VpcId:22"
         }
     ],
     "internet_gateways": [
@@ -842,11 +2066,11 @@
             "Attachments": [
                 {
                     "State": "available",
-                    "VpcId": "VpcId:5"
+                    "VpcId": "VpcId:22"
                 }
             ],
-            "InternetGatewayId": "InternetGatewayId:38",
-            "OwnerId": "OwnerId:8",
+            "InternetGatewayId": "InternetGatewayId:62",
+            "OwnerId": "OwnerId:25",
             "Tags": [
                 {
                     "Key": "Name",
@@ -858,11 +2082,11 @@
             "Attachments": [
                 {
                     "State": "available",
-                    "VpcId": "VpcId:40"
+                    "VpcId": "VpcId:64"
                 }
             ],
-            "InternetGatewayId": "InternetGatewayId:39",
-            "OwnerId": "OwnerId:8",
+            "InternetGatewayId": "InternetGatewayId:63",
+            "OwnerId": "OwnerId:25",
             "Tags": []
         }
     ],
@@ -870,19 +2094,24 @@
         {
             "Associations": [
                 {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:42",
-                    "NetworkAclId": "NetworkAclId:41",
-                    "SubnetId": "SubnetId:43"
-                },
-                {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:44",
-                    "NetworkAclId": "NetworkAclId:41",
-                    "SubnetId": "SubnetId:45"
-                },
-                {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:46",
-                    "NetworkAclId": "NetworkAclId:41",
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:66",
+                    "NetworkAclId": "NetworkAclId:65",
                     "SubnetId": "SubnetId:47"
+                },
+                {
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:67",
+                    "NetworkAclId": "NetworkAclId:65",
+                    "SubnetId": "SubnetId:39"
+                },
+                {
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:68",
+                    "NetworkAclId": "NetworkAclId:65",
+                    "SubnetId": "SubnetId:32"
+                },
+                {
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:69",
+                    "NetworkAclId": "NetworkAclId:65",
+                    "SubnetId": "SubnetId:23"
                 }
             ],
             "Entries": [
@@ -928,32 +2157,27 @@
                 }
             ],
             "IsDefault": true,
-            "NetworkAclId": "NetworkAclId:41",
-            "OwnerId": "OwnerId:8",
+            "NetworkAclId": "NetworkAclId:65",
+            "OwnerId": "OwnerId:25",
             "Tags": [],
-            "VpcId": "VpcId:40"
+            "VpcId": "VpcId:22"
         },
         {
             "Associations": [
                 {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:49",
-                    "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:14"
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:71",
+                    "NetworkAclId": "NetworkAclId:70",
+                    "SubnetId": "SubnetId:72"
                 },
                 {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:50",
-                    "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:33"
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:73",
+                    "NetworkAclId": "NetworkAclId:70",
+                    "SubnetId": "SubnetId:74"
                 },
                 {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:51",
-                    "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:6"
-                },
-                {
-                    "NetworkAclAssociationId": "NetworkAclAssociationId:52",
-                    "NetworkAclId": "NetworkAclId:48",
-                    "SubnetId": "SubnetId:25"
+                    "NetworkAclAssociationId": "NetworkAclAssociationId:75",
+                    "NetworkAclId": "NetworkAclId:70",
+                    "SubnetId": "SubnetId:76"
                 }
             ],
             "Entries": [
@@ -999,52 +2223,17 @@
                 }
             ],
             "IsDefault": true,
-            "NetworkAclId": "NetworkAclId:48",
-            "OwnerId": "OwnerId:8",
+            "NetworkAclId": "NetworkAclId:70",
+            "OwnerId": "OwnerId:25",
             "Tags": [],
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:64"
         }
     ],
     "security_groups": [
         {
-            "Description": "SG for db instance",
-            "GroupId": "GroupId:28",
-            "GroupName": "GroupName:29",
-            "IpPermissions": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "10.240.40.0/24",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": [
-                        {
-                            "Description": null,
-                            "GroupId": "GroupId:17",
-                            "GroupName": null,
-                            "PeeringStatus": null,
-                            "UserId": "UserId:53",
-                            "VpcId": null,
-                            "VpcPeeringConnectionId": null
-                        }
-                    ]
-                }
-            ],
-            "IpPermissionsEgress": [],
-            "OwnerId": "OwnerId:8",
-            "Tags": [],
-            "VpcId": "VpcId:5"
-        },
-        {
             "Description": "default VPC security group",
-            "GroupId": "GroupId:54",
-            "GroupName": "GroupName:55",
+            "GroupId": "GroupId:77",
+            "GroupName": "GroupName:78",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -1056,10 +2245,10 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:54",
+                            "GroupId": "GroupId:77",
                             "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:53",
+                            "UserId": "UserId:79",
                             "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
@@ -1082,14 +2271,174 @@
                     "UserIdGroupPairs": []
                 }
             ],
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "Tags": null,
-            "VpcId": "VpcId:40"
+            "VpcId": "VpcId:22"
+        },
+        {
+            "Description": "SG for dashboard instance",
+            "GroupId": "GroupId:50",
+            "GroupName": "GroupName:51",
+            "IpPermissions": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                }
+            ],
+            "IpPermissionsEgress": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                }
+            ],
+            "OwnerId": "OwnerId:25",
+            "Tags": [],
+            "VpcId": "VpcId:22"
+        },
+        {
+            "Description": "SG for db instance",
+            "GroupId": "GroupId:27",
+            "GroupName": "GroupName:28",
+            "IpPermissions": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "10.240.40.0/24",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": [
+                        {
+                            "Description": null,
+                            "GroupId": "GroupId:42",
+                            "GroupName": null,
+                            "PeeringStatus": null,
+                            "UserId": "UserId:79",
+                            "VpcId": null,
+                            "VpcPeeringConnectionId": null
+                        }
+                    ]
+                }
+            ],
+            "IpPermissionsEgress": [],
+            "OwnerId": "OwnerId:25",
+            "Tags": [],
+            "VpcId": "VpcId:22"
+        },
+        {
+            "Description": "default VPC security group",
+            "GroupId": "GroupId:80",
+            "GroupName": "GroupName:78",
+            "IpPermissions": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": [
+                        {
+                            "Description": null,
+                            "GroupId": "GroupId:80",
+                            "GroupName": null,
+                            "PeeringStatus": null,
+                            "UserId": "UserId:79",
+                            "VpcId": null,
+                            "VpcPeeringConnectionId": null
+                        }
+                    ]
+                }
+            ],
+            "IpPermissionsEgress": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                }
+            ],
+            "OwnerId": "OwnerId:25",
+            "Tags": null,
+            "VpcId": "VpcId:64"
+        },
+        {
+            "Description": "Allow all inbound and traffic",
+            "GroupId": "GroupId:35",
+            "GroupName": "GroupName:36",
+            "IpPermissions": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                }
+            ],
+            "IpPermissionsEgress": [
+                {
+                    "FromPort": null,
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0",
+                            "Description": null
+                        }
+                    ],
+                    "Ipv6Ranges": [],
+                    "PrefixListIds": [],
+                    "ToPort": null,
+                    "UserIdGroupPairs": []
+                }
+            ],
+            "OwnerId": "OwnerId:25",
+            "Tags": [],
+            "VpcId": "VpcId:22"
         },
         {
             "Description": "SG for app instances",
-            "GroupId": "GroupId:17",
-            "GroupName": "GroupName:18",
+            "GroupId": "GroupId:42",
+            "GroupName": "GroupName:43",
             "IpPermissions": [
                 {
                     "FromPort": null,
@@ -1115,10 +2464,10 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:36",
+                            "GroupId": "GroupId:35",
                             "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:53",
+                            "UserId": "UserId:79",
                             "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
@@ -1136,144 +2485,19 @@
                     "UserIdGroupPairs": [
                         {
                             "Description": null,
-                            "GroupId": "GroupId:28",
+                            "GroupId": "GroupId:27",
                             "GroupName": null,
                             "PeeringStatus": null,
-                            "UserId": "UserId:53",
+                            "UserId": "UserId:79",
                             "VpcId": null,
                             "VpcPeeringConnectionId": null
                         }
                     ]
                 }
             ],
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "Tags": [],
-            "VpcId": "VpcId:5"
-        },
-        {
-            "Description": "default VPC security group",
-            "GroupId": "GroupId:56",
-            "GroupName": "GroupName:55",
-            "IpPermissions": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": [
-                        {
-                            "Description": null,
-                            "GroupId": "GroupId:56",
-                            "GroupName": null,
-                            "PeeringStatus": null,
-                            "UserId": "UserId:53",
-                            "VpcId": null,
-                            "VpcPeeringConnectionId": null
-                        }
-                    ]
-                }
-            ],
-            "IpPermissionsEgress": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": []
-                }
-            ],
-            "OwnerId": "OwnerId:8",
-            "Tags": null,
-            "VpcId": "VpcId:5"
-        },
-        {
-            "Description": "SG for dashboard instance",
-            "GroupId": "GroupId:10",
-            "GroupName": "GroupName:11",
-            "IpPermissions": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": []
-                }
-            ],
-            "IpPermissionsEgress": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": []
-                }
-            ],
-            "OwnerId": "OwnerId:8",
-            "Tags": [],
-            "VpcId": "VpcId:5"
-        },
-        {
-            "Description": "Allow all inbound and traffic",
-            "GroupId": "GroupId:36",
-            "GroupName": "GroupName:37",
-            "IpPermissions": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": []
-                }
-            ],
-            "IpPermissionsEgress": [
-                {
-                    "FromPort": null,
-                    "IpProtocol": "-1",
-                    "IpRanges": [
-                        {
-                            "CidrIp": "0.0.0.0/0",
-                            "Description": null
-                        }
-                    ],
-                    "Ipv6Ranges": [],
-                    "PrefixListIds": [],
-                    "ToPort": null,
-                    "UserIdGroupPairs": []
-                }
-            ],
-            "OwnerId": "OwnerId:8",
-            "Tags": [],
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:22"
         }
     ],
     "subnets": [
@@ -1292,167 +2516,22 @@
             "MapCustomerOwnedIpOnLaunch": false,
             "MapPublicIpOnLaunch": false,
             "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "PrivateDnsNameOptionsOnLaunch": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:57",
-            "SubnetId": "SubnetId:14",
+            "SubnetArn": "SubnetArn:81",
+            "SubnetId": "SubnetId:39",
             "Tags": [
                 {
                     "Key": "Name",
                     "Value": "application"
                 }
             ],
-            "VpcId": "VpcId:5"
-        },
-        {
-            "AssignIpv6AddressOnCreation": false,
-            "AvailabilityZone": "eu-north-1a",
-            "AvailabilityZoneId": "eun1-az1",
-            "AvailableIpAddressCount": 250,
-            "CidrBlock": "10.240.10.0/24",
-            "CustomerOwnedIpv4Pool": null,
-            "DefaultForAz": false,
-            "EnableDns64": false,
-            "EnableLniAtDeviceIndex": null,
-            "Ipv6CidrBlockAssociationSet": [],
-            "Ipv6Native": false,
-            "MapCustomerOwnedIpOnLaunch": false,
-            "MapPublicIpOnLaunch": true,
-            "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
-            "PrivateDnsNameOptionsOnLaunch": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "State": "available",
-            "SubnetArn": "SubnetArn:58",
-            "SubnetId": "SubnetId:33",
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Value": "edge"
-                }
-            ],
-            "VpcId": "VpcId:5"
-        },
-        {
-            "AssignIpv6AddressOnCreation": false,
-            "AvailabilityZone": "eu-north-1a",
-            "AvailabilityZoneId": "eun1-az1",
-            "AvailableIpAddressCount": 4091,
-            "CidrBlock": "172.31.16.0/20",
-            "CustomerOwnedIpv4Pool": null,
-            "DefaultForAz": true,
-            "EnableDns64": false,
-            "EnableLniAtDeviceIndex": null,
-            "Ipv6CidrBlockAssociationSet": [],
-            "Ipv6Native": false,
-            "MapCustomerOwnedIpOnLaunch": false,
-            "MapPublicIpOnLaunch": true,
-            "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
-            "PrivateDnsNameOptionsOnLaunch": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "State": "available",
-            "SubnetArn": "SubnetArn:59",
-            "SubnetId": "SubnetId:45",
-            "Tags": null,
-            "VpcId": "VpcId:40"
-        },
-        {
-            "AssignIpv6AddressOnCreation": false,
-            "AvailabilityZone": "eu-north-1a",
-            "AvailabilityZoneId": "eun1-az1",
-            "AvailableIpAddressCount": 250,
-            "CidrBlock": "10.240.40.0/24",
-            "CustomerOwnedIpv4Pool": null,
-            "DefaultForAz": false,
-            "EnableDns64": false,
-            "EnableLniAtDeviceIndex": null,
-            "Ipv6CidrBlockAssociationSet": [],
-            "Ipv6Native": false,
-            "MapCustomerOwnedIpOnLaunch": false,
-            "MapPublicIpOnLaunch": true,
-            "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
-            "PrivateDnsNameOptionsOnLaunch": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "State": "available",
-            "SubnetArn": "SubnetArn:60",
-            "SubnetId": "SubnetId:6",
-            "Tags": [
-                {
-                    "Key": "Name",
-                    "Value": "dashoard"
-                }
-            ],
-            "VpcId": "VpcId:5"
-        },
-        {
-            "AssignIpv6AddressOnCreation": false,
-            "AvailabilityZone": "eu-north-1b",
-            "AvailabilityZoneId": "eun1-az2",
-            "AvailableIpAddressCount": 4091,
-            "CidrBlock": "172.31.32.0/20",
-            "CustomerOwnedIpv4Pool": null,
-            "DefaultForAz": true,
-            "EnableDns64": false,
-            "EnableLniAtDeviceIndex": null,
-            "Ipv6CidrBlockAssociationSet": [],
-            "Ipv6Native": false,
-            "MapCustomerOwnedIpOnLaunch": false,
-            "MapPublicIpOnLaunch": true,
-            "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
-            "PrivateDnsNameOptionsOnLaunch": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "State": "available",
-            "SubnetArn": "SubnetArn:61",
-            "SubnetId": "SubnetId:47",
-            "Tags": null,
-            "VpcId": "VpcId:40"
-        },
-        {
-            "AssignIpv6AddressOnCreation": false,
-            "AvailabilityZone": "eu-north-1c",
-            "AvailabilityZoneId": "eun1-az3",
-            "AvailableIpAddressCount": 4091,
-            "CidrBlock": "172.31.0.0/20",
-            "CustomerOwnedIpv4Pool": null,
-            "DefaultForAz": true,
-            "EnableDns64": false,
-            "EnableLniAtDeviceIndex": null,
-            "Ipv6CidrBlockAssociationSet": [],
-            "Ipv6Native": false,
-            "MapCustomerOwnedIpOnLaunch": false,
-            "MapPublicIpOnLaunch": true,
-            "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
-            "PrivateDnsNameOptionsOnLaunch": {
-                "EnableResourceNameDnsAAAARecord": false,
-                "EnableResourceNameDnsARecord": false,
-                "HostnameType": "ip-name"
-            },
-            "State": "available",
-            "SubnetArn": "SubnetArn:62",
-            "SubnetId": "SubnetId:43",
-            "Tags": null,
-            "VpcId": "VpcId:40"
+            "VpcId": "VpcId:22"
         },
         {
             "AssignIpv6AddressOnCreation": false,
@@ -1469,22 +2548,167 @@
             "MapCustomerOwnedIpOnLaunch": false,
             "MapPublicIpOnLaunch": false,
             "OutpostArn": null,
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "PrivateDnsNameOptionsOnLaunch": {
                 "EnableResourceNameDnsAAAARecord": false,
                 "EnableResourceNameDnsARecord": false,
                 "HostnameType": "ip-name"
             },
             "State": "available",
-            "SubnetArn": "SubnetArn:63",
-            "SubnetId": "SubnetId:25",
+            "SubnetArn": "SubnetArn:82",
+            "SubnetId": "SubnetId:23",
             "Tags": [
                 {
                     "Key": "Name",
                     "Value": "db"
                 }
             ],
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AssignIpv6AddressOnCreation": false,
+            "AvailabilityZone": "eu-north-1a",
+            "AvailabilityZoneId": "eun1-az1",
+            "AvailableIpAddressCount": 250,
+            "CidrBlock": "10.240.40.0/24",
+            "CustomerOwnedIpv4Pool": null,
+            "DefaultForAz": false,
+            "EnableDns64": false,
+            "EnableLniAtDeviceIndex": null,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Ipv6Native": false,
+            "MapCustomerOwnedIpOnLaunch": false,
+            "MapPublicIpOnLaunch": true,
+            "OutpostArn": null,
+            "OwnerId": "OwnerId:25",
+            "PrivateDnsNameOptionsOnLaunch": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "State": "available",
+            "SubnetArn": "SubnetArn:83",
+            "SubnetId": "SubnetId:47",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "dashoard"
+                }
+            ],
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AssignIpv6AddressOnCreation": false,
+            "AvailabilityZone": "eu-north-1a",
+            "AvailabilityZoneId": "eun1-az1",
+            "AvailableIpAddressCount": 250,
+            "CidrBlock": "10.240.10.0/24",
+            "CustomerOwnedIpv4Pool": null,
+            "DefaultForAz": false,
+            "EnableDns64": false,
+            "EnableLniAtDeviceIndex": null,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Ipv6Native": false,
+            "MapCustomerOwnedIpOnLaunch": false,
+            "MapPublicIpOnLaunch": true,
+            "OutpostArn": null,
+            "OwnerId": "OwnerId:25",
+            "PrivateDnsNameOptionsOnLaunch": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "State": "available",
+            "SubnetArn": "SubnetArn:84",
+            "SubnetId": "SubnetId:32",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "edge"
+                }
+            ],
+            "VpcId": "VpcId:22"
+        },
+        {
+            "AssignIpv6AddressOnCreation": false,
+            "AvailabilityZone": "eu-north-1a",
+            "AvailabilityZoneId": "eun1-az1",
+            "AvailableIpAddressCount": 4091,
+            "CidrBlock": "172.31.16.0/20",
+            "CustomerOwnedIpv4Pool": null,
+            "DefaultForAz": true,
+            "EnableDns64": false,
+            "EnableLniAtDeviceIndex": null,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Ipv6Native": false,
+            "MapCustomerOwnedIpOnLaunch": false,
+            "MapPublicIpOnLaunch": true,
+            "OutpostArn": null,
+            "OwnerId": "OwnerId:25",
+            "PrivateDnsNameOptionsOnLaunch": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "State": "available",
+            "SubnetArn": "SubnetArn:85",
+            "SubnetId": "SubnetId:74",
+            "Tags": null,
+            "VpcId": "VpcId:64"
+        },
+        {
+            "AssignIpv6AddressOnCreation": false,
+            "AvailabilityZone": "eu-north-1b",
+            "AvailabilityZoneId": "eun1-az2",
+            "AvailableIpAddressCount": 4091,
+            "CidrBlock": "172.31.32.0/20",
+            "CustomerOwnedIpv4Pool": null,
+            "DefaultForAz": true,
+            "EnableDns64": false,
+            "EnableLniAtDeviceIndex": null,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Ipv6Native": false,
+            "MapCustomerOwnedIpOnLaunch": false,
+            "MapPublicIpOnLaunch": true,
+            "OutpostArn": null,
+            "OwnerId": "OwnerId:25",
+            "PrivateDnsNameOptionsOnLaunch": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "State": "available",
+            "SubnetArn": "SubnetArn:86",
+            "SubnetId": "SubnetId:76",
+            "Tags": null,
+            "VpcId": "VpcId:64"
+        },
+        {
+            "AssignIpv6AddressOnCreation": false,
+            "AvailabilityZone": "eu-north-1c",
+            "AvailabilityZoneId": "eun1-az3",
+            "AvailableIpAddressCount": 4091,
+            "CidrBlock": "172.31.0.0/20",
+            "CustomerOwnedIpv4Pool": null,
+            "DefaultForAz": true,
+            "EnableDns64": false,
+            "EnableLniAtDeviceIndex": null,
+            "Ipv6CidrBlockAssociationSet": [],
+            "Ipv6Native": false,
+            "MapCustomerOwnedIpOnLaunch": false,
+            "MapPublicIpOnLaunch": true,
+            "OutpostArn": null,
+            "OwnerId": "OwnerId:25",
+            "PrivateDnsNameOptionsOnLaunch": {
+                "EnableResourceNameDnsAAAARecord": false,
+                "EnableResourceNameDnsARecord": false,
+                "HostnameType": "ip-name"
+            },
+            "State": "available",
+            "SubnetArn": "SubnetArn:87",
+            "SubnetId": "SubnetId:72",
+            "Tags": null,
+            "VpcId": "VpcId:64"
         }
     ],
     "vpcs": [
@@ -1492,7 +2716,7 @@
             "CidrBlock": "10.240.0.0/16",
             "CidrBlockAssociationSet": [
                 {
-                    "AssociationId": "vpc-cidr-assoc-0ac6b843f2c21ad57",
+                    "AssociationId": "vpc-cidr-assoc-063bb27f3653c1cef",
                     "CidrBlock": "10.240.0.0/16",
                     "CidrBlockState": {
                         "State": "associated",
@@ -1504,7 +2728,7 @@
             "InstanceTenancy": "default",
             "Ipv6CidrBlockAssociationSet": null,
             "IsDefault": false,
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "State": "available",
             "Tags": [
                 {
@@ -1512,7 +2736,8 @@
                     "Value": "vpc0"
                 }
             ],
-            "VpcId": "VpcId:5"
+            "VpcId": "VpcId:22",
+            "Region": "eu-north-1"
         },
         {
             "CidrBlock": "172.31.0.0/16",
@@ -1530,11 +2755,12 @@
             "InstanceTenancy": "default",
             "Ipv6CidrBlockAssociationSet": null,
             "IsDefault": true,
-            "OwnerId": "OwnerId:8",
+            "OwnerId": "OwnerId:25",
             "State": "available",
             "Tags": null,
-            "VpcId": "VpcId:40"
+            "VpcId": "VpcId:64",
+            "Region": "eu-north-1"
         }
     ],
-    "config-file-git-sha1": "$Id: 3d3d4001b3e199117167105cfc3e008a862ab769 $"
+    "config-file-git-sha1": "$Id: b52aac3186f0ce7a4fd0280ff0468b206687822d $"
 }

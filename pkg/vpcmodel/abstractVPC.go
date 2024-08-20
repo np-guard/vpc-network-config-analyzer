@@ -9,6 +9,7 @@ package vpcmodel
 import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 )
 
 const (
@@ -32,11 +33,11 @@ type VPCResourceIntf interface {
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
 	RegionName() string
 
-	DrawioResourceIntf
+	FormattableResource
 }
 
 // VPCResource implements part of the VPCResourceIntf
-// every concrete resource type should contain VPCResource and also implement the DrawioResourceIntf
+// every concrete resource type should contain VPCResource and also implement the FormattableResource
 type VPCResource struct {
 	ResourceName string
 	ResourceUID  string
@@ -56,6 +57,14 @@ func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
 
 func (n *VPCResource) Name() string {
 	return n.ResourceName
+}
+
+func (n *VPCResource) SynthesisResourceName() string {
+	return n.ResourceName
+}
+
+func (n *VPCResource) SynthesisKind() spec.ResourceType {
+	return ""
 }
 
 func (n *VPCResource) ExtendedName(c *VPCConfig) string {

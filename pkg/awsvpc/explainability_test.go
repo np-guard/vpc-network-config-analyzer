@@ -18,8 +18,8 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 	{
 		Name:          "ip_to_ip",
 		InputConfig:   "aws_sg_1",
-		ESrc:          "10.240.40.184",
-		EDst:          "10.240.20.141",
+		ESrc:          "10.240.40.217",
+		EDst:          "10.240.20.43",
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},

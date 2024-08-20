@@ -10,14 +10,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
-// DrawioResourceIntf is the interface of all the resources that are converted to a drawio treeNodes
-type DrawioResourceIntf interface {
-	GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface
-	IsExternal() bool
-	ShowOnSubnetMode() bool
-	Kind() string
-}
-
 // DrawioGenerator is the struct that generate the drawio tree.
 // its main interface is:
 // 1. TreeNode() - generate and returns the drawio tree node of a resource
@@ -34,7 +26,7 @@ type DrawioGenerator struct {
 	network       *drawio.NetworkTreeNode
 	publicNetwork *drawio.PublicNetworkTreeNode
 	cloud         *drawio.CloudTreeNode
-	treeNodes     map[DrawioResourceIntf]drawio.TreeNodeInterface
+	treeNodes     map[FormattableResource]drawio.TreeNodeInterface
 	lbAbstraction bool
 	uc            OutputUseCase
 }
@@ -45,7 +37,7 @@ func NewDrawioGenerator(cloudName string, lbAbstraction bool, uc OutputUseCase) 
 	gen.network = drawio.NewNetworkTreeNode()
 	gen.publicNetwork = drawio.NewPublicNetworkTreeNode(gen.network)
 	gen.cloud = drawio.NewCloudTreeNode(gen.network, cloudName)
-	gen.treeNodes = map[DrawioResourceIntf]drawio.TreeNodeInterface{}
+	gen.treeNodes = map[FormattableResource]drawio.TreeNodeInterface{}
 	gen.lbAbstraction = lbAbstraction
 	gen.uc = uc
 	return gen
@@ -55,7 +47,7 @@ func (gen *DrawioGenerator) PublicNetwork() *drawio.PublicNetworkTreeNode { retu
 func (gen *DrawioGenerator) Cloud() *drawio.CloudTreeNode                 { return gen.cloud }
 func (gen *DrawioGenerator) LBAbstraction() bool                          { return gen.lbAbstraction }
 
-func (gen *DrawioGenerator) TreeNode(res DrawioResourceIntf) drawio.TreeNodeInterface {
+func (gen *DrawioGenerator) TreeNode(res FormattableResource) drawio.TreeNodeInterface {
 	if gen.treeNodes[res] == nil {
 		if gen.uc != AllSubnets || res.ShowOnSubnetMode() {
 			gen.treeNodes[res] = res.GenerateDrawioTreeNode(gen)
@@ -78,7 +70,7 @@ func (g *groupedEndpointsElems) ShowOnSubnetMode() bool { return true }
 func (g *groupedExternalNodes) ShowOnSubnetMode() bool  { return true }
 func (e *edgeInfo) ShowOnSubnetMode() bool              { return true }
 
-// for DrawioResourceIntf that are not VPCResourceIntf, we implement Kind():
+// for FormattableResource that are not VPCResourceIntf, we implement Kind():
 func (g *groupedEndpointsElems) Kind() string { return "Group of Nodes" }
 func (g *groupedExternalNodes) Kind() string  { return "External IPs" }
 func (e *edgeInfo) Kind() string              { return "Connection" }

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -69,6 +70,12 @@ func (m *mockNetIntf) UID() string {
 func (m *mockNetIntf) Name() string {
 	return m.name
 }
+func (m *mockNetIntf) SynthesisResourceName() string {
+	return m.name
+}
+func (m *mockNetIntf) SynthesisKind() spec.ResourceType {
+	return ""
+}
 func (m *mockNetIntf) ExtendedName(c *VPCConfig) string {
 	return m.name
 }
@@ -107,6 +114,12 @@ func (m *mockSubnet) UID() string {
 }
 func (m *mockSubnet) Name() string {
 	return m.name
+}
+func (m *mockSubnet) SynthesisResourceName() string {
+	return m.name
+}
+func (m *mockSubnet) SynthesisKind() spec.ResourceType {
+	return ""
 }
 func (m *mockSubnet) ExtendedName(c *VPCConfig) string {
 	return m.ExtendedPrefix(c) + m.name
