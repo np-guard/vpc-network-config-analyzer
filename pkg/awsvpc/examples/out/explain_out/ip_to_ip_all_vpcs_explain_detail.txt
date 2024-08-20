@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group GroupName:51 allows connection with the following allow rules
-			index: 1, direction: outbound,  conns: protocol: all, target: 0.0.0.0/0
+			index: 0, direction: outbound,  conns: protocol: all, target: 0.0.0.0/0
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 0, direction: outbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 0, direction: outbound ,cidr: 0.0.0.0/0, conn: all, action: allow
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: all, action: allow
 		security group GroupName:43 allows connection with the following allow rules
 			index: 0, direction: inbound,  conns: protocol: all, target: 10.240.40.0/24
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 0, direction: outbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 0, direction: outbound ,cidr: 0.0.0.0/0, conn: all, action: allow
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: -1, action: allow
+			index: 1, direction: inbound ,cidr: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
