@@ -40,6 +40,11 @@ func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return na.referencedIPblocks
 }
 
+// SetReferencedIPblocks updates referenced ip blocks
+func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock) {
+	na.referencedIPblocks = referencedIPblocks
+}
+
 // GetNACLRule gets index of the rule and returns the rule results line and obj
 func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
@@ -89,11 +94,6 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	ruleStr = fmt.Sprintf("index: %d, direction: %s ,cidr: %s, conn: %s, action: %s\n",
 		index, direction, ip, connStr, action)
 	return ruleStr, ruleRes, isIngress, nil
-}
-
-// SetReferencedIPblocks updates referenced ip blocks
-func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock) {
-	na.referencedIPblocks = referencedIPblocks
 }
 
 // GetNACLRules returns ingress and egress rule objects
