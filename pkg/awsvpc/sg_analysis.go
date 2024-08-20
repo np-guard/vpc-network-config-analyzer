@@ -209,7 +209,11 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	}
 	ruleRes.Local = ipblock.GetCidrAll()
 	ruleRes.Index = index
-	return fmt.Sprintf("index: %d, %v", listIndex, ruleStr), ruleRes, isIngress, nil
+	tableName := "IpPermissions's"
+	if !isIngress {
+		tableName = "IpPermissionsEgress's"
+	}
+	return fmt.Sprintf("%s index: %d, %v", tableName, listIndex, ruleStr), ruleRes, isIngress, nil
 }
 
 // GetSGRules returns ingress and egress rule objects
