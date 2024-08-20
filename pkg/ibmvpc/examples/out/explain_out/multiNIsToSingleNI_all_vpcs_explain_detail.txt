@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg2-ky allows connection with the following allow rules
-			index: 1, direction: outbound,  conns: protocol: all, remote: 10.240.10.0/24, local: 0.0.0.0/0
+			id: id:96, direction: outbound,  conns: protocol: all, remote: 10.240.10.0/24, local: 0.0.0.0/0
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 		security group sg1-ky allows connection with the following allow rules
-			index: 3, direction: inbound,  conns: protocol: all, remote: sg2-ky (10.240.20.4/31), local: 0.0.0.0/0
+			id: id:89, direction: inbound,  conns: protocol: all, remote: sg2-ky (10.240.20.4/31), local: 0.0.0.0/0
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ Path is disabled; The relevant rules are:
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 2, direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/31), local: 0.0.0.0/0
+			id: id:87, direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/31), local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
