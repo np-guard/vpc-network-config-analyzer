@@ -679,7 +679,12 @@ func (rc *IBMresourcesContainer) getSGconfig(
 		sgResource := commonvpc.NewSGResource(*sg.Name, *sg.ID, *sg.Name, vpc, NewIBMSGAnalyzer(&sg.SecurityGroup), sgMap, sgLists)
 		parseSGTargets(sgResource, &sg.SecurityGroup, res.Config(vpcUID))
 	}
-	err := commonvpc.UpdateConfigWithSGAndPrepareAnalyzer(res, sgLists, sgMap)
+	err := commonvpc.UpdateConfigWithSG(res, sgLists)
+	if err != nil {
+		return err
+	}
+
+	err = commonvpc.PrepareAnalyzers(sgMap)
 	if err != nil {
 		return err
 	}

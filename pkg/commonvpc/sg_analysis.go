@@ -299,10 +299,10 @@ func GetIPBlockResult(cidr, address, name *string,
 }
 
 // GetSGRules returns ingress and egress rule objects
-func GetSGRules(numRules int, sga SpecificSGAnalyzer) (ingressRules, egressRules []*SGRule, err error) {
+func GetSGRules(sga SpecificSGAnalyzer) (ingressRules, egressRules []*SGRule, err error) {
 	ingressRules = []*SGRule{}
 	egressRules = []*SGRule{}
-	for index := 0; index < numRules; index++ {
+	for index := 0; index < sga.GetNumberOfRules(); index++ {
 		_, ruleObj, isIngress, err := sga.GetSGRule(index)
 		if err != nil {
 			return nil, nil, err

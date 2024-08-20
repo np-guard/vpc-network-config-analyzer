@@ -204,7 +204,7 @@ func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 
 // GetSGRules returns ingress and egress rule objects
 func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
-	return commonvpc.GetSGRules(len(sga.SgResource.Rules), sga)
+	return commonvpc.GetSGRules(sga)
 }
 
 // ReferencedIPblocks returns referencedIPblocks filed

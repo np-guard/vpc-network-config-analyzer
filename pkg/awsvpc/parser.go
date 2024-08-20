@@ -307,7 +307,12 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
-	err := commonvpc.UpdateConfigWithSGAndPrepareAnalyzer(res, sgLists, sgMap)
+	err := commonvpc.UpdateConfigWithSG(res, sgLists)
+	if err != nil {
+		return err
+	}
+
+	err = commonvpc.PrepareAnalyzers(sgMap)
 	if err != nil {
 		return err
 	}

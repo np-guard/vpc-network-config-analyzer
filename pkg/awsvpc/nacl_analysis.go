@@ -91,9 +91,12 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	return ruleStr, ruleRes, isIngress, nil
 }
 
+// SetReferencedIPblocks updates referenced ip blocks
+func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock) {
+	na.referencedIPblocks = referencedIPblocks
+}
+
 // GetNACLRules returns ingress and egress rule objects
 func (na *AWSNACLAnalyzer) GetNACLRules() (ingressRules, egressRules []*commonvpc.NACLRule, err error) {
-	ingressRules, egressRules, referencedIPblocks, err := commonvpc.GetNACLRules(na.GetNumberOfRules(), na)
-	na.referencedIPblocks = referencedIPblocks
-	return ingressRules, egressRules, err
+	return commonvpc.GetNACLRules(na)
 }

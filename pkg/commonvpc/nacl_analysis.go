@@ -39,6 +39,7 @@ type SpecificNACLAnalyzer interface {
 	GetNumberOfRules() int
 	GetNACLRule(index int) (ruleStr string, ruleRes *NACLRule, isIngress bool, err error)
 	Name() *string
+	SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock)
 }
 
 type AnalysisResultPerSubnet struct {
@@ -481,14 +482,15 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 }
 
 // GetNACLRules returns ingress and egress rule objects
-func GetNACLRules(numRules int, na SpecificNACLAnalyzer) (ingressRules,
-	egressRules []*NACLRule, referencedIPblocks []*ipblock.IPBlock, err error) {
+func GetNACLRules(na SpecificNACLAnalyzer) (ingressRules,
+	egressRules []*NACLRule, err error) {
 	ingressRules = []*NACLRule{}
 	egressRules = []*NACLRule{}
-	for index := 0; index < numRules; index++ {
+	var referencedIPblocks []*ipblock.IPBlock
+	for index := 0; index < na.GetNumberOfRules(); index++ {
 		_, ruleObj, isIngress, err := na.GetNACLRule(index)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 		if ruleObj == nil {
 			continue
@@ -502,5 +504,7 @@ func GetNACLRules(numRules int, na SpecificNACLAnalyzer) (ingressRules,
 			egressRules = append(egressRules, ruleObj)
 		}
 	}
-	return ingressRules, egressRules, referencedIPblocks, nil
+
+	na.SetReferencedIPblocks(referencedIPblocks)
+	return ingressRules, egressRules, nil
 }
