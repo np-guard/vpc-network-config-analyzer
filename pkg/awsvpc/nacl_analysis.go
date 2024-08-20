@@ -8,6 +8,7 @@ package awsvpc
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
@@ -21,15 +22,21 @@ import (
 type AWSNACLAnalyzer struct {
 	naclResource       *types.NetworkAcl
 	referencedIPblocks []*ipblock.IPBlock
+	// all over the analyzer code, we assume that the acl rules are ordered by their priority.
+	// however, in aws, the priority is being config by the rule number, and the order has no meaning.
+	// so prioritiesEntries are the entries as in naclResource.Entries, sorted by the rule number:
+	prioritiesEntries []types.NetworkAclEntry
 }
 
 func NewAWSNACLAnalyzer(nacl *types.NetworkAcl) *AWSNACLAnalyzer {
-	return &AWSNACLAnalyzer{naclResource: nacl}
+	prioritiesEntries := slices.Clone(nacl.Entries)
+	slices.SortFunc(prioritiesEntries, func(a, b types.NetworkAclEntry) int { return int(*a.RuleNumber) - int(*b.RuleNumber) })
+	return &AWSNACLAnalyzer{naclResource: nacl, prioritiesEntries: prioritiesEntries}
 }
 
 // return number of ingress and egress rules
 func (na *AWSNACLAnalyzer) GetNumberOfRules() int {
-	return len(na.naclResource.Entries)
+	return len(na.prioritiesEntries)
 }
 
 func (na *AWSNACLAnalyzer) Name() *string {
@@ -49,7 +56,7 @@ func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.I
 func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
 	var conns *connection.Set
 	var connStr string
-	ruleObj := na.naclResource.Entries[index]
+	ruleObj := na.prioritiesEntries[index]
 	protocol := convertProtocol(*ruleObj.Protocol)
 	switch protocol {
 	case allProtocols:
