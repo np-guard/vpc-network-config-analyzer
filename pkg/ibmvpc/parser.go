@@ -29,6 +29,14 @@ type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
 
+func NewIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
+	ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
+	}
+	return &IBMresourcesContainer{ResourcesContainerModel: *ibmResources}, nil
+}
+
 func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesContainer, error) {
 	if rc2 == nil && rc1 != nil {
 		return rc1, nil
@@ -371,7 +379,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.Name, *netintf.ID,
-				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vpc)
+				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, len(instance.NetworkInterfaces), vpc)
 			if err != nil {
 				return err
 			}

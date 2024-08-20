@@ -30,6 +30,14 @@ type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
 
+func NewAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
+	awsResources, ok := rc.GetResources().(*aws.ResourcesContainer)
+	if !ok {
+		return nil, fmt.Errorf("error casting resources to *aws.ResourcesContainerModel type")
+	}
+	return &AWSresourcesContainer{ResourcesContainer: *awsResources}, nil
+}
+
 // parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
 // from the input JSON file
 func (rc *AWSresourcesContainer) ParseResourcesFromFile(fileName string) error {
@@ -214,7 +222,7 @@ func (rc *AWSresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			intfNode, err := commonvpc.NewNetworkInterface(*netintf.NetworkInterfaceId, *netintf.NetworkInterfaceId,
-				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instanceName, vpc)
+				*instance.Placement.AvailabilityZone, *netintf.PrivateIpAddress, *instanceName, len(instance.NetworkInterfaces), vpc)
 			if err != nil {
 				return err
 			}

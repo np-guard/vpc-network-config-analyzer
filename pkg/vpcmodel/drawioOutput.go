@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/np-guard/models/pkg/spec"
 	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
@@ -24,6 +25,12 @@ type edgeInfo struct {
 
 func (e *edgeInfo) IsExternal() bool {
 	return e.src.IsExternal() || e.dst.IsExternal()
+}
+func (e *edgeInfo) SynthesisResourceName() string {
+	return ""
+}
+func (e *edgeInfo) SynthesisKind() spec.ResourceType {
+	return ""
 }
 
 // DrawioOutputFormatter create the drawio connectivity map.
