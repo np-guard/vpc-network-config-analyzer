@@ -18,14 +18,14 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			id: id:152, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 		network ACL acl1-ky has no relevant allow rules
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			index: 2, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
+			name: acl3-in-1, direction: inbound , src: 10.240.10.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
 		security group sg1-ky allows connection with the following allow rules
-			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			id: id:154, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
 
 ------------------------------------------------------------------------------------------------------------------------
 
