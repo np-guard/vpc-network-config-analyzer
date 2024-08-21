@@ -100,7 +100,8 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringArrayVarP(&args.regionList, regionFlag, "r", nil,
 		"cloud region from which to collect resources, can pass multiple regions")
 	rootCmd.PersistentFlags().StringVar(&args.resourceGroup, rgFlag, "", "resource group id or name from which to collect resources")
-	rootCmd.PersistentFlags().StringArrayVarP(&args.vpcList, vpcFlag, "", nil, "CRN of the VPC to analyze")
+	rootCmd.PersistentFlags().StringArrayVarP(&args.vpcList, vpcFlag, "", nil,
+		"only the VPC with this CRN will be analyzed\nThis flag can be repeated to specify multiple CRNs")
 
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "f", "", "file path to store results")
 	rootCmd.PersistentFlags().VarP(&args.outputFormat, outputFormatFlag, "o", "output format; "+mustBeOneOf(allFormats))
