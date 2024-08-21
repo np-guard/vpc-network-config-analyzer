@@ -98,9 +98,35 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	}
 	ruleRes = &commonvpc.NACLRule{Src: srcIP, Dst: dstIP, Connections: conns, Action: action}
 	isIngress = direction == commonvpc.Inbound
-	ruleStr = fmt.Sprintf("direction: %s, name: %s, priority: %d, allow or deny: %s, source: %s , destination: %s,"+
-		" conn: %s\n", direction, name, index, action, src, dst, connStr)
+	priority := na.getNACLRulePriority(isIngress, index)
+	ruleStr = fmt.Sprintf("direction: %s, name: %s, priority: %d, action: %s, source: %s , destination: %s,"+
+		" conn: %s\n", direction, name, priority, action, src, dst, connStr)
 	return ruleStr, ruleRes, isIngress, nil
+}
+
+// getNACLRulePriority computes the priority of a rule
+// priorities starts with 1 and are calculated separately for ingress and egress
+func (na *IBMNACLAnalyzer) getNACLRulePriority(isIngress bool, myIndex int) int {
+	priority := 1
+	for index := 0; index < myIndex; index++ {
+		rule := na.naclResource.Rules[index]
+		var direction string
+		switch ruleObj := rule.(type) {
+		case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
+			direction = *ruleObj.Direction
+		case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
+			direction = *ruleObj.Direction
+		case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
+			direction = *ruleObj.Direction
+		default:
+			return -1 // if Rule not a legal object, GetNACLRule will dump in initialization
+		}
+		thisRuleIsIngress := direction == commonvpc.Inbound
+		if thisRuleIsIngress == isIngress {
+			priority++
+		}
+	}
+	return priority
 }
 
 // GetNACLRules returns ingress and egress rule objects
