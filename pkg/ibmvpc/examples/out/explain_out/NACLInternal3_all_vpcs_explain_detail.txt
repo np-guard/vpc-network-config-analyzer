@@ -23,7 +23,7 @@ Path is disabled; The relevant rules are:
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: inbound, name: acl3-in-1, priority: 2, allow or deny: allow, source: 10.240.10.0/24 , destination: 0.0.0.0/0, conn: all
+			direction: inbound, name: acl3-in-1, priority: 1, action: allow, source: 10.240.10.0/24 , destination: 0.0.0.0/0, conn: all
 		security group sg1-ky allows connection with the following allow rules
 			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:154
 
