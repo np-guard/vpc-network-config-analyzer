@@ -16,7 +16,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:133, direction: outbound, remote: 161.26.0.0/16, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535,
+			 direction: outbound, id: id:133, remote: 161.26.0.0/16, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
 		network ACL acl1-ky allows connection with the following allow rules
 			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 

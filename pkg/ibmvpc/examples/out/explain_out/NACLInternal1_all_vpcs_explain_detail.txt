@@ -15,7 +15,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:152, direction: outbound, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all,
+			 direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 		network ACL acl1-ky allows connection with the following allow and deny rules
 			direction: outbound, name: acl1-out-1, priority: 1, action: deny, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: protocol: icmp
 			direction: outbound, name: acl1-out-3, priority: 3, action: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
@@ -24,7 +24,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			direction: inbound, name: acl2-in-4, priority: 4, action: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
 		security group sg1-ky allows connection with the following allow rules
-			id: id:154, direction: inbound, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all,
+			 direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:

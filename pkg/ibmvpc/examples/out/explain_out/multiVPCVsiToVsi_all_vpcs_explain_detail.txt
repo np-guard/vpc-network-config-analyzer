@@ -15,7 +15,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg31-ky allows connection with the following allow rules
-			id: id:405, direction: outbound, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all,
+			 direction: outbound, id: id:405, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 		network ACL acl31-ky allows connection with the following allow rules
 			direction: outbound, name: acl31-out-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 
@@ -23,7 +23,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl31-ky allows connection with the following allow rules
 			direction: inbound, name: acl31-in-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 		security group sg31-ky allows connection with the following allow rules
-			id: id:403, direction: inbound, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all,
+			 direction: inbound, id: id:403, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
