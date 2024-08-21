@@ -19,14 +19,15 @@ import (
 /////////////////////////////////////////////////////////////////////////////
 
 func (data *templateData) setNodesRelations(network TreeNodeInterface) {
+	const decimal = "%d"
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	for _, node := range data.Nodes {
-		nodeID := fmt.Sprintf("%d", node.ID())
+		nodeID := fmt.Sprintf(decimal, node.ID())
 		res[nodeID] = map[string][]string{}
-		nodeRelations := []string{fmt.Sprintf("%d", data.RootID())}
+		nodeRelations := []string{fmt.Sprintf(decimal, data.RootID())}
 		for _, n := range rel[node] {
-			nodeRelations = append(nodeRelations, fmt.Sprintf("%d", n.ID()))
+			nodeRelations = append(nodeRelations, fmt.Sprintf(decimal, n.ID()))
 		}
 		res[nodeID]["relations"] = nodeRelations
 		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
