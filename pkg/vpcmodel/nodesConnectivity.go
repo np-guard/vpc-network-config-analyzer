@@ -69,6 +69,23 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	return res, err
 }
 
+func isAtPrivateSubnet(endpoint EndpointElem) bool {
+	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
+		return internalNode.Subnet().IsPrivate()
+	}
+	return false
+}
+
+func DenyBySubnet(src, dst Node) bool{
+	switch {
+	case isAtPrivateSubnet(dst) && src.IsExternal():
+		return true
+	case isAtPrivateSubnet(src) && dst.IsExternal():
+		return true
+	}
+	return false
+}
+
 func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
 		if rule := lb.GetLoadBalancerRule(src, dst); rule != nil {
@@ -167,7 +184,9 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		loadBalancerRule := c.getLoadBalancerRule(src, dst)
 		if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 			allLayersRes[peerNode] = NoConns()
-			continue
+		}
+		if DenyBySubnet(src, dst){
+			allLayersRes[peerNode] = NoConns()
 		}
 	}
 	return allLayersRes, perLayerRes, nil

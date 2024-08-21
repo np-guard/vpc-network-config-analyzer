@@ -194,12 +194,6 @@ func respondDetailsHeader(d *detailedConn) string {
 	}
 }
 
-func isAtPrivateSubnet(endpoint EndpointElem) bool {
-	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
-		return internalNode.Subnet().IsPrivate()
-	}
-	return false
-}
 
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
