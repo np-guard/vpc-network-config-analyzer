@@ -136,7 +136,8 @@ func TestWithSgObj(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 1)
-	require.Equal(t, ruleStr, "IpPermissionsEgress's index: 0, direction: outbound,  conns: protocol: tcp,  dstPorts: 23-10030, target: 0.0.0.0/0\n")
+	require.Equal(t, ruleStr, "IpPermissionsEgress's index: 0, direction: outbound,  conns: protocol: tcp, "+
+		" dstPorts: 23-10030, target: 0.0.0.0/0\n")
 }
 
 type sgTest struct {
