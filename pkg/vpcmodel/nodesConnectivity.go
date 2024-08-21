@@ -77,6 +77,7 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	}
 	return nil
 }
+
 func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 	switch {
 	case dst.IsInternal():
@@ -85,6 +86,19 @@ func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 		return src.(InternalNodeIntf).Subnet().GetPrivateSubnetRule(src, dst)
 	}
 	return nil
+}
+
+// getOtherRulesConn() return the connectivity of all rules that are not part of the filters and routers.
+func (c *VPCConfig) getOtherRulesConn(src, dst Node, isIngress bool) *connection.Set {
+	loadBalancerRule := c.getLoadBalancerRule(src, dst)
+	if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
+		return NoConns()
+	}
+	privateSubnetRule := c.getPrivateSubnetRule(src, dst)
+	if privateSubnetRule != nil && privateSubnetRule.Deny(isIngress) {
+		return NoConns()
+	}
+	return AllConns()
 }
 
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
@@ -173,14 +187,8 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			}
 			allLayersRes[peerNode] = routerConnRes
 		}
-		loadBalancerRule := c.getLoadBalancerRule(src, dst)
-		if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
-			allLayersRes[peerNode] = NoConns()
-		}
-		privateSubnetRule := c.getPrivateSubnetRule(src, dst)
-		if privateSubnetRule != nil && privateSubnetRule.Deny(isIngress) {
-			allLayersRes[peerNode] = NoConns()
-		}
+		otherRulesConn := c.getOtherRulesConn(src, dst, isIngress)
+		allLayersRes[peerNode] = allLayersRes[peerNode].Intersect(otherRulesConn)
 	}
 	return allLayersRes, perLayerRes, nil
 }
