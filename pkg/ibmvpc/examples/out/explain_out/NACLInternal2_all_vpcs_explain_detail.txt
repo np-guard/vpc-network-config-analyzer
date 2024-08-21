@@ -17,22 +17,22 @@ Path is enabled; The relevant rules are:
 		security group sg1-ky allows connection with the following allow rules
 			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:152
 		network ACL acl2-ky allows connection with the following allow rules
-			priority: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-out-3
+			direction: outbound, name: acl2-out-3, priority: 2, allow or deny: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			priority: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl1-in-2
+			direction: inbound, name: acl1-in-2, priority: 4, allow or deny: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: all
 		security group sg1-ky allows connection with the following allow rules
 			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:154
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			priority: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl1-out-3
+			direction: outbound, name: acl1-out-3, priority: 2, allow or deny: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			priority: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl2-in-4
+			direction: inbound, name: acl2-in-4, priority: 6, allow or deny: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

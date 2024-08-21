@@ -23,11 +23,11 @@ Path is disabled; The relevant rules are:
 			direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 			direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 		network ACL acl3-ky allows connection with the following allow rules
-			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: outbound
+			direction: outbound, name: outbound, priority: 0, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: inbound
+			direction: inbound, name: inbound, priority: 1, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 		security group sg2-ky has no relevant allow rules
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -15,31 +15,31 @@ ________________________________________________________________________________
 "Network ACL rules referencing CIDRs outside of the VPC address space" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule with destination 147.235.219.206/31 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule details: priority: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow, name: acl2-in-2
+	Rule details: direction: inbound, name: acl2-in-2, priority: 4, allow or deny: allow, source: 0.0.0.0/0 , destination: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22
 
 In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule with destination 147.235.219.207 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule details: priority: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny, name: acl2-in-1
+	Rule details: direction: inbound, name: acl2-in-1, priority: 3, allow or deny: deny, source: 0.0.0.0/0 , destination: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
-	Rule details: priority: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-in-4-shadowed-by
+	Rule details: direction: outbound, name: acl2-in-4-shadowed-by, priority: 6, allow or deny: allow, source: 10.240.20.0/28 , destination: 10.240.10.0/24, conn: all
 		Shadowing rules:
-			priority: 1, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: protocol: icmp, action: allow, name: acl2-out-2
-			priority: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-out-3
+			direction: outbound, name: acl2-out-2, priority: 1, allow or deny: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: protocol: icmp
+			direction: outbound, name: acl2-out-3, priority: 2, allow or deny: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: all
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Network ACLs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc1-ky", network ACL "acl2-ky" rule splits subnet "subnet2-ky" (10.240.20.0/24).
-	Rule details: priority: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-in-4-shadowed-by
+	Rule details: direction: outbound, name: acl2-in-4-shadowed-by, priority: 6, allow or deny: allow, source: 10.240.20.0/28 , destination: 10.240.10.0/24, conn: all
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule details: priority: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl3-out-2
+	Rule details: direction: inbound, name: acl3-in-2, priority: 3, allow or deny: allow, source: 10.240.20.0/24 , destination: 10.240.30.0/31, conn: all
 In VPC "test-vpc1-ky", network ACL "acl3-ky" rule splits subnet "subnet3-ky" (10.240.30.0/24).
-	Rule details: priority: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow, name: acl3-in-2
+	Rule details: direction: outbound, name: acl3-out-2, priority: 1, allow or deny: allow, source: 10.240.30.0/31 , destination: 10.240.20.0/24, conn: all
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "SG not applied to any resources" issues:

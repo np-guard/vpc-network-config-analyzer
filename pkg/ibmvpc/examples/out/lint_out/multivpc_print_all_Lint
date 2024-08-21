@@ -17,16 +17,16 @@ ________________________________________________________________________________
 "Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
-	Rule details: priority: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow, name: acl2-out-2
+	Rule details: direction: inbound, name: acl2-in-2, priority: 5, allow or deny: allow, source: 10.240.1.0/24 , destination: 10.240.2.0/24, conn: all
 		Shadowing rules:
-			priority: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny, name: acl2-out-0
-			priority: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl2-out-1
+			direction: inbound, name: acl2-in-0, priority: 3, allow or deny: deny, source: 10.240.0.0/16 , destination: 10.240.2.0/24, conn: all
+			direction: inbound, name: acl2-in-1, priority: 4, allow or deny: allow, source: 0.0.0.0/0 , destination: 10.240.2.0/24, conn: all
 
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
-	Rule details: priority: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow, name: acl2-in-2
+	Rule details: direction: outbound, name: acl2-out-2, priority: 2, allow or deny: allow, source: 10.240.2.0/24 , destination: 10.240.1.0/24, conn: all
 		Shadowing rules:
-			priority: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny, name: acl2-in-0
-			priority: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow, name: acl2-in-1
+			direction: outbound, name: acl2-out-0, priority: 0, allow or deny: deny, source: 10.240.2.0/24 , destination: 10.240.0.0/16, conn: all
+			direction: outbound, name: acl2-out-1, priority: 1, allow or deny: allow, source: 10.240.2.0/24 , destination: 0.0.0.0/0, conn: all
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

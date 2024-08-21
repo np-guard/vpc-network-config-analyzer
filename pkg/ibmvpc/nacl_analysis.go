@@ -98,8 +98,8 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	}
 	ruleRes = &commonvpc.NACLRule{Src: srcIP, Dst: dstIP, Connections: conns, Action: action}
 	isIngress = direction == commonvpc.Inbound
-	ruleStr = fmt.Sprintf("priority: %d, direction: %s , src: %s , dst: %s, conn: %s, action: %s, name: %s\n",
-		index, direction, src, dst, connStr, action, name)
+	ruleStr = fmt.Sprintf("direction: %s, name: %s, priority: %d, allow or deny: %s, source: %s , destination: %s,"+
+		" conn: %s\n", direction, name, index, action, src, dst, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }
 

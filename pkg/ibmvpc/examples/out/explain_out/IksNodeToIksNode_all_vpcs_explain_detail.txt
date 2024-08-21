@@ -19,11 +19,11 @@ Path is enabled; The relevant rules are:
 		security group ky-test-default-sg allows connection with the following allow rules
 			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:318
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			priority: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow, name: allow-traffic-subnet-private-outbound
+			direction: outbound, name: allow-traffic-subnet-private-outbound, priority: 6, allow or deny: allow, source: 0.0.0.0/0 , destination: 192.168.0.0/20, conn: all
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			priority: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow, name: allow-traffic-subnet-private-inbound
+			direction: inbound, name: allow-traffic-subnet-private-inbound, priority: 2, allow or deny: allow, source: 192.168.0.0/20 , destination: 0.0.0.0/0, conn: all
 		security group kube-clusterid:1 allows connection with the following allow rules
 			direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:300
 			direction: inbound,  conns: protocol: all, remote: kube-clusterid:1 (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0, id: id:302
@@ -36,11 +36,11 @@ Path is enabled; The relevant rules are:
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			priority: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow, name: allow-traffic-subnet-private-outbound
+			direction: outbound, name: allow-traffic-subnet-private-outbound, priority: 6, allow or deny: allow, source: 0.0.0.0/0 , destination: 192.168.0.0/20, conn: all
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			priority: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow, name: allow-traffic-subnet-private-inbound
+			direction: inbound, name: allow-traffic-subnet-private-inbound, priority: 2, allow or deny: allow, source: 192.168.0.0/20 , destination: 0.0.0.0/0, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -20,22 +20,22 @@ Path is enabled; The relevant rules are:
 			direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 			direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 		network ACL acl3-ky allows connection with the following allow rules
-			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 110-205, dstPorts: 20-100, action: allow, name: outbound
+			direction: outbound, name: outbound, priority: 0, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 110-205, dstPorts: 20-100
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 115-215, dstPorts: 25-95, action: allow, name: inbound
+			direction: inbound, name: inbound, priority: 1, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 115-215, dstPorts: 25-95
 		security group sg1-ky allows connection with the following allow rules
 			direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0, id: id:137
 
 TCP response is partly enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-50, dstPorts: 100-200, action: allow, name: outbound
+			direction: outbound, name: outbound, priority: 0, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-50, dstPorts: 100-200
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 10-60, dstPorts: 100-220, action: allow, name: inbound
+			direction: inbound, name: inbound, priority: 1, allow or deny: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 10-60, dstPorts: 100-220
 
 ------------------------------------------------------------------------------------------------------------------------
 
