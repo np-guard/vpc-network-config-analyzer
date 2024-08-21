@@ -19,7 +19,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 		security group sg2-ky allows connection with the following allow rules
-			 direction: inbound, id: id:143, remote: 147.235.219.206/32, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 22-22
+			direction: inbound, id: id:143, remote: 147.235.219.206/32, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 22-22
 
 TCP response is enabled; The relevant rules are:
 	Egress:

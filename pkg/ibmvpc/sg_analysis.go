@@ -157,7 +157,7 @@ func getRuleStr(direction, id, connStr, remoteCidr, remoteSGName, localCidr stri
 	if remoteSGName != "" {
 		remoteSGStr = remoteSGName + " (" + remoteCidr + ")"
 	}
-	return fmt.Sprintf(" direction: %s, id: %s, remote: %s, local: %s, conns: %s\n",
+	return fmt.Sprintf("direction: %s, id: %s, remote: %s, local: %s, conns: %s\n",
 		direction, id, remoteSGStr, localCidr, connStr)
 }
 
