@@ -49,7 +49,7 @@ type inArgs struct {
 	outputFormat          formatSetting
 	grouping              bool
 	lbAbstraction         bool
-	vpc                   string
+	vpcList               []string
 	eSrc                  string
 	eDst                  string
 	eProtocol             protocolSetting
@@ -100,7 +100,7 @@ func NewRootCommand() *cobra.Command {
 	rootCmd.PersistentFlags().StringArrayVarP(&args.regionList, regionFlag, "r", nil,
 		"cloud region from which to collect resources, can pass multiple regions")
 	rootCmd.PersistentFlags().StringVar(&args.resourceGroup, rgFlag, "", "resource group id or name from which to collect resources")
-	rootCmd.PersistentFlags().StringVar(&args.vpc, vpcFlag, "", "CRN of the VPC to analyze")
+	rootCmd.PersistentFlags().StringArrayVarP(&args.vpcList, vpcFlag, "", nil, "CRN of the VPC to analyze")
 
 	rootCmd.PersistentFlags().StringVarP(&args.outputFile, outputFileFlag, "f", "", "file path to store results")
 	rootCmd.PersistentFlags().VarP(&args.outputFormat, outputFormatFlag, "o", "output format; "+mustBeOneOf(allFormats))

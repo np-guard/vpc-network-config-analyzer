@@ -22,7 +22,7 @@ func TestGetRules(t *testing.T) {
 	rc := IBMresourcesContainer{}
 	err := rc.ParseResourcesFromFile(filepath.Join(commonvpc.GetTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
-	vpcConfigs, err := rc.VPCConfigsFromResources("", "", nil)
+	vpcConfigs, err := rc.VPCConfigsFromResources("", nil, nil)
 	require.Nilf(t, err, "err: %s", err)
 	for _, config := range vpcConfigs.Configs() {
 		for _, f := range config.FilterResources {

@@ -76,7 +76,7 @@ func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesCon
 // VpcConfigsFromFiles gets file names and returns vpc configs from it
 // vpcID, resourceGroup and regions are used to filter the vpc configs.
 // resourceGroup nad regions are not supported yet for aws
-func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
 		mergedRC := &AWSresourcesContainer{}
@@ -89,7 +89,7 @@ func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := rc.VPCConfigsFromResources(vpcID, resourceGroup, regions)
+	vpcConfigs, err2 := rc.VPCConfigsFromResources(resourceGroup, vpcIDs, regions)
 	if err2 != nil {
 		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
@@ -98,10 +98,10 @@ func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 
 // filterByVpc returns a map to filtered resources, if certain VPC to analyze is specified by the user,
 // skip resources configured outside that VPC
-func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
+func (rc *AWSresourcesContainer) filterByVpc(vpcIDs []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcsList {
-		if vpcID != "" && *vpc.VpcId != vpcID {
+		if len(vpcIDs) > 0 && !slices.Contains(vpcIDs, *vpc.VpcId) {
 			shouldSkipVpcIds[*vpc.VpcId] = true
 		}
 	}
@@ -110,7 +110,7 @@ func (rc *AWSresourcesContainer) filterByVpc(vpcID string) map[string]bool {
 
 // VPCConfigsFromResources returns a map from VPC UID (string) to its corresponding VPCConfig object,
 // containing the parsed resources in the relevant model objects
-func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
+func (rc *AWSresourcesContainer) VPCConfigsFromResources(resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs(common.AWS)       // map from VPC UID to its config
 	regionToStructMap := make(map[string]*commonvpc.Region) // map for caching Region objects
@@ -118,7 +118,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	// map to filter resources, if certain VPC to analyze is specified,
 	// skip resources configured outside that VPC
-	shouldSkipVpcIds := rc.filterByVpc(vpcID)
+	shouldSkipVpcIds := rc.filterByVpc(vpcIDs)
 
 	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {

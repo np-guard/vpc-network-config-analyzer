@@ -64,7 +64,7 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	default:
 		return nil, fmt.Errorf(notSupportedYet, provider)
 	}
-	return rc.VpcConfigsFromFiles(fileNames, inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+	return rc.VpcConfigsFromFiles(fileNames, inArgs.resourceGroup, inArgs.vpcList, inArgs.regionList)
 }
 
 func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error) {
@@ -89,7 +89,7 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 		return nil, err
 	}
 
-	vpcConfigs, err := commonRC.VPCConfigsFromResources(inArgs.vpc, inArgs.resourceGroup, inArgs.regionList)
+	vpcConfigs, err := commonRC.VPCConfigsFromResources(inArgs.resourceGroup, inArgs.vpcList, inArgs.regionList)
 	if err != nil {
 		return nil, err
 	}
