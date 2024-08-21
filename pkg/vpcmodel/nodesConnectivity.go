@@ -82,13 +82,14 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 type privateSubnetRule struct {
 	subnet   Subnet
 	src, dst Node
+	isIngress bool
 }
 
-func newPrivateSubnetRule(subnet Subnet, src, dst Node) PrivateSubnetRule {
-	return &privateSubnetRule{subnet, src, dst}
+func newPrivateSubnetRule(subnet Subnet, src, dst Node, isIngress bool) PrivateSubnetRule {
+	return &privateSubnetRule{subnet, src, dst,isIngress}
 }
 
-func (psr *privateSubnetRule) Deny(isIngress bool) bool { return psr.subnet.IsPrivate() }
+func (psr *privateSubnetRule) Deny(isIngress bool) bool { return isIngress == psr.isIngress && psr.subnet.IsPrivate() }
 
 func (psr *privateSubnetRule) String() string {
 	if psr.Deny(false) {
@@ -100,22 +101,13 @@ func (psr *privateSubnetRule) String() string {
 }
 
 func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
-	srcSubnet := getEndpointSubnet(src)
-	dstSubnet := getEndpointSubnet(dst)
 	switch {
 	case !c.CanHavePrivateSubnets:
 		return nil
-	case dstSubnet != nil && src.IsExternal():
-		return newPrivateSubnetRule(dstSubnet, src, dst)
-	case srcSubnet != nil && dst.IsExternal():
-		return newPrivateSubnetRule(srcSubnet, src, dst)
-	}
-	return nil
-}
-
-func getEndpointSubnet(endpoint EndpointElem) Subnet {
-	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
-		return internalNode.Subnet()
+	case src.IsExternal():
+		return newPrivateSubnetRule(dst.(InternalNodeIntf).Subnet(), src, dst, true)
+	case dst.IsExternal():
+		return newPrivateSubnetRule(src.(InternalNodeIntf).Subnet(), src, dst, false)
 	}
 	return nil
 }
