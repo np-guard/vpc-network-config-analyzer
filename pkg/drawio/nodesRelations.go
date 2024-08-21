@@ -10,8 +10,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"slices"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 //////////////////////////////////////////////////////////////////////
