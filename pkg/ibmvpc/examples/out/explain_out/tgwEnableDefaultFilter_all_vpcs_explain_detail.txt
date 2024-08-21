@@ -16,30 +16,30 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:346, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:346
 		network ACL acl3-ky allows connection with the following allow rules
-			name: acl1-out-1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl1-out-1
 
 	transit gateway local-tg-ky allows connection via transit connection tg_connection1 with the following prefix filter
 		default prefix,  action: permit
 
 	Ingress:
 		network ACL acl11-ky allows connection with the following allow rules
-			name: acl11-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 2, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl11-in-1
 		security group sg11-ky allows connection with the following allow rules
-			id: id:371, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:371
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl11-ky allows connection with the following allow rules
-			name: acl11-out-2, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl11-out-2
 
 	transit gateway local-tg-ky allows connection via transit connection tg_connection0 with the following prefix filter
 		default prefix,  action: permit
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			name: acl1-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl1-in-1
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -15,25 +15,25 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg2-ky allows connection with the following allow rules
-			id: id:149, direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0
-			id: id:151, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0, id: id:149
+			direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, id: id:151
 		network ACL acl2-ky allows connection with the following allow rules
-			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: outbound
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: inbound
 		security group sg2-ky allows connection with the following allow rules
-			id: id:153, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, id: id:153
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl3-ky allows connection with the following allow rules
-			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: outbound
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: inbound
 
 ------------------------------------------------------------------------------------------------------------------------
 

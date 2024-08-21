@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg31-ky allows connection with the following allow rules
-			id: id:405, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:405
 		network ACL acl31-ky allows connection with the following allow rules
-			name: acl31-out-1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl31-out-1
 
 	Ingress:
 		network ACL acl31-ky allows connection with the following allow rules
-			name: acl31-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl31-in-1
 		security group sg31-ky allows connection with the following allow rules
-			id: id:403, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:403
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl31-ky allows connection with the following allow rules
-			name: acl31-out-1, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl31-out-1
 
 	Ingress:
 		network ACL acl31-ky allows connection with the following allow rules
-			name: acl31-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl31-in-1
 
 ------------------------------------------------------------------------------------------------------------------------
 

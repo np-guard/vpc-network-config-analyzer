@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:152, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:152
 		network ACL acl2-ky allows connection with the following allow rules
-			name: acl2-out-3, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+			priority: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-out-3
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-in-2, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+			priority: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl1-in-2
 		security group sg1-ky allows connection with the following allow rules
-			id: id:154, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:154
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-out-3, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+			priority: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl1-out-3
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			name: acl2-in-4, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+			priority: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl2-in-4
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -15,32 +15,32 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group kube-clusterid:1 allows connection with the following allow rules
-			id: id:304, direction: outbound,  conns: protocol: all, remote: kube-clusterid:1 (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: kube-clusterid:1 (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0, id: id:304
 		security group ky-test-default-sg allows connection with the following allow rules
-			id: id:318, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:318
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			name: allow-traffic-subnet-private-outbound, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+			priority: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow, name: allow-traffic-subnet-private-outbound
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			name: allow-traffic-subnet-private-inbound, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow, name: allow-traffic-subnet-private-inbound
 		security group kube-clusterid:1 allows connection with the following allow rules
-			id: id:294, direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			id: id:296, direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			id: id:300, direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			id: id:302, direction: inbound,  conns: protocol: all, remote: kube-clusterid:1 (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: ICMP icmp-type: 8, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:300
+			direction: inbound,  conns: protocol: all, remote: kube-clusterid:1 (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0, id: id:302
+			direction: inbound,  conns: protocol: tcp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:294
+			direction: inbound,  conns: protocol: udp,  dstPorts: 30000-32767, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:296
 		security group ky-test-default-sg allows connection with the following allow rules
-			id: id:320, direction: inbound,  conns: protocol: all, remote: ky-test-default-sg (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0
-			id: id:322, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:322
+			direction: inbound,  conns: protocol: all, remote: ky-test-default-sg (192.168.0.4/32,192.168.4.4/32,192.168.8.4/32,192.168.16.4/32,192.168.20.4/32,192.168.24.4/32,192.168.32.4/32,192.168.36.4/32,192.168.40.4/32), local: 0.0.0.0/0, id: id:320
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			name: allow-traffic-subnet-private-outbound, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow
+			priority: 6, direction: outbound , src: 0.0.0.0/0 , dst: 192.168.0.0/20, conn: all, action: allow, name: allow-traffic-subnet-private-outbound
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			name: allow-traffic-subnet-private-inbound, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 2, direction: inbound , src: 192.168.0.0/20 , dst: 0.0.0.0/0, conn: all, action: allow, name: allow-traffic-subnet-private-inbound
 
 ------------------------------------------------------------------------------------------------------------------------
 

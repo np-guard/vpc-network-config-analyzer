@@ -16,26 +16,26 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg3-ky allows connection with the following allow rules
-			id: id:125, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			id: id:125, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0
-			id: id:125, direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
+			direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
+			direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 		network ACL acl3-ky allows connection with the following allow rules
-			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: outbound
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow, name: inbound
 		security group sg1-ky allows connection with the following allow rules
-			id: id:137, direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0
+			direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0, id: id:137
 
 TCP response is partly enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: outbound, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-50, dstPorts: 100-200, action: allow
+			priority: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 1-50, dstPorts: 100-200, action: allow, name: outbound
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			name: inbound, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 10-60, dstPorts: 100-220, action: allow
+			priority: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: protocol: tcp, srcPorts: 10-60, dstPorts: 100-220, action: allow, name: inbound
 
 ------------------------------------------------------------------------------------------------------------------------
 
