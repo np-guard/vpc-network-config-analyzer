@@ -17,16 +17,16 @@ ________________________________________________________________________________
 "Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
-	Rule details: name: acl2-out-2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
+	Rule details: priority: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow, name: acl2-out-2
 		Shadowing rules:
-			name: acl2-out-0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
-			name: acl2-out-1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
+			priority: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny, name: acl2-out-0
+			priority: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow, name: acl2-out-1
 
 In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher priority rules
-	Rule details: name: acl2-in-2, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
+	Rule details: priority: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow, name: acl2-in-2
 		Shadowing rules:
-			name: acl2-in-0, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
-			name: acl2-in-1, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+			priority: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny, name: acl2-in-0
+			priority: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow, name: acl2-in-1
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
