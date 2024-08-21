@@ -80,24 +80,35 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 
 // ////////////////////////////////////////////////////////////////////////////////
 type privateSubnetRule struct {
-	subnet   Subnet
-	src, dst Node
+	subnet    Subnet
+	src, dst  Node
 	isIngress bool
 }
 
 func newPrivateSubnetRule(subnet Subnet, src, dst Node, isIngress bool) PrivateSubnetRule {
-	return &privateSubnetRule{subnet, src, dst,isIngress}
+	return &privateSubnetRule{subnet, src, dst, isIngress}
 }
 
-func (psr *privateSubnetRule) Deny(isIngress bool) bool { return isIngress == psr.isIngress && psr.subnet.IsPrivate() }
+func (psr *privateSubnetRule) Deny(isIngress bool) bool {
+	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
+}
 
 func (psr *privateSubnetRule) String() string {
-	if psr.Deny(false) {
-		return fmt.Sprintf("%s will not connect to %s, since %s private\n",
+	switch {
+	case psr.Deny(false):
+		return fmt.Sprintf("%s will not accept connection from %s, since subnet %s is private\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.Deny(true):
+		return fmt.Sprintf("%s will not connect to %s, since subnet %s is private\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	case !psr.isIngress:
+		return fmt.Sprintf("%s can accept connection from %s, since subnet %s is public\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.isIngress:
+		return fmt.Sprintf("%s can connect to %s, since subnet %s is public\n",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
 	}
-	return fmt.Sprintf("%s may initiate a connection to %s, since %s is public\n",
-		psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	return ""
 }
 
 func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
