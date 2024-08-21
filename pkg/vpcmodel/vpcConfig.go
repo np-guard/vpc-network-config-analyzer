@@ -42,6 +42,8 @@ type VPCConfig struct {
 	// IsMultipleVPCsConfig is a bool indicator, when set true, it means that the VPCConfig contains resources from
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
 	IsMultipleVPCsConfig bool
+	
+	CanHavePrivateSubnets bool
 }
 
 func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {

@@ -231,10 +231,14 @@ type LoadBalancer interface {
 }
 
 // LoadBalancerRule represent the influence of the load balancer on a connectivity
-type LoadBalancerRule interface {
+type miscConnectivityRule interface {
 	Deny(bool) bool
 	String() string
 }
+
+type LoadBalancerRule miscConnectivityRule
+type PrivateSubnetRule miscConnectivityRule
+
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination

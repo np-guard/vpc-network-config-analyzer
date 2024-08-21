@@ -69,23 +69,6 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	return res, err
 }
 
-func isAtPrivateSubnet(endpoint EndpointElem) bool {
-	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
-		return internalNode.Subnet().IsPrivate()
-	}
-	return false
-}
-
-func DenyBySubnet(src, dst Node) bool{
-	switch {
-	case isAtPrivateSubnet(dst) && src.IsExternal():
-		return true
-	case isAtPrivateSubnet(src) && dst.IsExternal():
-		return true
-	}
-	return false
-}
-
 func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
 		if rule := lb.GetLoadBalancerRule(src, dst); rule != nil {
@@ -95,6 +78,49 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	return nil
 }
 
+// ////////////////////////////////////////////////////////////////////////////////
+type privateSubnetRule struct {
+	subnet   Subnet
+	src, dst Node
+}
+
+func newPrivateSubnetRule(subnet Subnet, src, dst Node) PrivateSubnetRule {
+	return &privateSubnetRule{subnet, src, dst}
+}
+
+func (psr *privateSubnetRule) Deny(isIngress bool) bool { return psr.subnet.IsPrivate() }
+
+func (psr *privateSubnetRule) String() string {
+	if psr.Deny(false) {
+		return fmt.Sprintf("%s will not connect to %s, since %s private\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	}
+	return fmt.Sprintf("%s may initiate a connection to %s, since %s is public\n",
+		psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+}
+
+func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
+	srcSubnet := getEndpointSubnet(src)
+	dstSubnet := getEndpointSubnet(dst)
+	switch {
+	case !c.CanHavePrivateSubnets:
+		return nil
+	case dstSubnet != nil && src.IsExternal():
+		return newPrivateSubnetRule(dstSubnet, src, dst)
+	case srcSubnet != nil && dst.IsExternal():
+		return newPrivateSubnetRule(srcSubnet, src, dst)
+	}
+	return nil
+}
+
+func getEndpointSubnet(endpoint EndpointElem) Subnet {
+	if internalNode, ok := endpoint.(InternalNodeIntf); ok {
+		return internalNode.Subnet()
+	}
+	return nil
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
@@ -185,7 +211,8 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 			allLayersRes[peerNode] = NoConns()
 		}
-		if DenyBySubnet(src, dst){
+		privateSubnetRule := c.getPrivateSubnetRule(src, dst)
+		if privateSubnetRule != nil && privateSubnetRule.Deny(isIngress) {
 			allLayersRes[peerNode] = NoConns()
 		}
 	}
