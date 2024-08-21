@@ -153,7 +153,7 @@ func (v *VPC) Subnets() []*Subnet {
 	return v.SubnetsList
 }
 
-// SubnetExpose - the expose to the public internet.
+// SubnetExpose - the expose of the subnet to the public internet.
 // for now, only in AWS the user can set the subnet to be private/public
 // for IBM its set to default - dontCare
 type SubnetExpose int
