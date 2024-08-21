@@ -153,22 +153,24 @@ func (v *VPC) Subnets() []*Subnet {
 	return v.SubnetsList
 }
 
+// SubnetExpose - the expose to the public internet.
+// for now, only in AWS the user can set the subnet to be private/public
+// for IBM its set to default - dontCare
 type SubnetExpose int
 
 const (
-	dontCare SubnetExpose = iota
-	private
-	public
+	dontCareExpose SubnetExpose = iota
+	privateExpose
+	publicExpose
 )
 
 // Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
-	VPCnodes []vpcmodel.Node  `json:"-"`
-	Cidr     string           `json:"-"`
-	IPblock  *ipblock.IPBlock `json:"-"`
-	// isPrivate is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
-	subnetExpose SubnetExpose `json:"-"`
+	VPCnodes     []vpcmodel.Node  `json:"-"`
+	Cidr         string           `json:"-"`
+	IPblock      *ipblock.IPBlock `json:"-"`
+	subnetExpose SubnetExpose     `json:"-"`
 }
 
 func (s *Subnet) CIDR() string {
@@ -187,12 +189,12 @@ func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
 }
 func (s *Subnet) IsPrivate() bool {
-	return s.subnetExpose == private
+	return s.subnetExpose == privateExpose
 }
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
-	s.subnetExpose = public
+	s.subnetExpose = publicExpose
 	if isPrivate {
-		s.subnetExpose = private
+		s.subnetExpose = privateExpose
 	}
 }
 func (s *Subnet) SynthesisKind() spec.ResourceType {
@@ -237,7 +239,7 @@ func (psr *privateSubnetRule) String() string {
 
 func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {
 	switch {
-	case s.subnetExpose == dontCare:
+	case s.subnetExpose == dontCareExpose:
 		return nil
 	case src.IsExternal():
 		return newPrivateSubnetRule(s, src, dst, true)
