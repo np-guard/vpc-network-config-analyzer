@@ -18,12 +18,12 @@ Path is enabled; The relevant rules are:
 		security group sg1-ky allows connection with the following allow rules
 			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:412
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: acl1-out-1, priority: 0, allow or deny: allow, source: 10.240.1.0/24 , destination: 172.217.22.46/32, conn: all
+			direction: outbound, name: acl1-out-1, priority: 1, action: allow, source: 10.240.1.0/24 , destination: 172.217.22.46/32, conn: all
 
 TCP response is enabled; The relevant rules are:
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: inbound, name: acl1-in-1, priority: 4, allow or deny: allow, source: 172.217.22.46/32 , destination: 10.240.1.0/24, conn: all
+			direction: inbound, name: acl1-in-1, priority: 1, action: allow, source: 172.217.22.46/32 , destination: 10.240.1.0/24, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
