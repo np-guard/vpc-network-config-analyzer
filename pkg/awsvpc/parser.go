@@ -189,7 +189,6 @@ func (rc *AWSresourcesContainer) getVPCconfig(
 		newVPCConfig := commonvpc.NewEmptyVPCConfig()
 		newVPCConfig.UIDToResource[vpcNodeSet.ResourceUID] = vpcNodeSet
 		newVPCConfig.VPC = vpcNodeSet
-		newVPCConfig.CanHavePrivateSubnets = true
 		res.SetConfig(vpcNodeSet.ResourceUID, newVPCConfig)
 	}
 	if len(res.Configs()) == 0 {

@@ -153,6 +153,14 @@ func (v *VPC) Subnets() []*Subnet {
 	return v.SubnetsList
 }
 
+type SubnetExpose int
+
+const (
+	dontCare SubnetExpose = iota
+	private
+	public
+)
+
 // Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
@@ -160,7 +168,7 @@ type Subnet struct {
 	Cidr     string           `json:"-"`
 	IPblock  *ipblock.IPBlock `json:"-"`
 	// isPrivate is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
-	isPrivate bool `json:"-"`
+	subnetExpose SubnetExpose `json:"-"`
 }
 
 func (s *Subnet) CIDR() string {
@@ -179,14 +187,67 @@ func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
 }
 func (s *Subnet) IsPrivate() bool {
-	return s.isPrivate
+	return s.subnetExpose == private
 }
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
-	s.isPrivate = isPrivate
+	s.subnetExpose = public
+	if isPrivate {
+		s.subnetExpose = private
+	}
 }
 func (s *Subnet) SynthesisKind() spec.ResourceType {
 	return spec.ResourceTypeSubnet
 }
+
+// ////////////////////////////////////////////////////////////////////////////////
+// privateSubnetRule is the implementation of PrivateSubnetRule
+// it holds the information on the influence of the subnet on the connectivity.
+// its relevant only for providers that allow private subnets (aws)
+type privateSubnetRule struct {
+	subnet    vpcmodel.Subnet
+	src, dst  vpcmodel.Node
+	isIngress bool
+}
+
+func newPrivateSubnetRule(subnet vpcmodel.Subnet, src, dst vpcmodel.Node, isIngress bool) vpcmodel.PrivateSubnetRule {
+	return &privateSubnetRule{subnet, src, dst, isIngress}
+}
+
+func (psr *privateSubnetRule) Deny(isIngress bool) bool {
+	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
+}
+
+func (psr *privateSubnetRule) String() string {
+	switch {
+	case psr.Deny(false):
+		return fmt.Sprintf("%s will not accept connection from %s, since subnet %s is private\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.Deny(true):
+		return fmt.Sprintf("%s will not connect to %s, since subnet %s is private\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	case !psr.isIngress:
+		return fmt.Sprintf("%s can accept connection from %s, since subnet %s is public\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.isIngress:
+		return fmt.Sprintf("%s can connect to %s, since subnet %s is public\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	}
+	return ""
+}
+
+func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {
+	switch {
+	case s.subnetExpose == dontCare:
+		return nil
+	case src.IsExternal():
+		return newPrivateSubnetRule(s, src, dst, true)
+	case dst.IsExternal():
+		return newPrivateSubnetRule(s, src, dst, false)
+	}
+	return nil
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////
 
 type Vsi struct {
 	vpcmodel.VPCResource

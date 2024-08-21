@@ -219,6 +219,7 @@ type Subnet interface {
 	NodeSet
 	CIDR() string
 	IsPrivate() bool
+	GetPrivateSubnetRule(src, dst Node) PrivateSubnetRule
 }
 
 // LoadBalancer is elaboration of a NodeSet - the nodes are the private IPs of the load balancer

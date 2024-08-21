@@ -77,56 +77,16 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	}
 	return nil
 }
-
-// ////////////////////////////////////////////////////////////////////////////////
-// privateSubnetRule is the implementation of PrivateSubnetRule
-// it holds the information on the influence of the subnet on the connectivity.
-// its relevant only for providers that allow private subnets (aws)
-type privateSubnetRule struct {
-	subnet    Subnet
-	src, dst  Node
-	isIngress bool
-}
-
-func newPrivateSubnetRule(subnet Subnet, src, dst Node, isIngress bool) PrivateSubnetRule {
-	return &privateSubnetRule{subnet, src, dst, isIngress}
-}
-
-func (psr *privateSubnetRule) Deny(isIngress bool) bool {
-	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
-}
-
-func (psr *privateSubnetRule) String() string {
-	switch {
-	case psr.Deny(false):
-		return fmt.Sprintf("%s will not accept connection from %s, since subnet %s is private\n",
-			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
-	case psr.Deny(true):
-		return fmt.Sprintf("%s will not connect to %s, since subnet %s is private\n",
-			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
-	case !psr.isIngress:
-		return fmt.Sprintf("%s can accept connection from %s, since subnet %s is public\n",
-			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
-	case psr.isIngress:
-		return fmt.Sprintf("%s can connect to %s, since subnet %s is public\n",
-			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
-	}
-	return ""
-}
-
 func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 	switch {
-	case !c.CanHavePrivateSubnets:
-		return nil
-	case src.IsExternal():
-		return newPrivateSubnetRule(dst.(InternalNodeIntf).Subnet(), src, dst, true)
-	case dst.IsExternal():
-		return newPrivateSubnetRule(src.(InternalNodeIntf).Subnet(), src, dst, false)
+	case dst.IsInternal():
+		return dst.(InternalNodeIntf).Subnet().GetPrivateSubnetRule(src, dst)
+	case src.IsInternal():
+		return src.(InternalNodeIntf).Subnet().GetPrivateSubnetRule(src, dst)
 	}
 	return nil
 }
 
-// /////////////////////////////////////////////////////////////////////////////////////////
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
