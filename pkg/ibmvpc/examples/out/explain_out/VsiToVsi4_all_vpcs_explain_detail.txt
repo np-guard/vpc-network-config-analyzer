@@ -25,7 +25,7 @@ Path is disabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 		security group sg2-ky allows connection with the following allow rules
-			direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0, id: id:147
+			id: id:147, direction: inbound, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0, conns: protocol: all,
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -157,8 +157,8 @@ func getRuleStr(direction, id, connStr, remoteCidr, remoteSGName, localCidr stri
 	if remoteSGName != "" {
 		remoteSGStr = remoteSGName + " (" + remoteCidr + ")"
 	}
-	return fmt.Sprintf("direction: %s,  conns: %s, remote: %s, local: %s, id: %s\n",
-		direction, connStr, remoteSGStr, localCidr, id)
+	return fmt.Sprintf("id: %s, direction: %s, remote: %s, local: %s, conns: %s,\n",
+		id, direction, remoteSGStr, localCidr, connStr)
 }
 
 func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
