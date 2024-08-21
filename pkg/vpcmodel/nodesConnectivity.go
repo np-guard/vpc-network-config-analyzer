@@ -79,6 +79,9 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 }
 
 // ////////////////////////////////////////////////////////////////////////////////
+// privateSubnetRule is the implementation of PrivateSubnetRule
+// it holds the information on the influence of the subnet on the connectivity.
+// its relevant only for providers that allow private subnets (aws)
 type privateSubnetRule struct {
 	subnet    Subnet
 	src, dst  Node

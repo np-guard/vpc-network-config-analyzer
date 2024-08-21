@@ -230,13 +230,15 @@ type LoadBalancer interface {
 	AbstractionInfo() *AbstractionInfo
 }
 
-// LoadBalancerRule represent the influence of the load balancer on a connectivity
 type miscConnectivityRule interface {
 	Deny(bool) bool
 	String() string
 }
 
+// LoadBalancerRule represent the influence of the load balancer on a connectivity
 type LoadBalancerRule miscConnectivityRule
+// PrivateSubnetRule represent the influence of the private/public subnets on a connectivity
+// relevant only for providers that allows the user to set subnets as privates (currently aws)
 type PrivateSubnetRule miscConnectivityRule
 
 

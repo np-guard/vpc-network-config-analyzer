@@ -43,6 +43,7 @@ type VPCConfig struct {
 	// multiple VPCs connected to each other, and such config is relevant for reasoning about cross-vpc connectivity
 	IsMultipleVPCsConfig bool
 	
+	// CanHavePrivateSubnets is provider specific - can the user set a subnet to be private 
 	CanHavePrivateSubnets bool
 }
 
