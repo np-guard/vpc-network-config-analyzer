@@ -19,31 +19,31 @@ ________________________________________________________________________________
 
 "SGs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", security group "sg1-ky" rule [1] splits subnet "subnet1-ky" (10.240.10.0/24).
+In VPC "test-vpc1-ky", security group "sg1-ky" rule splits subnet "subnet1-ky" (10.240.10.0/24).
 	Rule details: direction: inbound,  conns: protocol: all, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0, id: id:131
-In VPC "test-vpc1-ky", security group "sg1-ky" rule [3] splits subnets "subnet2-ky" (10.240.20.0/24), "subnet3-ky" (10.240.30.0/24).
-	Rule details: direction: inbound,  conns: protocol: all, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, id: id:135
-In VPC "test-vpc1-ky", security group "sg1-ky" rule [4] splits subnet "subnet3-ky" (10.240.30.0/24).
+In VPC "test-vpc1-ky", security group "sg1-ky" rule splits subnet "subnet3-ky" (10.240.30.0/24).
 	Rule details: direction: inbound,  conns: protocol: all, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0, id: id:137
+In VPC "test-vpc1-ky", security group "sg1-ky" rule splits subnets "subnet2-ky" (10.240.20.0/24), "subnet3-ky" (10.240.30.0/24).
+	Rule details: direction: inbound,  conns: protocol: all, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, id: id:135
 ... (3 more)
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Security group rules implied by other rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", security group "sg2-ky" rule [6] is implied by other rules
+In VPC "test-vpc1-ky", security group "sg2-ky" rule is implied by other rules
 	Rule details: direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, id: id:151
 		Implying rules:
 			direction: outbound,  conns: protocol: all, remote: 10.240.20.0/24, local: 0.0.0.0/0, id: id:139
 			direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0, id: id:149
 
-In VPC "test-vpc1-ky", security group "sg3-ky" rule [2] is implied by other rules
+In VPC "test-vpc1-ky", security group "sg3-ky" rule is implied by other rules
 	Rule details: direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 		Implying rules:
 			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 			direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 
-In VPC "test-vpc1-ky", security group "sg3-ky" rule [3] is implied by other rules
+In VPC "test-vpc1-ky", security group "sg3-ky" rule is implied by other rules
 	Rule details: direction: outbound,  conns: protocol: tcp,  dstPorts: 100-200, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125
 		Implying rules:
 			direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0, id: id:125

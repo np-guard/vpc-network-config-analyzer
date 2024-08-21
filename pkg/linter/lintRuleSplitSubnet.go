@@ -109,8 +109,8 @@ func (finding *splitRuleSubnet) string() string {
 	} else {
 		subnetStr = "subnet " + subnetStr
 	}
-	return fmt.Sprintf("In VPC %q, %s %q rule [%d] splits %s.\n\tRule details: %s",
-		finding.vpc()[0].Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex, subnetStr,
+	return fmt.Sprintf("In VPC %q, %s %q rule splits %s.\n\tRule details: %s",
+		finding.vpc()[0].Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, subnetStr,
 		strings.ReplaceAll(rule.RuleDesc, "\n", ""))
 }
 

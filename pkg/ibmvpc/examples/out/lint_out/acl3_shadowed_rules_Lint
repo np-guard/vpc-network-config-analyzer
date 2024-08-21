@@ -14,17 +14,17 @@ ________________________________________________________________________________
 
 "Network ACL rules referencing CIDRs outside of the VPC address space" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [3] with destination 147.235.219.207 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
-	Rule details: priority: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny, name: acl2-in-1
-
-In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule [4] with destination 147.235.219.206/31 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
+In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule with destination 147.235.219.206/31 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
 	Rule details: priority: 4, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.206/31, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: allow, name: acl2-in-2
+
+In VPC "test-vpc1-ky", network ACL "acl2-ky" ingress rule with destination 147.235.219.207 is outside of the VPC's Address Range (10.240.10.0/24, 10.240.20.0/24, 10.240.30.0/24)
+	Rule details: priority: 3, direction: inbound , src: 0.0.0.0/0 , dst: 147.235.219.207/32, conn: protocol: tcp, srcPorts: 1-65535, dstPorts: 22-22, action: deny, name: acl2-in-1
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 
 "Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] is shadowed by higher priority rules
+In VPC "test-vpc1-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
 	Rule details: priority: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-in-4-shadowed-by
 		Shadowing rules:
 			priority: 1, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: protocol: icmp, action: allow, name: acl2-out-2
@@ -34,11 +34,11 @@ ________________________________________________________________________________
 
 "Network ACLs implying different connectivity for endpoints inside a subnet" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc1-ky", network ACL "acl2-ky" rule [6] splits subnet "subnet2-ky" (10.240.20.0/24).
+In VPC "test-vpc1-ky", network ACL "acl2-ky" rule splits subnet "subnet2-ky" (10.240.20.0/24).
 	Rule details: priority: 6, direction: outbound , src: 10.240.20.0/28 , dst: 10.240.10.0/24, conn: all, action: allow, name: acl2-in-4-shadowed-by
-In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [1] splits subnet "subnet3-ky" (10.240.30.0/24).
+In VPC "test-vpc1-ky", network ACL "acl3-ky" rule splits subnet "subnet3-ky" (10.240.30.0/24).
 	Rule details: priority: 1, direction: outbound , src: 10.240.30.0/31 , dst: 10.240.20.0/24, conn: all, action: allow, name: acl3-out-2
-In VPC "test-vpc1-ky", network ACL "acl3-ky" rule [3] splits subnet "subnet3-ky" (10.240.30.0/24).
+In VPC "test-vpc1-ky", network ACL "acl3-ky" rule splits subnet "subnet3-ky" (10.240.30.0/24).
 	Rule details: priority: 3, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.30.0/31, conn: all, action: allow, name: acl3-in-2
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

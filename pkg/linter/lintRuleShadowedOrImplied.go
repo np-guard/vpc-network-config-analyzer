@@ -190,8 +190,8 @@ func (finding *ruleRedundant) vpc() []vpcmodel.VPCResourceIntf {
 
 func (finding *ruleRedundant) string() string {
 	rule := finding.rule
-	strResPrefix := fmt.Sprintf("In VPC %q, %s %q rule [%d] is ",
-		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName, rule.RuleIndex)
+	strResPrefix := fmt.Sprintf("In VPC %q, %s %q rule is ",
+		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName)
 	if rule.Filter.LayerName == NetworkACL {
 		if len(finding.containRules) == 1 {
 			strResPrefix += "shadowed by a higher priority rule"
