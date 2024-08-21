@@ -204,7 +204,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 		if !includePGW {
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
-		excludeExternalNodes := !subnetHasPGW  || subnet.IsPrivate()
+		excludeExternalNodes := !subnetHasPGW || subnet.IsPrivate()
 		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, excludeExternalNodes)
 		if err2 != nil {
 			return nil, err2

@@ -194,7 +194,6 @@ func respondDetailsHeader(d *detailedConn) string {
 	}
 }
 
-
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,

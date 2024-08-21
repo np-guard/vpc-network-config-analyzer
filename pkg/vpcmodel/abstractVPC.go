@@ -238,10 +238,10 @@ type miscConnectivityRule interface {
 
 // LoadBalancerRule represent the influence of the load balancer on a connectivity
 type LoadBalancerRule miscConnectivityRule
+
 // PrivateSubnetRule represent the influence of the private/public subnets on a connectivity
 // relevant only for providers that allows the user to set subnets as privates (currently aws)
 type PrivateSubnetRule miscConnectivityRule
-
 
 // RulesType Type of rules in a given filter (e.g. specific NACL table) relevant to
 // path between src to destination
