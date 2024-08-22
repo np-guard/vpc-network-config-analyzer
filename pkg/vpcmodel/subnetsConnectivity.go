@@ -39,6 +39,7 @@ type VPCsubnetConnectivity struct {
 const (
 	subnetKind                = "Subnet"
 	pgwKind                   = "PublicGateway"
+	igwKind                   = "InternetGateway"
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
 
@@ -106,7 +107,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 	return res, nil
 }
 
-func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, hasPGW bool) (
+func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, excludeExternalNodes bool) (
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
@@ -114,7 +115,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
 		// PGW does not allow ingress traffic but the ingress is required for the responsive computation
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, excludeExternalNodes); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n] = conn
 			}
@@ -125,7 +126,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 
 	// egress traffic to external nodes may be enabled by a public gateway
 	for ipb, conn := range ipconn.EgressAllowedConns {
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, !hasPGW); err == nil {
+		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, excludeExternalNodes); err == nil {
 			for _, n := range namedResources {
 				res.EgressAllowedConns[n] = conn
 			}
@@ -159,7 +160,7 @@ func getSubnetsWithPGW(c *VPCConfig) map[string]bool {
 	someExternalNode := getSomeExternalNode(c)
 	res := map[string]bool{}
 	for _, r := range c.RoutingResources {
-		if r.Kind() == pgwKind {
+		if r.Kind() == pgwKind || r.Kind() == igwKind {
 			attachedSubnets := getSubnetsForPGW(c, r, someExternalNode)
 			for _, subnet := range attachedSubnets {
 				res[subnet.AddressRange().ToCidrListString()] = true
@@ -190,7 +191,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnetNodeSet, err1 := c.SubnetCidrToSubnetElem(subnetCidrStr)
+		subnet, err1 := c.SubnetCidrToSubnetElem(subnetCidrStr)
 		if err1 != nil {
 			return nil, err1
 		}
@@ -203,12 +204,13 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 		if !includePGW {
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
-		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, subnetHasPGW)
+		excludeExternalNodes := !subnetHasPGW || subnet.IsPrivate()
+		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, excludeExternalNodes)
 		if err2 != nil {
 			return nil, err2
 		}
 
-		subnetsConnectivity[subnetNodeSet] = configBasedConns
+		subnetsConnectivity[subnet] = configBasedConns
 	}
 
 	res := &VPCsubnetConnectivity{AllowedConns: subnetsConnectivity, VPCConfig: c}

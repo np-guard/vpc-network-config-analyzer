@@ -46,6 +46,8 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection.
 	loadBalancerRule LoadBalancerRule
+	// privateSubnetRule - the rule of the subnet affecting this connection.
+	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
 	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
@@ -183,6 +185,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		singleSrcDstDetails.loadBalancerRule = c.getLoadBalancerRule(src, dst)
+		singleSrcDstDetails.privateSubnetRule = c.getPrivateSubnetRule(src, dst)
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {

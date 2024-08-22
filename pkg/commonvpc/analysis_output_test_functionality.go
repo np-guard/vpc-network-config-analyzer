@@ -61,7 +61,7 @@ type VpcGeneralTest struct {
 	Grouping       bool
 	NoLbAbstract   bool
 	Format         vpcmodel.OutFormat
-	Vpc            string
+	VpcList        []string
 	ESrc           string
 	EDst           string
 	EProtocol      netp.ProtocolString
@@ -107,7 +107,8 @@ func getTestFileName(testName string,
 	detailExplain bool,
 	format vpcmodel.OutFormat,
 	configName string,
-	allVPCs bool) (
+	allVPCs bool,
+	vpcIDs []string) (
 	expectedFileName,
 	actualFileName string,
 	err error) {
@@ -145,6 +146,9 @@ func getTestFileName(testName string,
 	}
 	if detailExplain {
 		res += suffixOutFileDetail
+	}
+	if !allVPCs {
+		res += strings.ReplaceAll(strings.Join(vpcIDs, ""), ":", "")
 	}
 	suffix, suffixErr := getTestFileSuffix(format)
 	if suffixErr != nil {
@@ -237,7 +241,7 @@ func GetVPCConfigs(t *testing.T, tt *VpcGeneralTest, firstCfg bool, rc Resources
 	if err != nil {
 		t.Fatalf(errString, err)
 	}
-	vpcConfigs, err := rc.VPCConfigsFromResources(tt.Vpc, tt.ResourceGroup, tt.Regions)
+	vpcConfigs, err := rc.VPCConfigsFromResources(tt.ResourceGroup, tt.VpcList, tt.Regions)
 	if err != nil {
 		t.Fatalf(errString, err)
 	}
@@ -294,7 +298,7 @@ func initTestFileNames(tt *VpcGeneralTest,
 	allVPCs bool,
 	testDirOut string) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.Name, uc, tt.Grouping, tt.NoLbAbstract, tt.DetailExplain, tt.Format, vpcName, allVPCs)
+		tt.Name, uc, tt.Grouping, tt.NoLbAbstract, tt.DetailExplain, tt.Format, vpcName, allVPCs, tt.VpcList)
 	if err != nil {
 		return err
 	}
@@ -311,7 +315,8 @@ func RunTestPerUseCase(t *testing.T,
 	mode testMode,
 	outDir string,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
-	if err := initTestFileNames(tt, uc, "", true, outDir); err != nil {
+	allVpcs := len(tt.VpcList) == 0
+	if err := initTestFileNames(tt, uc, "", allVpcs, outDir); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.Grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,

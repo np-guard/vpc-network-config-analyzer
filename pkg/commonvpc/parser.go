@@ -35,6 +35,7 @@ const (
 	ResourceTypeNetworkInterface = "NetworkInterface"
 	ResourceTypeSubnet           = "Subnet"
 	ResourceTypePublicGateway    = "PublicGateway"
+	ResourceTypeInternetGateway  = "InternetGateway"
 	ResourceTypeFloatingIP       = "FloatingIP"
 	ResourceTypeVPC              = "VPC"
 	ResourceTypeSG               = "SG"
@@ -50,9 +51,9 @@ const (
 
 // Implemented by AWSresourcesContainer and IBMresourcesContainer
 type ResourcesContainer interface {
-	VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+	VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
-	VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
+	VPCConfigsFromResources(resourceGroup string, vpcIDs, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
 	ParseResourcesFromFile(fileName string) error
 }
