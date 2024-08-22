@@ -67,7 +67,7 @@ func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesCon
 
 // VpcConfigsFromFiles gets file names and returns vpc configs from it
 // vpcID, resourceGroup and regions are used to filter the vpc configs
-func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
+func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
 		mergedRC := &IBMresourcesContainer{}
@@ -80,7 +80,7 @@ func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, vpcID, 
 			return nil, err1
 		}
 	}
-	vpcConfigs, err2 := rc.VPCConfigsFromResources(vpcID, resourceGroup, regions)
+	vpcConfigs, err2 := rc.VPCConfigsFromResources(resourceGroup, vpcIDs, regions)
 	if err2 != nil {
 		return nil, fmt.Errorf("error generating cloud config from input vpc resources file: %w", err2)
 	}
@@ -104,13 +104,12 @@ func (rc *IBMresourcesContainer) ParseResourcesFromFile(fileName string) error {
 // filterByVpcResourceGroupAndRegions returns a map to filtered resources,
 // if certain VPC to analyze, regions or resourceGroup is specified by the user,
 // skip resources configured outside that VPC
-func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resourceGroup string,
-	regions []string) map[string]bool {
+func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(resourceGroup string,
+	vpcIDs, regions []string) map[string]bool {
 	shouldSkipVpcIds := make(map[string]bool)
 	for _, vpc := range rc.VpcList {
-		if vpcID != "" && *vpc.CRN != vpcID {
+		if len(vpcIDs) > 0 && !slices.Contains(vpcIDs, *vpc.CRN) {
 			shouldSkipVpcIds[*vpc.CRN] = true
-			continue
 		}
 		if resourceGroup != "" && *vpc.ResourceGroup.ID != resourceGroup && *vpc.ResourceGroup.Name != resourceGroup {
 			shouldSkipVpcIds[*vpc.CRN] = true
@@ -127,7 +126,7 @@ func (rc *IBMresourcesContainer) filterByVpcResourceGroupAndRegions(vpcID, resou
 // containing the parsed resources in the relevant model objects
 //
 //nolint:funlen // serial list of commands, no need to split it
-func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup string, regions []string) (
+func (rc *IBMresourcesContainer) VPCConfigsFromResources(resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	res := vpcmodel.NewMultipleVPCConfigs(common.IBM)       // map from VPC UID to its config
 	filteredOut := map[string]bool{}                        // store networkInterface UIDs filtered out by skipByVPC
@@ -136,7 +135,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(vpcID, resourceGroup st
 
 	// map to filter resources, if certain VPC, resource-group or region list to analyze is specified,
 	// skip resources configured outside that VPC
-	shouldSkipVpcIds := rc.filterByVpcResourceGroupAndRegions(vpcID, resourceGroup, regions)
+	shouldSkipVpcIds := rc.filterByVpcResourceGroupAndRegions(resourceGroup, vpcIDs, regions)
 
 	err = rc.getVPCconfig(res, shouldSkipVpcIds, regionToStructMap)
 	if err != nil {
