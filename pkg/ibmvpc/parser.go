@@ -378,24 +378,42 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		vpcConfig := res.Config(vpcUID)
 		vpcConfig.NodeSets = append(vpcConfig.NodeSets, vsiNode)
 		vpcConfig.UIDToResource[vsiNode.ResourceUID] = vsiNode
+		// for j := range instance.NetworkAttachments {
+		// 	aid := *instance.NetworkAttachments[j].ID
+		// 	vniIndex := slices.IndexFunc(rc.VirtualNIList, func(vni *datamodel.VirtualNI) bool { return *vni.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID == aid })
+		// 	vni := rc.VirtualNIList[vniIndex]
+		// 	createNetworkInterface(*vni.Name, *vni.ID,
+		// 		*instance.Zone.Name, *vni.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
+		// 		*vni.Subnet.CRN, subnetIDToNetIntf, vpc, *vpcConfig)
+		// }
+		// if len(instance.NetworkAttachments) >0{
+		// 	continue
+		// }
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode, err := commonvpc.NewNetworkInterface(*netintf.Name, *netintf.ID,
-				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, len(instance.NetworkInterfaces), vpc)
-			if err != nil {
-				return err
-			}
-			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
-			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
-			vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
-			subnetUID := *netintf.Subnet.CRN
-			if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
-				subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
-			}
-			subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
+			createNetworkInterface(*netintf.Name, *netintf.ID,
+				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
+				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, *vpcConfig)
 		}
 	}
+	return nil
+}
+func createNetworkInterface(name, id, zoneName, address, instanceName string,
+	vsiNode *commonvpc.Vsi, numberOfNifsInVsi int,
+	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
+	vpc *commonvpc.VPC, vpcConfig vpcmodel.VPCConfig) error {
+	intfNode, err := commonvpc.NewNetworkInterface(name, id, zoneName, address, instanceName, numberOfNifsInVsi, vpc)
+	if err != nil {
+		return err
+	}
+	vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
+	vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
+	vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
+	if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
+		subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
+	}
+	subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
 	return nil
 }
 
@@ -512,7 +530,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, src
 func (rc *IBMresourcesContainer) getFipConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
-	skipByVPC map[string]bool){
+	skipByVPC map[string]bool) {
 	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
 		var targetUID string
