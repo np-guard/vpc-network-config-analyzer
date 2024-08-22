@@ -153,9 +153,10 @@ func (v *VPC) Subnets() []*Subnet {
 	return v.SubnetsList
 }
 
-// SubnetExpose - the expose of the subnet to the public internet.
-// for now, only in AWS the user can set the subnet to be private/public
-// for IBM its set to default - dontCare
+// SubnetExpose - can the subnet be exposed to the public internet.
+// out of the platforms we support at the moment, this is used in AWS and not in IBM 
+// In AWS each subnet is private or public and only the latter can connect to/from the public internet
+// for IBM the value is set to the default - dontCare (in IBM all subnets can connect to the public internet)
 type SubnetExpose int
 
 const (
@@ -189,6 +190,7 @@ func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
 }
 func (s *Subnet) IsPrivate() bool {
+	// dontcare means that the provider does not allow to set the subnet to be private, IsPrivate() will return false
 	return s.subnetExpose == privateExpose
 }
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
@@ -204,7 +206,8 @@ func (s *Subnet) SynthesisKind() spec.ResourceType {
 // ////////////////////////////////////////////////////////////////////////////////
 // privateSubnetRule is the implementation of PrivateSubnetRule
 // it holds the information on the influence of the subnet on the connectivity.
-// its relevant only for providers that allow private subnets (aws)
+// the rule is created only in case that the subnet configuration has influence on the connectivity between src and dst
+// i.e. its relevant only for providers that allow private subnets (aws), and one of the nodes is external
 type privateSubnetRule struct {
 	subnet    vpcmodel.Subnet
 	src, dst  vpcmodel.Node
