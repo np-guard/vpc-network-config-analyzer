@@ -34,6 +34,7 @@ const (
 	ResourceTypeNetworkInterface = "NetworkInterface"
 	ResourceTypeSubnet           = "Subnet"
 	ResourceTypePublicGateway    = "PublicGateway"
+	ResourceTypeInternetGateway  = "InternetGateway"
 	ResourceTypeFloatingIP       = "FloatingIP"
 	ResourceTypeVPC              = "VPC"
 	ResourceTypeSG               = "SG"

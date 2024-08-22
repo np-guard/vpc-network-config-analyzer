@@ -155,6 +155,9 @@ func (m *mockSubnet) RegionName() string {
 func (m *mockSubnet) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	return nil
 }
+func (m *mockSubnet) GetPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
+	return nil
+}
 func (m *mockSubnet) IsExternal() bool       { return false }
 func (m *mockSubnet) ShowOnSubnetMode() bool { return true }
 func (m *mockSubnet) VPC() VPCResourceIntf {

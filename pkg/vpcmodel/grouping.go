@@ -35,6 +35,7 @@ type explainDetails struct {
 	crossVpcRules        []RulesInTable
 	crossVPCRespondRules []RulesInTable
 	loadBalancerRule     LoadBalancerRule
+	privateSubnetRule    PrivateSubnetRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
 	ingressEnabled       bool
@@ -389,8 +390,9 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails
 			respondRules: details.respondRules, externalRouter: details.externalRouter,
 			crossVpcRouter: details.crossVpcRouter, crossVpcRules: details.crossVpcRules,
 			crossVPCRespondRules: details.crossVpcRespondRules,
-			loadBalancerRule:     details.loadBalancerRule, filtersRelevant: details.filtersRelevant,
-			connEnabled: details.connEnabled, ingressEnabled: details.ingressEnabled,
+			loadBalancerRule:     details.loadBalancerRule, privateSubnetRule: details.privateSubnetRule,
+			filtersRelevant: details.filtersRelevant,
+			connEnabled:     details.connEnabled, ingressEnabled: details.ingressEnabled,
 			egressEnabled: details.egressEnabled}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{Conn: details.conn, expDetails: expDetails,

@@ -153,14 +153,25 @@ func (v *VPC) Subnets() []*Subnet {
 	return v.SubnetsList
 }
 
+// SubnetExpose - can the subnet be exposed to the public internet.
+// out of the platforms we support at the moment, this is used in AWS and not in IBM
+// In AWS each subnet is private or public and only the latter can connect to/from the public internet
+// for IBM the value is set to the default - dontCare (in IBM all subnets can connect to the public internet)
+type SubnetExpose int
+
+const (
+	dontCareExpose SubnetExpose = iota
+	privateExpose
+	publicExpose
+)
+
 // Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
-	VPCnodes []vpcmodel.Node  `json:"-"`
-	Cidr     string           `json:"-"`
-	IPblock  *ipblock.IPBlock `json:"-"`
-	// isPrivate is relevant only for aws, the user set for each subnet if it public (i.e. - has access to the internet)
-	isPrivate bool `json:"-"`
+	VPCnodes     []vpcmodel.Node  `json:"-"`
+	Cidr         string           `json:"-"`
+	IPblock      *ipblock.IPBlock `json:"-"`
+	subnetExpose SubnetExpose
 }
 
 func (s *Subnet) CIDR() string {
@@ -179,14 +190,73 @@ func (s *Subnet) AddressRange() *ipblock.IPBlock {
 	return s.IPblock
 }
 func (s *Subnet) IsPrivate() bool {
-	return s.isPrivate
+	// dontcare means that the provider does not allow to set the subnet to be private, IsPrivate() will return false
+	return s.subnetExpose == privateExpose
 }
+
+// SetIsPrivate() is called only for platforms that support private/public subnets.
+// in other cases, the value of s.subnetExpose remain dontcare
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
-	s.isPrivate = isPrivate
+	s.subnetExpose = publicExpose
+	if isPrivate {
+		s.subnetExpose = privateExpose
+	}
 }
 func (s *Subnet) SynthesisKind() spec.ResourceType {
 	return spec.ResourceTypeSubnet
 }
+
+// ////////////////////////////////////////////////////////////////////////////////
+// privateSubnetRule is the implementation of PrivateSubnetRule
+// it holds the information on the influence of the subnet on the connectivity.
+// the rule is created only in case that the subnet configuration has influence on the connectivity between src and dst
+// i.e. its relevant only for providers that allow private subnets (aws), and one of the nodes is external
+type privateSubnetRule struct {
+	subnet    vpcmodel.Subnet
+	src, dst  vpcmodel.Node
+	isIngress bool
+}
+
+func newPrivateSubnetRule(subnet vpcmodel.Subnet, src, dst vpcmodel.Node, isIngress bool) vpcmodel.PrivateSubnetRule {
+	return &privateSubnetRule{subnet, src, dst, isIngress}
+}
+
+// Note that this func is called only when relevant (platform supporting private subnet and connection to/from internet)
+func (psr *privateSubnetRule) Deny(isIngress bool) bool {
+	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
+}
+
+func (psr *privateSubnetRule) String() string {
+	switch {
+	case psr.Deny(false):
+		return fmt.Sprintf("%s will not accept connection from %s, since subnet %s is private\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.Deny(true):
+		return fmt.Sprintf("%s will not connect to %s, since subnet %s is private\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	case !psr.isIngress:
+		return fmt.Sprintf("%s can accept connection from %s, since subnet %s is public\n",
+			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
+	case psr.isIngress:
+		return fmt.Sprintf("%s can connect to %s, since subnet %s is public\n",
+			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
+	}
+	return ""
+}
+
+func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {
+	switch {
+	case s.subnetExpose == dontCareExpose:
+		return nil
+	case src.IsExternal():
+		return newPrivateSubnetRule(s, src, dst, true)
+	case dst.IsExternal():
+		return newPrivateSubnetRule(s, src, dst, false)
+	}
+	return nil
+}
+
+// /////////////////////////////////////////////////////////////////////////////////////////
 
 type Vsi struct {
 	vpcmodel.VPCResource

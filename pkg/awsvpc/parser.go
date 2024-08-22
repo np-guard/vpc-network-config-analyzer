@@ -395,10 +395,6 @@ func (rc *AWSresourcesContainer) getIgwConfig(
 		}
 		vpc := res.GetVPC(vpcUID).(*commonvpc.VPC)
 		subnets := vpc.Subnets()
-		// only public subnets can be a subnet of igw:
-		subnets = slices.DeleteFunc(subnets, func(s *commonvpc.Subnet) bool {
-			return s.IsPrivate()
-		})
 
 		if len(subnets) == 0 {
 			logging.Warnf("skipping internet gateway %s - it does not have any attached subnet\n", *igwName)
@@ -416,7 +412,7 @@ func newIGW(igwName, igwCRN string, subnets []*commonvpc.Subnet, vpc vpcmodel.VP
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: igwName,
 			ResourceUID:  igwCRN,
-			ResourceType: commonvpc.ResourceTypePublicGateway,
+			ResourceType: commonvpc.ResourceTypeInternetGateway,
 			Region:       vpc.RegionName(),
 		},
 		src:        srcNodes,
