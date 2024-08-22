@@ -393,7 +393,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			// netintf has no CRN, thus using its ID for ResourceUID
 			createNetworkInterface(*netintf.Name, *netintf.ID,
 				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
-				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, *vpcConfig)
+				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 		}
 	}
 	return nil
@@ -401,7 +401,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 func createNetworkInterface(name, id, zoneName, address, instanceName string,
 	vsiNode *commonvpc.Vsi, numberOfNifsInVsi int,
 	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
-	vpc *commonvpc.VPC, vpcConfig vpcmodel.VPCConfig) error {
+	vpc *commonvpc.VPC, vpcConfig *vpcmodel.VPCConfig) error {
 	intfNode, err := commonvpc.NewNetworkInterface(name, id, zoneName, address, instanceName, numberOfNifsInVsi, vpc)
 	if err != nil {
 		return err
