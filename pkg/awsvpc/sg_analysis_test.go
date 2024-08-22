@@ -84,12 +84,12 @@ func TestSGRule(t *testing.T) {
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 0)
-	require.Equal(t, ruleStr, "IpPermissions's index: 0, direction: inbound, conns: protocol: all, target: 0.0.0.0/0\n")
+	require.Equal(t, "IpPermissions's index: 0, direction: inbound, target: 0.0.0.0/0, conns: protocol: all\n", ruleStr)
 	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 1)
-	require.Equal(t, ruleStr, "IpPermissionsEgress's index: 0, direction: outbound, conns: protocol: all, target: 0.0.0.0/0\n")
+	require.Equal(t, "IpPermissionsEgress's index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: all\n", ruleStr)
 }
 
 func newSGobj(groupID, groupName, vpcID string, ipPermissions []types.IpPermission,
@@ -129,15 +129,16 @@ func TestWithSgObj(t *testing.T) {
 	}
 	ruleStr, sgRule, _, err := sgResource.Analyzer.SgAnalyzer.GetSGRule(0)
 	require.Nil(t, err)
-	require.Equal(t, sgRule.Remote.Cidr.String(), "4.2.0.0/16")
-	require.Equal(t, sgRule.Index, 0)
-	require.Equal(t, ruleStr, "IpPermissions's index: 0, direction: inbound, conns: protocol: tcp, dstPorts: 5-1000, target: 4.2.0.0/16\n")
+	require.Equal(t, "4.2.0.0/16", sgRule.Remote.Cidr.String())
+	require.Equal(t, 0, sgRule.Index)
+	require.Equal(t, "IpPermissions's index: 0, direction: inbound, target: 4.2.0.0/16, conns: protocol: tcp,"+
+		" dstPorts: 5-1000\n", ruleStr)
 	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 1)
-	require.Equal(t, ruleStr, "IpPermissionsEgress's index: 0, direction: outbound, conns: protocol: tcp, "+
-		"dstPorts: 23-10030, target: 0.0.0.0/0\n")
+	require.Equal(t, "IpPermissionsEgress's index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: tcp, "+
+		"dstPorts: 23-10030\n", ruleStr)
 }
 
 type sgTest struct {
