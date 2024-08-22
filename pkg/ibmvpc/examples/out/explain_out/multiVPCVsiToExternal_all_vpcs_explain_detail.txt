@@ -6,7 +6,7 @@ Interpreted destination: 172.217.22.46/32 (external)
 Connections from vsi1-ky[10.240.1.4] to Public Internet 172.217.22.46/32: All Connections
 
 Path:
-	vsi1-ky[10.240.1.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet1-ky -> 
+	vsi1-ky[10.240.1.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
 	PublicGateway public-gw1-ky -> 
 	Public Internet 172.217.22.46/32
 
@@ -16,14 +16,14 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 1, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound, id: id:412, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 10.240.1.0/24 , dst: 172.217.22.46/32, conn: all, action: allow
+			direction: outbound, name: acl1-out-1, priority: 1, action: allow, source: 10.240.1.0/24 , destination: 172.217.22.46/32, conn: all
 
 TCP response is enabled; The relevant rules are:
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 4, direction: inbound , src: 172.217.22.46/32 , dst: 10.240.1.0/24, conn: all, action: allow
+			direction: inbound, name: acl1-in-1, priority: 1, action: allow, source: 172.217.22.46/32 , destination: 10.240.1.0/24, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

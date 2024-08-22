@@ -2,7 +2,7 @@ Endpoint connectivity for VPC VpcId:22
 <nothing to report>
 
 Endpoint connectivity for VPC vpc1
-InstanceId:18[10.0.20.81] => InstanceId:7[10.0.10.50] : All Connections
-InstanceId:7[10.0.10.50] => InstanceId:18[10.0.20.81] : All Connections
-InstanceId:7[10.0.10.50] => Public Internet (all ranges) : All Connections
-Public Internet (all ranges) => InstanceId:7[10.0.10.50] : All Connections
+Public Internet (all ranges) => instance1[10.0.10.50] : All Connections
+instance1[10.0.10.50] => Public Internet (all ranges) : All Connections
+instance1[10.0.10.50] => instance2[10.0.20.81] : All Connections
+instance2[10.0.20.81] => instance1[10.0.10.50] : All Connections

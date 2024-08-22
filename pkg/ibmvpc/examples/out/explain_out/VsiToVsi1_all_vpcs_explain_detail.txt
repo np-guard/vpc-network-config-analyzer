@@ -6,8 +6,8 @@ Interpreted destination: vsi3b-ky[10.240.30.4]
 Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
 
 Path:
-	vsi2-ky[10.240.20.4] -> security group sg2-ky -> network ACL acl2-ky -> subnet2-ky -> 
-	subnet3-ky -> network ACL acl3-ky -> security group sg2-ky -> vsi3b-ky[10.240.30.4]
+	vsi2-ky[10.240.20.4] -> security group sg2-ky -> network ACL acl2-ky -> subnet subnet2-ky -> 
+	subnet subnet3-ky -> network ACL acl3-ky -> security group sg2-ky -> vsi3b-ky[10.240.30.4]
 
 
 Details:
@@ -15,25 +15,25 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg2-ky allows connection with the following allow rules
-			index: 5, direction: outbound,  conns: protocol: all, remote: 10.240.30.0/24, local: 0.0.0.0/0
-			index: 6, direction: outbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+			direction: outbound, id: id:149, remote: 10.240.30.0/24, local: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:151, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
 		network ACL acl2-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 		security group sg2-ky allows connection with the following allow rules
-			index: 7, direction: inbound,  conns: protocol: tcp,  dstPorts: 1-65535, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0
+			direction: inbound, id: id:153, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl3-ky allows connection with the following allow rules
-			index: 0, direction: outbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			index: 1, direction: inbound , src: 0.0.0.0/0 , dst: 0.0.0.0/0, conn: all, action: allow
+			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -7,7 +7,7 @@ Connections are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/
 (note that not all queried protocols/ports are allowed)
 
 Path:
-	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet1-ky -> 
+	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
 	PublicGateway public-gw-ky -> 
 	Public Internet 161.26.0.0/16
 
@@ -17,9 +17,9 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 1, direction: outbound , src: 10.240.10.0/24 , dst: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-600, dstPorts: 1-50, action: allow
+			direction: outbound, name: acl1-out-2, priority: 2, action: allow, source: 10.240.10.0/24 , destination: 161.26.0.0/16, conn: protocol: udp, srcPorts: 1-600, dstPorts: 1-50
 
 ------------------------------------------------------------------------------------------------------------------------
 

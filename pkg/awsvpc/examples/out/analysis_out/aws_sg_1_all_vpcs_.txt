@@ -1,17 +1,17 @@
-Endpoint connectivity for VPC VpcId:40
+Endpoint connectivity for VPC VpcId:64
 <nothing to report>
 
 Endpoint connectivity for VPC vpc0
-InstanceId:15[10.240.20.141] => InstanceId:26[10.240.30.108] : protocol: TCP
-InstanceId:21[10.240.20.131] => InstanceId:26[10.240.30.108] : protocol: TCP
-InstanceId:34[10.240.10.122] => InstanceId:15[10.240.20.141] : protocol: TCP dst-ports: 9080
-InstanceId:34[10.240.10.122] => InstanceId:21[10.240.20.131] : protocol: TCP dst-ports: 9080
-InstanceId:34[10.240.10.122] => InstanceId:7[10.240.40.184] : All Connections
-InstanceId:34[10.240.10.122] => Public Internet (all ranges) : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:15[10.240.20.141] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:21[10.240.20.131] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:26[10.240.30.108] : All Connections
-InstanceId:7[10.240.40.184] => InstanceId:34[10.240.10.122] : All Connections
-InstanceId:7[10.240.40.184] => Public Internet (all ranges) : All Connections
-Public Internet (all ranges) => InstanceId:34[10.240.10.122] : All Connections
-Public Internet (all ranges) => InstanceId:7[10.240.40.184] : All Connections
+Public Internet (all ranges) => dashboard[10.240.40.217] : All Connections
+Public Internet (all ranges) => proxy[10.240.10.42] : All Connections
+app1[10.240.20.245] => mydb[10.240.30.33] : protocol: TCP
+app2[10.240.20.43] => mydb[10.240.30.33] : protocol: TCP
+dashboard[10.240.40.217] => Public Internet (all ranges) : All Connections
+dashboard[10.240.40.217] => app1[10.240.20.245] : All Connections
+dashboard[10.240.40.217] => app2[10.240.20.43] : All Connections
+dashboard[10.240.40.217] => mydb[10.240.30.33] : All Connections
+dashboard[10.240.40.217] => proxy[10.240.10.42] : All Connections
+proxy[10.240.10.42] => Public Internet (all ranges) : All Connections
+proxy[10.240.10.42] => app1[10.240.20.245] : protocol: TCP dst-ports: 9080
+proxy[10.240.10.42] => app2[10.240.20.43] : protocol: TCP dst-ports: 9080
+proxy[10.240.10.42] => dashboard[10.240.40.217] : All Connections

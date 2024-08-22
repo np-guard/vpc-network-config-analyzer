@@ -6,8 +6,8 @@ Interpreted destination: vsi1-ky[10.240.10.4]
 Connections from vsi2-ky[10.240.20.4] to vsi1-ky[10.240.10.4]: All Connections
 
 Path:
-	vsi2-ky[10.240.20.4] -> security group sg1-ky -> network ACL acl2-ky -> subnet2-ky -> 
-	subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.4]
+	vsi2-ky[10.240.20.4] -> security group sg1-ky -> network ACL acl2-ky -> subnet subnet2-ky -> 
+	subnet subnet1-ky -> network ACL acl1-ky -> security group sg1-ky -> vsi1-ky[10.240.10.4]
 
 
 Details:
@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 		network ACL acl2-ky allows connection with the following allow rules
-			index: 2, direction: outbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+			direction: outbound, name: acl2-out-3, priority: 3, action: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 4, direction: inbound , src: 10.240.20.0/24 , dst: 10.240.10.0/24, conn: all, action: allow
+			direction: inbound, name: acl1-in-2, priority: 2, action: allow, source: 10.240.20.0/24 , destination: 10.240.10.0/24, conn: all
 		security group sg1-ky allows connection with the following allow rules
-			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			index: 2, direction: outbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+			direction: outbound, name: acl1-out-3, priority: 3, action: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			index: 6, direction: inbound , src: 10.240.10.0/24 , dst: 10.240.20.0/24, conn: all, action: allow
+			direction: inbound, name: acl2-in-4, priority: 4, action: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

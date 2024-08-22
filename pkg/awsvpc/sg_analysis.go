@@ -18,11 +18,12 @@ import (
 
 const (
 	protocolTCP  = "tcp"
-	allProtocols = "-1"
+	allProtocols = "all"
 	protocolUDP  = "udp"
 	protocolICMP = "icmp"
 )
 
+// AWSSGAnalyzer implements commonvpc.SpecificSGAnalyzer
 type AWSSGAnalyzer struct {
 	sgResource         *types.SecurityGroup
 	referencedIPblocks []*ipblock.IPBlock
@@ -90,7 +91,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", protocol, minPort, maxPort)
+	connStr := fmt.Sprintf("protocol: %s, dstPorts: %d-%d", protocol, minPort, maxPort)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
@@ -110,7 +111,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 }
 
 func getRuleStr(direction, connStr, ipRanges string) string {
-	return fmt.Sprintf("direction: %s,  conns: %s, target: %s\n", direction, connStr, ipRanges)
+	return fmt.Sprintf("direction: %s, target: %s, conns: %s\n", direction, ipRanges, connStr)
 }
 
 func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeMax,
@@ -145,7 +146,7 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 		return "", nil, err
 	}
 	conns := connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
+	connStr := fmt.Sprintf("protocol: %s, icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
@@ -163,7 +164,7 @@ func convertProtocol(ipProtocol string) string {
 	// currently supports just tcp, udp and icmp
 	// todo remove hard coded numbers and support other protocol numbers
 	switch ipProtocol {
-	case allProtocols:
+	case "-1", allProtocols:
 		return allProtocols
 	case "6", protocolTCP:
 		return protocolTCP
@@ -177,17 +178,20 @@ func convertProtocol(ipProtocol string) string {
 	}
 }
 
+// GetSGRule gets index of the rule and returns the rule results line and obj
 func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	var ruleObj types.IpPermission
 	direction := commonvpc.Inbound
+	listIndex := index
 	if index < len(sga.sgResource.IpPermissions) {
 		isIngress = true
-		ruleObj = sga.sgResource.IpPermissions[index]
+		ruleObj = sga.sgResource.IpPermissions[listIndex]
 	} else {
 		direction = commonvpc.Outbound
 		isIngress = false
-		ruleObj = sga.sgResource.IpPermissionsEgress[index-len(sga.sgResource.IpPermissions)]
+		listIndex = index - len(sga.sgResource.IpPermissions)
+		ruleObj = sga.sgResource.IpPermissionsEgress[listIndex]
 	}
 	protocol := convertProtocol(*ruleObj.IpProtocol)
 	switch protocol {
@@ -205,38 +209,29 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	}
 	ruleRes.Local = ipblock.GetCidrAll()
 	ruleRes.Index = index
-	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
-}
-
-func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
-	ingressRules = []*commonvpc.SGRule{}
-	egressRules = []*commonvpc.SGRule{}
-	numRules := len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
-	for index := 0; index < numRules; index++ {
-		_, ruleObj, isIngress, err := sga.GetSGRule(index)
-		if err != nil {
-			return nil, nil, err
-		}
-		if ruleObj == nil {
-			continue
-		}
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
+	tableName := "Inbound"
+	if !isIngress {
+		tableName = "Outbound"
 	}
-	return ingressRules, egressRules, nil
+	return fmt.Sprintf("%s index: %d, %v", tableName, listIndex, ruleStr), ruleRes, isIngress, nil
 }
 
+// GetSGRules returns ingress and egress rule objects
+func (sga *AWSSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
+	return commonvpc.GetSGRules(sga)
+}
+
+// SetSGmap gets sgMap (a map from sg groupID to SecurityGroup obj) and save it in AWSSGAnalyzer
 func (sga *AWSSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
+// ReferencedIPblocks returns referencedIPblocks filed
 func (sga *AWSSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
+// GetNumberOfRules returns number of egress and ingress rules of the securityGroup obj in AWSSGAnalyzer
 func (sga *AWSSGAnalyzer) GetNumberOfRules() int {
 	return len(sga.sgResource.IpPermissions) + len(sga.sgResource.IpPermissionsEgress)
 }

@@ -88,17 +88,17 @@ func newHubSpokeBase1Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 		"us-south-1", "10.1.15.192/26", vpcTransit)
 
 	transitTestInstance, _ := commonvpc.NewNetworkInterface("transitTestInstance", "transitTestInstance",
-		"us-south-1", "10.1.15.4", "transitTestInstanceVSI", vpcTransit)
+		"us-south-1", "10.1.15.4", "transitTestInstanceVSI", 1, vpcTransit)
 	transitTestInstance2, _ := commonvpc.NewNetworkInterface("transitTestInstance2", "transitTestInstance2",
-		"us-south-1", "10.1.15.5", "transitTestInstanceVSI2", vpcTransit)
+		"us-south-1", "10.1.15.5", "transitTestInstanceVSI2", 1, vpcTransit)
 	firewallInstance, _ := commonvpc.NewNetworkInterface("firewallInstance", "firewallInstance",
-		"us-south-1", "10.1.15.197", "firewallInstanceVSI", vpcTransit)
+		"us-south-1", "10.1.15.197", "firewallInstanceVSI", 1, vpcTransit)
 
 	spokeTestInstance, _ := commonvpc.NewNetworkInterface("spokeTestInstance", "spokeTestInstance",
-		"us-south-1", "10.1.0.4", "spokeTestInstanceVSI", vpcSpoke)
+		"us-south-1", "10.1.0.4", "spokeTestInstanceVSI", 1, vpcSpoke)
 
 	enterpriseTestInstance, _ := commonvpc.NewNetworkInterface("enterpriseTestInstance", "enterpriseTestInstance",
-		"z1", "192.168.0.4", "enterpriseTestInstanceVSI", vpcEnterprise)
+		"z1", "192.168.0.4", "enterpriseTestInstanceVSI", 1, vpcEnterprise)
 
 	vpcConfTransit := genConfig(vpcTransit, []*commonvpc.Subnet{workerSubnetTransit, firewallSubnetTransit},
 		[]*commonvpc.NetworkInterface{transitTestInstance, transitTestInstance2, firewallInstance}, nil, nil)
@@ -261,8 +261,8 @@ var globalAnalyzerTests = []*testGlobalAnalyzer{
 		src: "10.1.15.4",
 		dst: "10.1.15.5",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI2", "10.1.15.5", "transitTestInstance2")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI2", "10.1.15.5", "transitTestInstance2", 1)),
 		),
 	},
 	{
@@ -270,9 +270,9 @@ var globalAnalyzerTests = []*testGlobalAnalyzer{
 		src: "10.1.15.4", // transit vpc
 		dst: "10.1.0.4",  // spoke vpc
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwSpoke")),
-			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance", 1)),
 		),
 		//   NetworkInterface - transitTestInstanceVSI[10.1.15.4] -> TGW - tgwSpoke -> NetworkInterface - spokeTestInstanceVSI[10.1.0.4]
 	},
@@ -299,7 +299,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "10.1.0.4",    // spoke vpc
 		dst: "192.168.0.4", // enterprise vpc
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwSpoke")),
 			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
@@ -310,9 +310,9 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.197",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 		// NetworkInterface - firewallInstanceVSI[10.1.15.197] -> TGW - tgwLink -> NetworkInterface - enterpriseTestInstanceVSI[192.168.0.4]
 	},
@@ -321,7 +321,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "192.168.0.4",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
 			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
@@ -332,8 +332,8 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.197",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance")),
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance", 1)),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 		),
 	},
 	{
@@ -341,9 +341,9 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.4",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 	},
 	{
@@ -351,9 +351,9 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.4",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 	},
 	{
@@ -364,7 +364,7 @@ var config2Tests = []*testGlobalAnalyzer{
 		src: "192.168.0.4",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
 			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
@@ -377,9 +377,9 @@ var config3Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.4",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 	},
 	{
@@ -387,9 +387,9 @@ var config3Tests = []*testGlobalAnalyzer{
 		src: "192.168.0.4",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 		),
 	},
 	{
@@ -397,7 +397,7 @@ var config3Tests = []*testGlobalAnalyzer{
 		src: "10.1.0.4",    // spoke vpc
 		dst: "192.168.0.4", // enterprise vpc
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("spokeTestInstanceVSI", "10.1.0.4", "spokeTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwSpoke")),
 			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
@@ -408,9 +408,9 @@ var config3Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.197",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 		// NetworkInterface - firewallInstanceVSI[10.1.15.197] -> TGW - tgwLink -> NetworkInterface - enterpriseTestInstanceVSI[192.168.0.4]
 	},
@@ -422,7 +422,7 @@ var config4Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.4",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 			pathFromNextHopValues("10.1.15.197", "192.168.0.4"),
 		),
 		// NetworkInterface - transitTestInstanceVSI[10.1.15.4] -> nextHop: 10.1.15.197 [origDest: 192.168.0.4]
@@ -433,9 +433,9 @@ var config4Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.197",
 		dst: "192.168.0.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 		),
 	},
 
@@ -444,7 +444,7 @@ var config4Tests = []*testGlobalAnalyzer{
 		src: "192.168.0.4",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("enterpriseTestInstanceVSI", "192.168.0.4", "enterpriseTestInstance", 1)),
 			vpcmodel.PathFromResource(newTGWForTest("tgwLink")),
 			pathFromNextHopValues("10.1.15.197", "10.1.15.4"),
 		),
@@ -455,8 +455,8 @@ var config4Tests = []*testGlobalAnalyzer{
 		src: "10.1.15.197",
 		dst: "10.1.15.4",
 		expectedPath: vpcmodel.ConcatPaths(
-			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance")),
-			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance")),
+			vpcmodel.PathFromResource(newNetIntForTest("firewallInstanceVSI", "10.1.15.197", "firewallInstance", 1)),
+			vpcmodel.PathFromResource(newNetIntForTest("transitTestInstanceVSI", "10.1.15.4", "transitTestInstance", 1)),
 		),
 	},
 }

@@ -48,6 +48,7 @@ const (
 	ResourceTypeRoutingTable     = "RoutingTable"
 )
 
+// Implemented by AWSresourcesContainer and IBMresourcesContainer
 type ResourcesContainer interface {
 	VpcConfigsFromFiles(fileNames []string, vpcID, resourceGroup string, regions []string) (
 		*vpcmodel.MultipleVPCConfigs, error)
@@ -56,7 +57,8 @@ type ResourcesContainer interface {
 	ParseResourcesFromFile(fileName string) error
 }
 
-func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+// NewNetworkInterface gets NetworkInterface properties and returns NetworkInterface object
+func NewNetworkInterface(name, uid, zone, address, vsi string, numberOfNifs int, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,
@@ -69,7 +71,8 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 		InternalNode: vpcmodel.InternalNode{
 			AddressStr: address,
 		},
-		Vsi: vsi,
+		Vsi:               vsi,
+		numberOfNifsInVsi: numberOfNifs,
 	}
 
 	if err := intfNode.SetIPBlockFromAddress(); err != nil {
@@ -78,6 +81,7 @@ func NewNetworkInterface(name, uid, zone, address, vsi string, vpc vpcmodel.VPCR
 	return intfNode, nil
 }
 
+// NewVSI gets NetworkInterface properties and returns Vsi object
 func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.MultipleVPCConfigs) (*Vsi, error) {
 	vsiNode := &Vsi{
 		VPCResource: vpcmodel.VPCResource{
@@ -97,6 +101,7 @@ func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.
 	return vsiNode, nil
 }
 
+// UpdateConfigWithSubnet creates new subnets from provided args and update it's vpc object and subnets list
 func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.MultipleVPCConfigs,
 	vpcInternalAddressRange map[string]*ipblock.IPBlock,
 	subnetIDToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
@@ -157,9 +162,9 @@ func NewSGResource(name, uid, pairingID string, vpc vpcmodel.VPC, analyzer Speci
 	return sgResource
 }
 
+// UpdateVPCSAddressRanges assigns to each vpc object its internal address range, as inferred from its subnets
 func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
 	vpcsMap *vpcmodel.MultipleVPCConfigs) error {
-	// assign to each vpc object its internal address range, as inferred from its subnets
 	for vpcUID, addressRange := range vpcInternalAddressRange {
 		var vpc *VPC
 		vpc, err := GetVPCObjectByUID(vpcsMap, vpcUID)
@@ -171,12 +176,15 @@ func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock
 	return nil
 }
 
+// NewEmptyVPCConfig returns a new empty vpc config
 func NewEmptyVPCConfig() *vpcmodel.VPCConfig {
 	return &vpcmodel.VPCConfig{
 		UIDToResource: map[string]vpcmodel.VPCResourceIntf{},
 	}
 }
 
+// GetRegionByName returns pointer to the supported name from regionToStructMap
+// if the region is not in the map, create new one
 func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *Region {
 	regionPointer, ok := regionToStructMap[regionName]
 
@@ -187,6 +195,7 @@ func GetRegionByName(regionName string, regionToStructMap map[string]*Region) *R
 	return regionPointer
 }
 
+// NewVPC gets NetworkInterface properties and returns VPC object
 func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStructMap map[string]*Region) (
 	vpcNodeSet *VPC, err error) {
 	vpcNodeSet = &VPC{
@@ -220,6 +229,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 	return vpcNodeSet, nil
 }
 
+// GetVPCObjectByUID gets vpc uid and returns it's config
 func GetVPCconfigByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*vpcmodel.VPCConfig, error) {
 	vpcConfig, ok := res.Configs()[uid]
 	if !ok {
@@ -228,6 +238,7 @@ func GetVPCconfigByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*vpcmodel.
 	return vpcConfig, nil
 }
 
+// GetVPCObjectByUID gets vpc uid and returns it's object
 func GetVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, error) {
 	vpcConfig, err := GetVPCconfigByUID(res, uid)
 	if err != nil {
@@ -240,6 +251,7 @@ func GetVPCObjectByUID(res *vpcmodel.MultipleVPCConfigs, uid string) (*VPC, erro
 	return vpc, nil
 }
 
+// AddZone add new zone to supported vpc config by it's uid
 func AddZone(zoneName, vpcUID string, res *vpcmodel.MultipleVPCConfigs) error {
 	vpc, err := GetVPCObjectByUID(res, vpcUID)
 	if err != nil {
@@ -251,6 +263,7 @@ func AddZone(zoneName, vpcUID string, res *vpcmodel.MultipleVPCConfigs) error {
 	return nil
 }
 
+// NewSubnet gets NetworkInterface properties and returns Subnet object
 func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Subnet, error) {
 	subnetNode := &Subnet{
 		VPCResource: vpcmodel.VPCResource{
@@ -375,4 +388,37 @@ func GetSubnetsNodes(subnets []*Subnet) []vpcmodel.Node {
 		res = append(res, s.Nodes()...)
 	}
 	return res
+}
+
+// UpdateConfigWithSGAndPrepareAnalyzer updates config with sg layer results
+func UpdateConfigWithSG(res *vpcmodel.MultipleVPCConfigs, sgLists map[string][]*SecurityGroup) error {
+	for vpcUID, sgListInstance := range sgLists {
+		vpc, err := GetVPCObjectByUID(res, vpcUID)
+		if err != nil {
+			return err
+		}
+		sgLayer := &SecurityGroupLayer{
+			VPCResource: vpcmodel.VPCResource{
+				ResourceType: vpcmodel.SecurityGroupLayer,
+				VPCRef:       vpc,
+				Region:       vpc.RegionName(),
+			},
+			SgList: sgListInstance}
+		res.Config(vpcUID).FilterResources = append(res.Config(vpcUID).FilterResources, sgLayer)
+	}
+
+	return nil
+}
+
+// PrepareAnalyzers iterates over all sgs in sgMap to map and analyze it's sg Rules
+func PrepareAnalyzers(sgMap map[string]map[string]*SecurityGroup) error {
+	for _, vpcSgMap := range sgMap {
+		for _, sg := range vpcSgMap {
+			err := sg.Analyzer.PrepareAnalyzer(vpcSgMap, sg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

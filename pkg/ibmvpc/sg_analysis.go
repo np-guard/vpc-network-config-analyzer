@@ -14,9 +14,9 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
+// IBMSGAnalyzer implements commonvpc.SpecificSGAnalyzer
 type IBMSGAnalyzer struct {
 	SgResource         *vpc1.SecurityGroup
 	sgMap              map[string]*commonvpc.SecurityGroup
@@ -114,7 +114,7 @@ func (sga *IBMSGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecu
 		return "", nil, false, err
 	}
 	connStr := fmt.Sprintf("protocol: %s", protocol)
-	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
+	ruleStr = getRuleStr(direction, *ruleObj.ID, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes.Remote = commonvpc.NewRuleTarget(remote, remoteSGName)
 	ruleRes.Local = local
 	ruleRes.Connections = connection.All()
@@ -137,7 +137,7 @@ func (sga *IBMSGAnalyzer) getProtocolTCPUDPRule(ruleObj *vpc1.SecurityGroupRuleS
 	dstPortMax := commonvpc.GetProperty(ruleObj.PortMax, connection.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
-	ruleStr = getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr)
+	ruleStr = getRuleStr(direction, *ruleObj.ID, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
 		Connections: commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
@@ -152,12 +152,13 @@ func (sga *IBMSGAnalyzer) getProtocolTCPUDPRule(ruleObj *vpc1.SecurityGroupRuleS
 	return ruleStr, ruleRes, isIngress, nil
 }
 
-func getRuleStr(direction, connStr, remoteCidr, remoteSGName, localCidr string) string {
+func getRuleStr(direction, id, connStr, remoteCidr, remoteSGName, localCidr string) string {
 	remoteSGStr := remoteCidr
 	if remoteSGName != "" {
 		remoteSGStr = remoteSGName + " (" + remoteCidr + ")"
 	}
-	return fmt.Sprintf("direction: %s,  conns: %s, remote: %s, local: %s\n", direction, connStr, remoteSGStr, localCidr)
+	return fmt.Sprintf("direction: %s, id: %s, remote: %s, local: %s, conns: %s\n",
+		direction, id, remoteSGStr, localCidr, connStr)
 }
 
 func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSecurityGroupRuleProtocolIcmp) (
@@ -171,7 +172,7 @@ func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSec
 		return
 	}
 	conns := commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
-	ruleStr = getRuleStr(*ruleObj.Direction, conns.String(), remoteCidr, remoteSGName, localCidr)
+	ruleStr = getRuleStr(*ruleObj.Direction, *ruleObj.ID, conns.String(), remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
 		Remote:      commonvpc.NewRuleTarget(remote, remoteSGName),
@@ -181,6 +182,7 @@ func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSec
 	return
 }
 
+// GetSGRule gets index of the rule and returns the rule results line and obj
 func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 	ruleStr string, ruleRes *commonvpc.SGRule, isIngress bool, err error) {
 	rule := sga.SgResource.Rules[index]
@@ -198,41 +200,25 @@ func (sga *IBMSGAnalyzer) GetSGRule(index int) (
 		return "", nil, false, err
 	}
 	ruleRes.Index = index
-	return fmt.Sprintf("index: %d, %v", index, ruleStr), ruleRes, isIngress, nil
+	return ruleStr, ruleRes, isIngress, nil
 }
 
+// GetSGRules returns ingress and egress rule objects
 func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.SGRule, err error) {
-	ingressRules = []*commonvpc.SGRule{}
-	egressRules = []*commonvpc.SGRule{}
-	for index := range sga.SgResource.Rules {
-		_, ruleObj, isIngress, err := sga.GetSGRule(index)
-		if err != nil {
-			return nil, nil, err
-		}
-		if ruleObj == nil {
-			continue
-		}
-		if ruleObj.Remote.Cidr.IsEmpty() && ruleObj.Remote.SgName != "" {
-			logging.Warnf("in SG %s, rule index %d: could not find remote SG %s or its attached network interfaces",
-				*sga.SgResource.Name, index, ruleObj.Remote.SgName)
-		}
-		if isIngress {
-			ingressRules = append(ingressRules, ruleObj)
-		} else {
-			egressRules = append(egressRules, ruleObj)
-		}
-	}
-	return ingressRules, egressRules, nil
+	return commonvpc.GetSGRules(sga)
 }
 
+// ReferencedIPblocks returns referencedIPblocks filed
 func (sga *IBMSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
 	return sga.referencedIPblocks
 }
 
+// SetSGmap gets sgMap (a map from sg name to SecurityGroup obj) and save it in IBMSGAnalyzer
 func (sga *IBMSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 	sga.sgMap = sgMap
 }
 
+// GetNumberOfRules returns number of egress and ingress rules of the securityGroup obj in IBMSGAnalyzer
 func (sga *IBMSGAnalyzer) GetNumberOfRules() int {
 	return len(sga.SgResource.Rules)
 }

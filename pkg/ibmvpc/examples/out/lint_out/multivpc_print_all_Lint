@@ -16,17 +16,17 @@ ________________________________________________________________________________
 
 "Network ACL rules shadowed by higher priority rules" issues:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [2] is shadowed by higher priority rules
-	Rule details: index: 2, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.1.0/24, conn: all, action: allow
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
+	Rule details: direction: inbound, name: acl2-in-2, priority: 3, action: allow, source: 10.240.1.0/24 , destination: 10.240.2.0/24, conn: all
 		Shadowing rules:
-			index: 0, direction: outbound , src: 10.240.2.0/24 , dst: 10.240.0.0/16, conn: all, action: deny
-			index: 1, direction: outbound , src: 10.240.2.0/24 , dst: 0.0.0.0/0, conn: all, action: allow
+			direction: inbound, name: acl2-in-0, priority: 1, action: deny, source: 10.240.0.0/16 , destination: 10.240.2.0/24, conn: all
+			direction: inbound, name: acl2-in-1, priority: 2, action: allow, source: 0.0.0.0/0 , destination: 10.240.2.0/24, conn: all
 
-In VPC "test-vpc0-ky", network ACL "acl2-ky" rule [5] is shadowed by higher priority rules
-	Rule details: index: 5, direction: inbound , src: 10.240.1.0/24 , dst: 10.240.2.0/24, conn: all, action: allow
+In VPC "test-vpc0-ky", network ACL "acl2-ky" rule is shadowed by higher priority rules
+	Rule details: direction: outbound, name: acl2-out-2, priority: 3, action: allow, source: 10.240.2.0/24 , destination: 10.240.1.0/24, conn: all
 		Shadowing rules:
-			index: 3, direction: inbound , src: 10.240.0.0/16 , dst: 10.240.2.0/24, conn: all, action: deny
-			index: 4, direction: inbound , src: 0.0.0.0/0 , dst: 10.240.2.0/24, conn: all, action: allow
+			direction: outbound, name: acl2-out-0, priority: 1, action: deny, source: 10.240.2.0/24 , destination: 10.240.0.0/16, conn: all
+			direction: outbound, name: acl2-out-1, priority: 2, action: allow, source: 10.240.2.0/24 , destination: 0.0.0.0/0, conn: all
 
 ________________________________________________________________________________________________________________________________________________________________________________________________________
 

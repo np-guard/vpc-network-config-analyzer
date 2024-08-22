@@ -21,8 +21,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-const explainOut = "explain_out"
-
 // getConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(commonvpc.GetTestsDirInput(),
@@ -694,7 +692,8 @@ func TestAll(t *testing.T) {
 		tt := explainTests[testIdx]
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			runExplainTest(tt, t)
+			rc := &IBMresourcesContainer{}
+			commonvpc.RunExplainTest(tt, t, rc)
 		})
 	}
 	fmt.Println("done")
@@ -709,31 +708,12 @@ func TestAllWithGeneration(t *testing.T) {
 		tt.Mode = commonvpc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			runExplainTest(tt, t)
+			rc := &IBMresourcesContainer{}
+			commonvpc.RunExplainTest(tt, t, rc)
 		})
 	}
 	fmt.Println("done")
 }*/
-
-func runExplainTest(tt *commonvpc.VpcGeneralTest, t *testing.T) {
-	// all tests in explain mode
-	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.Explain}
-	// init test - set the input/output file names according to test name
-	tt.InitTest()
-
-	// get vpcConfigs obj from parsing + analyzing input config file
-	rc := &IBMresourcesContainer{}
-	vpcConfigs := commonvpc.GetVPCConfigs(t, tt, true, rc)
-	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
-		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, tt.DetailExplain)
-
-	// generate actual output for all use cases specified for this test
-	err := commonvpc.RunTestPerUseCase(t, tt, vpcConfigs, vpcmodel.Explain, tt.Mode, explainOut, explanationArgs)
-	require.Equal(t, tt.ErrPerUseCase[vpcmodel.Explain], err, "comparing actual err to expected err")
-	for uc, outFile := range tt.ActualOutput {
-		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
-	}
-}
 
 func TestInputValiditySingleVPCContext(t *testing.T) {
 	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
@@ -958,16 +938,16 @@ func TestMultiExplainabilityOutput(t *testing.T) {
 		outputSlice[i] = explain.String()
 	}
 	outputString := strings.Join(outputSlice, "")
+	fmt.Println("\n\n", outputString)
 	require.Contains(t, outputString, "No connections from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
 		"\tThere is no resource enabling inbound external connectivity", "no connection external src entry")
 	require.Contains(t, outputString, "No connections from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
 		"\tThe dst is external but there is no resource enabling external connectivity", "no connection external dst entry")
-	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> network ACL ky-vpc1-acl1 -> ky-vpc1-net1 -> ",
-		"connection vsi to vsi")
+	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> "+
+		"network ACL ky-vpc1-acl1 -> subnet ky-vpc1-net1 -> ", "connection vsi to vsi")
 	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
-	require.Contains(t, outputString, "ky-vpc2-net1 -> network ACL ky-vpc2-acl1 -> security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]",
-		"connection vsi to vsi")
-	fmt.Println("\n\n", outputString)
+	require.Contains(t, outputString, "subnet ky-vpc2-net1 -> network ACL ky-vpc2-acl1 ->"+
+		" security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]", "connection vsi to vsi")
 }
 
 func TestInputLBPrivateIP(t *testing.T) {

@@ -33,6 +33,7 @@ const (
 	ARCHSVG
 	HTML
 	ARCHHTML
+	Synthesis
 )
 
 const (
@@ -145,7 +146,7 @@ type SingleAnalysisOutput struct {
 func (o *OutputGenerator) Generate(f OutFormat, outFile string) (string, error) {
 	var formatter OutputFormatter
 	switch f {
-	case JSON, Text, MD:
+	case JSON, Text, MD, Synthesis:
 		formatter = &serialOutputFormatter{f}
 	case DRAWIO, SVG, HTML:
 		formatter = newDrawioOutputFormatter(f, o.lbAbstraction)
@@ -191,6 +192,8 @@ func (of *serialOutputFormatter) createSingleVpcFormatter() SingleVpcOutputForma
 		return &TextOutputFormatter{}
 	case MD:
 		return &MDoutputFormatter{}
+	case Synthesis:
+		return &SynthesisOutputFormatter{}
 	}
 	return nil
 }
@@ -200,6 +203,10 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 	outFile string, grouping bool, uc OutputUseCase,
 	explainStruct *Explanation, detailExplain bool) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
+	// TODO: remove this if condition when multi-vpc is supported in synthesis
+	if of.outFormat == Synthesis && len(cConfigs.Configs()) > 1 {
+		return "", errors.New("multi-vpc is not supported yet in synthesis format")
+	}
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
 		i := 0
@@ -293,6 +300,11 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 			all[o.VPC1Name] = o.jsonStruct
 		}
 		res, err = writeJSON(all, outFile)
+	case Synthesis:
+		// in synthesis format we need to follow json spec schema
+		// https://github.com/np-guard/models/blob/main/spec_schema.json
+		// multi-vpc not supported yet
+		res, err = writeJSON(outputList[0].jsonStruct, outFile)
 	}
 	return res, err
 }
