@@ -91,7 +91,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 	ruleStr string, ruleRes *commonvpc.SGRule, err error) {
 	minPort := int64(*ruleObj.FromPort)
 	maxPort := int64(*ruleObj.ToPort)
-	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %d-%d", protocol, minPort, maxPort)
+	connStr := fmt.Sprintf("protocol: %s, dstPorts: %d-%d", protocol, minPort, maxPort)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
@@ -111,7 +111,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 }
 
 func getRuleStr(direction, connStr, ipRanges string) string {
-	return fmt.Sprintf("direction: %s,  conns: %s, target: %s\n", direction, connStr, ipRanges)
+	return fmt.Sprintf("direction: %s, target: %s, conns: %s\n", direction, ipRanges, connStr)
 }
 
 func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeMax,
@@ -146,7 +146,7 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 		return "", nil, err
 	}
 	conns := connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	connStr := fmt.Sprintf("protocol: %s,  icmpType: %s", *ruleObj.IpProtocol, conns)
+	connStr := fmt.Sprintf("protocol: %s, icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err
@@ -209,7 +209,11 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	}
 	ruleRes.Local = ipblock.GetCidrAll()
 	ruleRes.Index = index
-	return fmt.Sprintf("index: %d, %v", listIndex, ruleStr), ruleRes, isIngress, nil
+	tableName := "Inbound"
+	if !isIngress {
+		tableName = "Outbound"
+	}
+	return fmt.Sprintf("%s index: %d, %v", tableName, listIndex, ruleStr), ruleRes, isIngress, nil
 }
 
 // GetSGRules returns ingress and egress rule objects
