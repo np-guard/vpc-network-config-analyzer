@@ -98,7 +98,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	}
 	ruleRes = &commonvpc.NACLRule{Src: srcIP, Dst: dstIP, Connections: conns, Action: action}
 	isIngress = direction == commonvpc.Inbound
-	priority := na.getNACLRulePriority(isIngress, index)
+	priority := na.getNACLRulePriority(direction, index)
 	ruleStr = fmt.Sprintf("direction: %s, name: %s, priority: %d, action: %s, source: %s , destination: %s,"+
 		" conn: %s\n", direction, name, priority, action, src, dst, connStr)
 	return ruleStr, ruleRes, isIngress, nil
@@ -106,7 +106,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 
 // getNACLRulePriority computes the priority of a rule
 // priorities starts with 1 and are calculated separately for ingress and egress
-func (na *IBMNACLAnalyzer) getNACLRulePriority(isIngress bool, myIndex int) int {
+func (na *IBMNACLAnalyzer) getNACLRulePriority(myDirection string, myIndex int) int {
 	priority := 1
 	for index := 0; index < myIndex; index++ {
 		rule := na.naclResource.Rules[index]
@@ -121,8 +121,7 @@ func (na *IBMNACLAnalyzer) getNACLRulePriority(isIngress bool, myIndex int) int 
 		default:
 			return -1 // if Rule not a legal object, GetNACLRule will dump in initialization
 		}
-		thisRuleIsIngress := direction == commonvpc.Inbound
-		if thisRuleIsIngress == isIngress {
+		if myDirection == direction {
 			priority++
 		}
 	}
