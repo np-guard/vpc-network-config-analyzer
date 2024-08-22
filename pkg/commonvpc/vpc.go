@@ -171,7 +171,7 @@ type Subnet struct {
 	VPCnodes     []vpcmodel.Node  `json:"-"`
 	Cidr         string           `json:"-"`
 	IPblock      *ipblock.IPBlock `json:"-"`
-	subnetExpose SubnetExpose     `json:"-"`
+	subnetExpose SubnetExpose
 }
 
 func (s *Subnet) CIDR() string {
