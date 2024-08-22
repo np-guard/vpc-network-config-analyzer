@@ -193,6 +193,9 @@ func (s *Subnet) IsPrivate() bool {
 	// dontcare means that the provider does not allow to set the subnet to be private, IsPrivate() will return false
 	return s.subnetExpose == privateExpose
 }
+
+// SetIsPrivate() is called only for platforms that support private/public subnets.
+// in other cases, the value of s.subnetExpose remain dontcare
 func (s *Subnet) SetIsPrivate(isPrivate bool) {
 	s.subnetExpose = publicExpose
 	if isPrivate {
@@ -218,6 +221,7 @@ func newPrivateSubnetRule(subnet vpcmodel.Subnet, src, dst vpcmodel.Node, isIngr
 	return &privateSubnetRule{subnet, src, dst, isIngress}
 }
 
+// Note that this func is called only when relevant (platform supporting private subnet and connection to/from internet)
 func (psr *privateSubnetRule) Deny(isIngress bool) bool {
 	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
 }
