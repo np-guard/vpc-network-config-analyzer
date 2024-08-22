@@ -154,7 +154,7 @@ func (v *VPC) Subnets() []*Subnet {
 }
 
 // SubnetExpose - can the subnet be exposed to the public internet.
-// out of the platforms we support at the moment, this is used in AWS and not in IBM 
+// out of the platforms we support at the moment, this is used in AWS and not in IBM
 // In AWS each subnet is private or public and only the latter can connect to/from the public internet
 // for IBM the value is set to the default - dontCare (in IBM all subnets can connect to the public internet)
 type SubnetExpose int
