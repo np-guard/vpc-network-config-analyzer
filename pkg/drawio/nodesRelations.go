@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
-	"strconv"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
@@ -24,11 +23,11 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 	rel := tnRelations(network)
 	res := map[string]map[string][]string{}
 	for _, node := range data.Nodes {
-		nodeID := strconv.Itoa(int(node.ID()))
+		nodeID := common.UintToString(node.ID())
 		res[nodeID] = map[string][]string{}
-		nodeRelations := []string{strconv.Itoa(int(data.RootID()))}
+		nodeRelations := []string{common.UintToString((data.RootID()))}
 		for _, n := range rel[node] {
-			nodeRelations = append(nodeRelations, strconv.Itoa(int(n.ID())))
+			nodeRelations = append(nodeRelations, common.UintToString(n.ID()))
 		}
 		res[nodeID]["relations"] = nodeRelations
 		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}

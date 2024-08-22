@@ -15,11 +15,11 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 0, direction: outbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			index: 1, direction: inbound,  conns: protocol: all, remote: 0.0.0.0/0, local: 0.0.0.0/0
+			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
