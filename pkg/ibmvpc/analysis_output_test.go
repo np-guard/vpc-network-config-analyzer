@@ -252,7 +252,7 @@ var tests = []*commonvpc.VpcGeneralTest{
 		InputConfig: "acl_testing3_with_two_vpcs",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		Format:      vpcmodel.Text,
-		Vpc:         "crn:12", // specify the vpc to analyze
+		VpcList:     []string{"crn:12"}, // specify the vpc to analyze
 	},
 	// vpe example
 	{
@@ -265,6 +265,12 @@ var tests = []*commonvpc.VpcGeneralTest{
 		InputConfig: "experiments_env",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		Format:      vpcmodel.Text,
+	},
+	{
+		InputConfig: "experiments_env",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.Text,
+		VpcList:     []string{"crn:1", "crn:17"},
 	},
 	{
 		InputConfig: "experiments_env",
