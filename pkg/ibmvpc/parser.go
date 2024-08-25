@@ -361,7 +361,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 	skipByVPC map[string]bool,
 ) error {
 	vnisObj := map[string]*datamodel.VirtualNI{}
-	for _, vniObj := range rc.VirtualNIList{
+	for _, vniObj := range rc.VirtualNIList {
 		vnisObj[*vniObj.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID] = vniObj
 	}
 	for _, instance := range rc.InstanceList {
