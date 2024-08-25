@@ -377,17 +377,17 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		vpcConfig := res.Config(vpcUID)
 		vpcConfig.NodeSets = append(vpcConfig.NodeSets, vsiNode)
 		vpcConfig.UIDToResource[vsiNode.ResourceUID] = vsiNode
-		// for j := range instance.NetworkAttachments {
-		// 	aid := *instance.NetworkAttachments[j].ID
-		// 	vniIndex := slices.IndexFunc(rc.VirtualNIList, func(vni *datamodel.VirtualNI) bool { return *vni.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID == aid })
-		// 	vni := rc.VirtualNIList[vniIndex]
-		// 	createNetworkInterface(*vni.Name, *vni.ID,
-		// 		*instance.Zone.Name, *vni.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
-		// 		*vni.Subnet.CRN, subnetIDToNetIntf, vpc, *vpcConfig)
-		// }
-		// if len(instance.NetworkAttachments) >0{
-		// 	continue
-		// }
+		for j := range instance.NetworkAttachments {
+			aid := *instance.NetworkAttachments[j].ID
+			vniIndex := slices.IndexFunc(rc.VirtualNIList, func(vni *datamodel.VirtualNI) bool { return *vni.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID == aid })
+			vni := rc.VirtualNIList[vniIndex]
+			createNetworkInterface(*vni.Name, *vni.ID,
+				*instance.Zone.Name, *vni.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
+				*vni.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
+		}
+		if len(instance.NetworkAttachments) >0{
+			continue
+		}
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
