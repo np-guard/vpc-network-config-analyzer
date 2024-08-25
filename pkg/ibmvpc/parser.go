@@ -360,6 +360,10 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
+	vnisObj := map[string]*datamodel.VirtualNI{}
+	for _, vniObj := range rc.VirtualNIList{
+		vnisObj[*vniObj.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID] = vniObj
+	}
 	for _, instance := range rc.InstanceList {
 		vpcUID := *instance.VPC.CRN
 		if skipByVPC[vpcUID] {
@@ -377,15 +381,20 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		vpcConfig := res.Config(vpcUID)
 		vpcConfig.NodeSets = append(vpcConfig.NodeSets, vsiNode)
 		vpcConfig.UIDToResource[vsiNode.ResourceUID] = vsiNode
+		// a VSI can not have both VNIs and NIs.
+		// first we check for VNIs.
+		// the VNIs are listed at the instance.NetworkAttachments.
+		// using that list, we extract the VNIs from the rc.VirtualNIList, which holds all the VNIs of all VSIs
 		for j := range instance.NetworkAttachments {
-			aid := *instance.NetworkAttachments[j].ID
-			vniIndex := slices.IndexFunc(rc.VirtualNIList, func(vni *datamodel.VirtualNI) bool { return *vni.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID == aid })
-			vni := rc.VirtualNIList[vniIndex]
-			createNetworkInterface(*vni.Name, *vni.ID,
-				*instance.Zone.Name, *vni.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
-				*vni.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
+			vniObj := vnisObj[*instance.NetworkAttachments[j].ID]
+			createNetworkInterface(*vniObj.Name, *vniObj.ID,
+				*instance.Zone.Name, *vniObj.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkAttachments),
+				*vniObj.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 		}
-		if len(instance.NetworkAttachments) >0{
+		if len(instance.NetworkAttachments) > 0 {
+			// this VSI has VNIs, we do not check for NIs
+			// notice that in this case, instance.NetworkInterfaces will not be empty,
+			// since each VNI has "NI representation" for backward computability
 			continue
 		}
 		for j := range instance.NetworkInterfaces {
@@ -398,6 +407,8 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 	}
 	return nil
 }
+
+// createNetworkInterface() is used to create NIs or VNIs
 func createNetworkInterface(name, id, zoneName, address, instanceName string,
 	vsiNode *commonvpc.Vsi, numberOfNifsInVsi int,
 	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
@@ -537,7 +548,7 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
-			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType && *target.ResourceType != commonvpc.VirtualNetworkInterfaceResourceType{
+			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType && *target.ResourceType != commonvpc.VirtualNetworkInterfaceResourceType {
 				logging.Debug(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only %s and %s are supported)",
 						*target.ResourceType, commonvpc.NetworkInterfaceResourceType, commonvpc.VirtualNetworkInterfaceResourceType)))
