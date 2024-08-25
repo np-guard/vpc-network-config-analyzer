@@ -387,9 +387,12 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		// using that list, we extract the VNIs from the rc.VirtualNIList, which holds all the VNIs of all VSIs
 		for j := range instance.NetworkAttachments {
 			vniObj := vnisObj[*instance.NetworkAttachments[j].ID]
-			createNetworkInterface(*vniObj.Name, *vniObj.ID,
+			err := createNetworkInterface(*vniObj.Name, *vniObj.ID,
 				*instance.Zone.Name, *vniObj.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkAttachments),
 				*vniObj.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
+			if err != nil {
+				return err
+			}
 		}
 		if len(instance.NetworkAttachments) > 0 {
 			// this VSI has VNIs, we do not check for NIs
@@ -400,9 +403,12 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkInterfaces {
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
-			createNetworkInterface(*netintf.Name, *netintf.ID,
+			err := createNetworkInterface(*netintf.Name, *netintf.ID,
 				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
 				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -548,7 +554,8 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
-			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType && *target.ResourceType != commonvpc.VirtualNetworkInterfaceResourceType {
+			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType &&
+				*target.ResourceType != commonvpc.VirtualNetworkInterfaceResourceType {
 				logging.Debug(ignoreFIPWarning(*fip.Name,
 					fmt.Sprintf("target.ResourceType %s is not supported (only %s and %s are supported)",
 						*target.ResourceType, commonvpc.NetworkInterfaceResourceType, commonvpc.VirtualNetworkInterfaceResourceType)))
@@ -635,7 +642,6 @@ func (rc *IBMresourcesContainer) getVPCconfig(
 	return nil
 }
 
-//nolint:gocyclo // there is a big switch/case. no point to split
 func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 	sg *vpc1.SecurityGroup,
 	c *vpcmodel.VPCConfig) {
