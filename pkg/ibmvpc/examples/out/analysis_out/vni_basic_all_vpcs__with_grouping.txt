@@ -1,9 +1,9 @@
 Endpoint connectivity for VPC vni-basic
-Public Internet 8.8.8.8/32 => vsi-a[10.240.0.4] : All Connections
-Public Internet 8.8.8.8/32 => wl-b2[10.240.12.5] : All Connections
-vsi-a[10.240.0.4] => Public Internet 8.8.8.8/32 : All Connections
+Public Internet 147.235.0.0/16 => vsi-a[10.240.0.4] : All Connections
+Public Internet 147.235.0.0/16 => wl-b2[10.240.12.4] : All Connections
+vsi-a[10.240.0.4] => Public Internet 147.235.0.0/16 : All Connections
 vsi-a[10.240.0.4],wl-a[10.240.0.5] => vsi-a[10.240.0.4],wl-a[10.240.0.5] : All Connections
-vsi-a[10.240.0.4],wl-a[10.240.0.5] => wl-b2[10.240.12.5] : protocol: TCP
-wl-b2[10.240.12.5] => Public Internet 8.8.8.8/32 : All Connections
-wl-b2[10.240.12.5] => vsi-a[10.240.0.4],wl-a[10.240.0.5] : protocol: TCP
-wl-b2[10.240.12.5] => wl-b1[10.240.12.4] : protocol: TCP dst-ports: 9080
+vsi-a[10.240.0.4],wl-a[10.240.0.5] => wl-b2[10.240.12.4] : protocol: TCP
+wl-b2[10.240.12.4] => Public Internet 147.235.0.0/16 : All Connections
+wl-b2[10.240.12.4] => vsi-a[10.240.0.4],wl-a[10.240.0.5] : protocol: TCP
+wl-b2[10.240.12.4] => wl-b1[10.240.12.5] : protocol: TCP dst-ports: 9080
