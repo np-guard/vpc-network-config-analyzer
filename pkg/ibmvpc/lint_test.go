@@ -13,8 +13,6 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-const lintOut = "lint_out"
-
 var lintTests = []*commonvpc.VpcGeneralTest{
 	{
 		Name:        "basic_acl3",

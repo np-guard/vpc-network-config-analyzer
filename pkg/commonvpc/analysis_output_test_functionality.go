@@ -443,9 +443,9 @@ func RunLintTest(tt *VpcGeneralTest, t *testing.T, rc ResourcesContainer) {
 
 	// generate actual output for all use cases specified for this test
 	err := runLintTestPerUseCase(t, tt, vpcConfigs.Configs(), lintOut)
-	require.Equal(t, tt.ErrPerUseCase[vpcmodel.AllEndpoints], err, "comparing actual err to expected err")
+	require.Equal(t, tt.ErrPerUseCase[vpcmodel.AllEndpoints], err, "comparing lint actual err to expected err")
 	for uc, outFile := range tt.ActualOutput {
-		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
+		fmt.Printf("lint test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
 
