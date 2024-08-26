@@ -10,13 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"path/filepath"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const lintOut = "lint_out"
@@ -79,7 +73,8 @@ func TestAllLint(t *testing.T) {
 		tt.Mode = commonvpc.OutputComparison
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			runLintTest(tt, t)
+			rc := &IBMresourcesContainer{}
+			commonvpc.RunLintTest(tt, t, rc)
 		})
 	}
 	fmt.Println("done")
@@ -94,56 +89,10 @@ func TestAllLintWithGeneration(t *testing.T) {
 		tt.Mode = commonvpc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			runLintTest(tt, t)
+			rc := &IBMresourcesContainer{}
+			commonvpc.RunLintTest(tt, t, rc)
 		})
 	}
 	fmt.Println("done")
 }
 */
-func runLintTest(tt *commonvpc.VpcGeneralTest, t *testing.T) {
-	// all tests in lint mode
-	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
-	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints}
-	// init test - set the input/output file names according to test name
-	tt.InitTest()
-
-	// get vpcConfigs obj from parsing + analyzing input config file
-	rc := &IBMresourcesContainer{}
-	vpcConfigs := commonvpc.GetVPCConfigs(t, tt, true, rc)
-
-	// generate actual output for all use cases specified for this test
-	err := runLintTestPerUseCase(t, tt, vpcConfigs.Configs(), lintOut)
-	require.Equal(t, tt.ErrPerUseCase[vpcmodel.AllEndpoints], err, "comparing actual err to expected err")
-	for uc, outFile := range tt.ActualOutput {
-		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
-	}
-}
-
-// runExplainTestPerUseCase executes lint for the required use case and compares/generates the output
-func runLintTestPerUseCase(t *testing.T,
-	tt *commonvpc.VpcGeneralTest,
-	cConfigs map[string]*vpcmodel.VPCConfig,
-	outDir string) error {
-	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
-	initLintTestFileNames(tt, outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.PrintAllLints, tt.Enable, tt.Disable)
-	if err := commonvpc.CompareOrRegenerateOutputPerTest(t, tt.Mode, actualOutput, lintOut, tt, vpcmodel.AllEndpoints); err != nil {
-		return err
-	}
-	return nil
-}
-
-func initLintTestFileNames(tt *commonvpc.VpcGeneralTest, testDir string) {
-	expectedFileName, actualFileName := getLintTestFileName(tt.Name)
-	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
-	tt.ActualOutput[vpcmodel.AllEndpoints] = filepath.Join(commonvpc.GetTestsDirOut(testDir), actualFileName)
-	tt.ExpectedOutput[vpcmodel.AllEndpoints] = filepath.Join(commonvpc.GetTestsDirOut(testDir), expectedFileName)
-}
-
-// getLintTestFileName returns expected file name and actual file name, for the relevant use case
-func getLintTestFileName(testName string) (expectedFileName, actualFileName string) {
-	res := testName + "_Lint"
-	expectedFileName = res
-	actualFileName = commonvpc.ActualOutFilePrefix + res
-	return expectedFileName, actualFileName
-}
