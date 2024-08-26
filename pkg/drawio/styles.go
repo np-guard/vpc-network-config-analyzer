@@ -222,16 +222,16 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
-	if reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && tn.(*NITreeNode).isVirtual() {
+	switch {
+	case reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && tn.(*NITreeNode).isVirtual():
 		return reflect.TypeOf(virtualNITreeNode{})
-	}
-	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}) {
-		return reflect.TypeOf(tn).Elem()
-	}
-	if tn.(*SubnetTreeNode).IsPrivate() {
+	case stl.provider == common.AWS && reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}) && tn.(*SubnetTreeNode).IsPrivate():
 		return reflect.TypeOf(privateSubnetTreeNode{})
+	case stl.provider == common.AWS && reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}) && !tn.(*SubnetTreeNode).IsPrivate():
+		return reflect.TypeOf(publicSubnetTreeNode{})
 	}
-	return reflect.TypeOf(publicSubnetTreeNode{})
+	return reflect.TypeOf(tn).Elem()
+
 }
 
 func (stl *templateStyles) Image(tn TreeNodeInterface) string {
