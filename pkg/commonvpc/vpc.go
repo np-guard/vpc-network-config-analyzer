@@ -234,19 +234,18 @@ func (psr *privateSubnetRule) String(detail bool) string {
 	switch {
 	case !detail && psr.Deny(false), !detail && psr.Deny(true):
 		return fmt.Sprintf("private subnet %s denies connection", psr.subnet.Name())
-	case !detail && psr.Deny(false), !detail && psr.Deny(true):
+	case !detail && !psr.Deny(false), !detail && !psr.Deny(true):
 		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
-	case detail && psr.Deny(false):
-		return fmt.Sprintf("external outbound connection is denied since subnet %s is private\n",
-			psr.subnet.Name())
-	case detail && psr.Deny(true):
-		return fmt.Sprintf("external outbound connection is denied since subnet %s is private\n",
-			psr.subnet.Name())
+	case detail && psr.Deny(false), detail && psr.Deny(true):
+		direction := "outbound"
+		if psr.Deny(true) {
+			direction = "inbound"
+		}
+		return fmt.Sprintf("external %s connection is denied since subnet %s is private\n", direction, psr.subnet.Name())
 	default:
 		return fmt.Sprintf("traffic from %s to %s is allowed, since subnet %s is public\n",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
 	}
-	return ""
 }
 
 func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {
