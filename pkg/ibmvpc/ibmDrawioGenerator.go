@@ -22,7 +22,7 @@ func (pip *PrivateIP) ShowOnSubnetMode() bool      { return false }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(n.Subnet()).(drawio.SquareTreeNodeInterface), n.Name())
+		gen.TreeNode(n.Subnet()).(drawio.SquareTreeNodeInterface), n.Name(), false)
 }
 
 func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

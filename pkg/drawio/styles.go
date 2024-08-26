@@ -16,6 +16,7 @@ import (
 
 const (
 	niImage        = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4="
+	vniImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+DQo8ZGVmcz4NCjxzdHlsZT4uY2xzLTF7ZmlsbDojZWU1Mzk2O30uY2xzLTJ7ZmlsbDpub25lO30uY2xzLTN7ZmlsbDojZmZmO308L3N0eWxlPg0KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+DQo8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE0LjUiIHk9IjE0LjUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPg0KPHRleHQgZm9udC1zaXplPSIyNSIgZmlsbD0id2hpdGUiIHg9IjMiIHk9IjM1Ij5WTkk8L3RleHQ+DQo8L3N2Zz4NCg=="
 	vsiImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg=="
 	resIPImage     = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4="
 	vpeImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+"
@@ -28,9 +29,10 @@ const (
 	noneEndEdge  = "none"
 )
 
-// these two types are declared to be used as keys at the image map
+// these types are declared to be used as keys at the image map
 type publicSubnetTreeNode SubnetTreeNode
 type privateSubnetTreeNode SubnetTreeNode
+type virtualNITreeNode NITreeNode
 
 var images = map[common.Provider]map[reflect.Type]string{
 	common.IBM: {
@@ -45,6 +47,7 @@ var images = map[common.Provider]map[reflect.Type]string{
 
 		// icons
 		reflect.TypeOf(NITreeNode{}):              vsiImage,
+		reflect.TypeOf(virtualNITreeNode{}):       vsiImage,
 		reflect.TypeOf(VsiTreeNode{}):             vsiImage,
 		reflect.TypeOf(ResIPTreeNode{}):           vpeImage,
 		reflect.TypeOf(VpeTreeNode{}):             vpeImage,
@@ -77,8 +80,9 @@ var images = map[common.Provider]map[reflect.Type]string{
 	},
 }
 var miniImages = map[reflect.Type]string{
-	reflect.TypeOf(NITreeNode{}):    niImage,
-	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
+	reflect.TypeOf(NITreeNode{}):        niImage,
+	reflect.TypeOf(virtualNITreeNode{}): vniImage,
+	reflect.TypeOf(ResIPTreeNode{}):     resIPImage,
 }
 var colors = map[common.Provider]map[reflect.Type]string{
 	common.IBM: {
@@ -200,6 +204,7 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(virtualNITreeNode{})] = true
 		}
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
@@ -209,6 +214,9 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
+	if stl.provider == common.IBM && reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) &&  tn.(*NITreeNode).isVirtual(){
+		return reflect.TypeOf(virtualNITreeNode{})
+	}
 	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}) {
 		return reflect.TypeOf(tn).Elem()
 	}

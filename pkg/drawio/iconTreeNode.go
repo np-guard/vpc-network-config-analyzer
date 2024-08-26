@@ -103,17 +103,19 @@ func (tn *abstractIconTreeNode) absoluteRouterGeometry() (x, y int) {
 // ///////////////////////////////////////////
 type NITreeNode struct {
 	abstractIconTreeNode
-	vsi string
+	vsi     string
+	virtual bool
 }
 
-func NewNITreeNode(parent SquareTreeNodeInterface, name string) *NITreeNode {
-	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name)}
+func NewNITreeNode(parent SquareTreeNodeInterface, name string, virtual bool) *NITreeNode {
+	ni := NITreeNode{abstractIconTreeNode: newAbstractIconTreeNode(parent, name), virtual: virtual}
 	parent.addIconTreeNode(&ni)
 	return &ni
 }
 
 func (tn *NITreeNode) setVsi(vsi string) { tn.vsi = vsi }
 func (tn *NITreeNode) hasMiniIcon() bool { return tn.vsi != "" }
+func (tn *NITreeNode) isVirtual() bool   { return tn.virtual }
 func (tn *NITreeNode) RouterID() uint    { return tn.FipID() }
 func (tn *NITreeNode) labels() []string  { return []string{tn.name, tn.vsi} }
 

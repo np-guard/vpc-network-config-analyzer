@@ -94,5 +94,5 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name())
+		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name(), true)
 }
