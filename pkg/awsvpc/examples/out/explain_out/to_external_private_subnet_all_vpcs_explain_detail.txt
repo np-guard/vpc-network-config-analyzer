@@ -17,7 +17,8 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		all traffic from app1[10.240.20.245] to Public Internet [161.26.0.0/32] is denied, since subnet application is private		security group GroupName:43 has no relevant allow rules
+		external outbound connection is denied since subnet application is private
+		security group GroupName:43 has no relevant allow rules
 		network ACL NetworkAclId:65 allows connection with the following allow rules
 			ruleNumber: 100, direction: outbound ,cidr: 0.0.0.0/0, action: allow, conn: all
 
