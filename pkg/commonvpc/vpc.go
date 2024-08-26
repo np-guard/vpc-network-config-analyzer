@@ -228,17 +228,11 @@ func (psr *privateSubnetRule) Deny(isIngress bool) bool {
 
 func (psr *privateSubnetRule) String() string {
 	switch {
-	case psr.Deny(false):
-		return fmt.Sprintf("%s will not accept connection from %s, since subnet %s is private\n",
-			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
-	case psr.Deny(true):
-		return fmt.Sprintf("%s will not connect to %s, since subnet %s is private\n",
+	case psr.Deny(false), psr.Deny(true):
+		return fmt.Sprintf("all traffic from %s to %s is denied, since subnet %s is private\n",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
-	case !psr.isIngress:
-		return fmt.Sprintf("%s can accept connection from %s, since subnet %s is public\n",
-			psr.dst.Name(), psr.src.Name(), psr.subnet.Name())
-	case psr.isIngress:
-		return fmt.Sprintf("%s can connect to %s, since subnet %s is public\n",
+	default:
+		return fmt.Sprintf("traffic from %s to %s is allowed, since subnet %s is public\n",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
 	}
 	return ""
