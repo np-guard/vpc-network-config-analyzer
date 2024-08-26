@@ -28,8 +28,8 @@ var vpc = &commonvpc.VPC{
 	InternalAddressRange:   newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
 	AddressPrefixesIPBlock: newIPBlockFromCIDROrAddressWithoutValidation("10.10.2.0/24"),
 }
-var n1, _ = commonvpc.NewNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", 1, vpc)
-var n2, _ = commonvpc.NewNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", 1, vpc)
+var n1, _ = commonvpc.NewNetworkInterface("n1", "n1", "zone1", "10.10.2.6", "n1VSI", 1,false, vpc)
+var n2, _ = commonvpc.NewNetworkInterface("n2", "n2", "zone1", "10.10.2.5", "n2VSI", 1,false, vpc)
 var vpcConfig = &vpcmodel.VPCConfig{
 	VPC:   vpc,
 	Nodes: nodesFromNetIntfs([]*commonvpc.NetworkInterface{n1, n2}),

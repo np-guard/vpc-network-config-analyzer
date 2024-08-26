@@ -113,11 +113,11 @@ func newBasicConfig(rps *routesPerSubnets) (*vpcmodel.VPCConfig, []*egressRoutin
 	subnet1, _ := commonvpc.NewSubnet("subnet1", "subnet1", "zoneA", "10.10.1.0/24", vpc1)
 	subnet2, _ := commonvpc.NewSubnet("subnet2", "subnet2", "zoneA", "10.10.3.0/24", vpc1)
 	subnet3, _ := commonvpc.NewSubnet("subnet3", "subnet3", "zoneA", "10.10.0.0/24", vpc1)
-	node1, _ := commonvpc.NewNetworkInterface("node1", "node1", "zoneA", "10.10.1.8", "vsi1", 1, vpc1)
-	node2, _ := commonvpc.NewNetworkInterface("node2", "node2", "zoneA", "10.10.3.8", "vsi2", 1, vpc1)
+	node1, _ := commonvpc.NewNetworkInterface("node1", "node1", "zoneA", "10.10.1.8", "vsi1", 1, false, vpc1)
+	node2, _ := commonvpc.NewNetworkInterface("node2", "node2", "zoneA", "10.10.3.8", "vsi2", 1, false, vpc1)
 	// 2 nodes below - same vsi, different network interfaces
-	node3, _ := commonvpc.NewNetworkInterface("node3", "node3", "zoneA", "10.10.1.5", "vsi3", 2, vpc1)
-	node4, _ := commonvpc.NewNetworkInterface("node4", "node4", "zoneA", "10.10.0.5", "vsi3", 2, vpc1)
+	node3, _ := commonvpc.NewNetworkInterface("node3", "node3", "zoneA", "10.10.1.5", "vsi3", 2, false, vpc1)
+	node4, _ := commonvpc.NewNetworkInterface("node4", "node4", "zoneA", "10.10.0.5", "vsi3", 2, false, vpc1)
 
 	allSubnets := []*commonvpc.Subnet{subnet1, subnet2, subnet3}
 	allNodes := []*commonvpc.NetworkInterface{node1, node2, node3, node4}
@@ -177,7 +177,7 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 
 func newNetIntForTest(vsi, address, nodeName string,
 	numberOfNifs int) *commonvpc.NetworkInterface { //nolint:unparam // numberOfNifs is param
-	res, _ := commonvpc.NewNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, numberOfNifs, &commonvpc.VPC{})
+	res, _ := commonvpc.NewNetworkInterface(nodeName, nodeName, "zoneA", address, vsi, numberOfNifs, false, &commonvpc.VPC{})
 	return res
 }
 

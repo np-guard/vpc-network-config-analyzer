@@ -388,7 +388,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		for j := range instance.NetworkAttachments {
 			vniObj := vnisObj[*instance.NetworkAttachments[j].ID]
 			err := createNetworkInterface(*vniObj.Name, *vniObj.ID,
-				*instance.Zone.Name, *vniObj.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkAttachments),
+				*instance.Zone.Name, *vniObj.PrimaryIP.Address, *instance.Name, true, vsiNode, len(instance.NetworkAttachments),
 				*vniObj.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 			if err != nil {
 				return err
@@ -404,7 +404,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
 			err := createNetworkInterface(*netintf.Name, *netintf.ID,
-				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, vsiNode, len(instance.NetworkInterfaces),
+				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, false, vsiNode, len(instance.NetworkInterfaces),
 				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 			if err != nil {
 				return err
@@ -415,11 +415,11 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 }
 
 // createNetworkInterface() is used to create NIs or VNIs
-func createNetworkInterface(name, id, zoneName, address, instanceName string,
+func createNetworkInterface(name, id, zoneName, address, instanceName string, virtual bool,
 	vsiNode *commonvpc.Vsi, numberOfNifsInVsi int,
 	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	vpc *commonvpc.VPC, vpcConfig *vpcmodel.VPCConfig) error {
-	intfNode, err := commonvpc.NewNetworkInterface(name, id, zoneName, address, instanceName, numberOfNifsInVsi, vpc)
+	intfNode, err := commonvpc.NewNetworkInterface(name, id, zoneName, address, instanceName, numberOfNifsInVsi, virtual, vpc)
 	if err != nil {
 		return err
 	}
