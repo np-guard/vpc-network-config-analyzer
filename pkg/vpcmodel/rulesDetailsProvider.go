@@ -20,8 +20,6 @@ type filterRulesDetails struct {
 // to rule description
 type rulesDetails map[string]map[int]filterRulesDetails
 
-const doubleTab = "\t\t"
-
 func newRulesDetails(config *VPCConfig) (*rulesDetails, error) {
 	resRulesDetails := rulesDetails{}
 	for _, layer := range FilterLayers {

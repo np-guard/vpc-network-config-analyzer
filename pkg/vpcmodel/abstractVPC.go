@@ -233,7 +233,8 @@ type LoadBalancer interface {
 
 type miscConnectivityRule interface {
 	Deny(bool) bool
-	String() string
+	IsIngress() bool
+	String(bool) string
 }
 
 // LoadBalancerRule represent the influence of the load balancer on a connectivity

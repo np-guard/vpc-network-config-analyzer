@@ -23,6 +23,14 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	{
+		Name:          "to_external_private_subnet",
+		InputConfig:   "aws_sg_1",
+		ESrc:          "10.240.20.245",
+		EDst:          "161.26.0.0",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
 }
 
 func TestAll(t *testing.T) {

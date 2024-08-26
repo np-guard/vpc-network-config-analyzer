@@ -226,13 +226,21 @@ func (psr *privateSubnetRule) Deny(isIngress bool) bool {
 	return isIngress == psr.isIngress && psr.subnet.IsPrivate()
 }
 
-func (psr *privateSubnetRule) String() string {
+func (psr *privateSubnetRule) IsIngress() bool {
+	return psr.isIngress
+}
+
+func (psr *privateSubnetRule) String(detail bool) string {
 	switch {
-	case psr.Deny(false), psr.Deny(true):
-		return fmt.Sprintf("all traffic from %s to %s is denied, since subnet %s is private\n",
+	case !detail && psr.Deny(false), !detail && psr.Deny(true):
+		return fmt.Sprintf("private subnet %s denies connection", psr.subnet.Name())
+	case !detail && psr.Deny(false), !detail && psr.Deny(true):
+		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
+	case detail && psr.Deny(false), detail && psr.Deny(true):
+		return fmt.Sprintf("all traffic from %s to %s is denied, since subnet %s is private",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
 	default:
-		return fmt.Sprintf("traffic from %s to %s is allowed, since subnet %s is public\n",
+		return fmt.Sprintf("traffic from %s to %s is allowed, since subnet %s is public",
 			psr.src.Name(), psr.dst.Name(), psr.subnet.Name())
 	}
 	return ""
