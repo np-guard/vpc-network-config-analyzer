@@ -1,0 +1,1461 @@
+{
+    "externals": {
+        "external-ky-testenv-vpc0": "0.0.0.0/0",
+        "external-test-vpc-ky0": "8.8.8.8/32"
+    },
+    "required-connections": [
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "max_source_port": 443,
+                    "min_destination_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-ky-testenv-vpc0",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-ky-testenv-vpc0",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-transit-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-private-subnet-1",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-ky-testenv-vpc0",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                },
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub2-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub3-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub3-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub2-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub2-2-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub3-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub2-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub2-2-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub2-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 53,
+                    "min_destination_port": 53,
+                    "protocol": "UDP"
+                }
+            ],
+            "dst": {
+                "name": "external-test-vpc-ky0",
+                "type": "external"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub2-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-2-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-3-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-3-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-3-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-2-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-2-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub3-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-3-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc-ky/sub1-2-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 53,
+                    "min_destination_port": 53,
+                    "protocol": "UDP"
+                }
+            ],
+            "dst": {
+                "name": "external-test-vpc-ky0",
+                "type": "external"
+            },
+            "src": {
+                "name": "test-vpc-ky/sub1-1-ky",
+                "type": "subnet"
+            }
+        }
+    ]
+}

@@ -68,12 +68,12 @@ type NetworkInterface struct {
 	numberOfNifsInVsi int
 }
 
-// used for synthesis output, if number of nifs is > 1 we use vsi name and return number of nifs
+// used for synthesis output, if number of nifs is > 1 we use just vsi name
 func (ni *NetworkInterface) SynthesisResourceName() string {
 	if ni.numberOfNifsInVsi == 1 {
 		return ni.VsiName()
 	}
-	return ni.ResourceName
+	return ni.ResourceName + "/" + ni.VsiName()
 }
 
 func (ni *NetworkInterface) SynthesisKind() spec.ResourceType {

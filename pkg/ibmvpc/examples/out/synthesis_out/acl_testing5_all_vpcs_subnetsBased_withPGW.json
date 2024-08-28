@@ -1,6 +1,6 @@
 {
     "externals": {
-        "external0": "8.8.8.8/32"
+        "external-test-vpc-ky10": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -17,11 +17,11 @@
                 }
             ],
             "dst": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             }
         },
@@ -34,11 +34,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             }
         },
@@ -49,11 +49,11 @@
                 }
             ],
             "dst": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub2-2-ky",
+                "name": "test-vpc-ky1/sub2-2-ky",
                 "type": "subnet"
             }
         },
@@ -71,11 +71,11 @@
                 }
             ],
             "dst": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -86,11 +86,11 @@
                 }
             ],
             "dst": {
-                "name": "sub2-2-ky",
+                "name": "test-vpc-ky1/sub2-2-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -103,11 +103,11 @@
                 }
             ],
             "dst": {
-                "name": "external0",
+                "name": "external-test-vpc-ky10",
                 "type": "external"
             },
             "src": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -118,11 +118,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-2-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             }
         },
@@ -133,11 +133,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             }
         },
@@ -148,11 +148,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-2-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             }
         },
@@ -163,11 +163,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-2-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             }
         },
@@ -180,11 +180,11 @@
                 }
             ],
             "dst": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         },
@@ -195,11 +195,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         },
@@ -210,11 +210,11 @@
                 }
             ],
             "dst": {
-                "name": "sub1-2-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         },
@@ -227,11 +227,11 @@
                 }
             ],
             "dst": {
-                "name": "external0",
+                "name": "external-test-vpc-ky10",
                 "type": "external"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         }

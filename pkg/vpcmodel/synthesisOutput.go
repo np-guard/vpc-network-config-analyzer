@@ -29,9 +29,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines, c1.VPC.Name())
 	case AllSubnets:
-		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines, c1.VPC.Name())
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -41,31 +41,37 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
-func handleExternals(srcName, cidrOrAddress string, externalsMap map[string]string, externals spec.SpecExternals) string {
+func handleExternals(srcName, cidrOrAddress, vpcName string, externalsMap map[string]string, externals spec.SpecExternals) string {
 	if val, ok := externalsMap[srcName]; ok {
 		return val
 	}
-	name := "external" + strconv.Itoa(len(externals))
+	name := "external-" + vpcName + strconv.Itoa(len(externals))
 	externalsMap[srcName] = name
 	externals[name] = cidrOrAddress
 	return name
 }
 
-func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals) (
+func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals, vpcName string) (
 	resourceName string,
 	resourceType spec.ResourceType) {
 	resourceName = resource.SynthesisResourceName()
 	if resource.IsExternal() {
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external
-			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), externalsMap, externals)
+			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), vpcName, externalsMap, externals)
 		}
+	} else {
+		resourceName = fullyQualified(vpcName, resourceName)
 	}
 	resourceType = resource.SynthesisKind()
 	return
 }
 
-func getSynthesisSpec(groupedLines []*groupedConnLine) spec.Spec {
+func fullyQualified(vpcName, resourceName string) string {
+	return vpcName + "/" + resourceName
+}
+
+func getSynthesisSpec(groupedLines []*groupedConnLine, vpcName string) spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
@@ -73,8 +79,8 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) spec.Spec {
 	sortGroupedLines(groupedLines)
 
 	for _, groupedLine := range groupedLines {
-		srcName, srcType := handleNameAndType(groupedLine.Src, externalsMap, externals)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externalsMap, externals)
+		srcName, srcType := handleNameAndType(groupedLine.Src, externalsMap, externals, vpcName)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externalsMap, externals, vpcName)
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
