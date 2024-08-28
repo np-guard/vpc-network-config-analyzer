@@ -59,7 +59,8 @@ type ResourcesContainer interface {
 }
 
 // NewNetworkInterface gets NetworkInterface properties and returns NetworkInterface object
-func NewNetworkInterface(name, uid, zone, address, vsi string, numberOfNifs int, virtual bool, vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
+func NewNetworkInterface(name, uid, zone, address, vsi string, numberOfNifs int, virtual bool,
+	vpc vpcmodel.VPCResourceIntf) (*NetworkInterface, error) {
 	intfNode := &NetworkInterface{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,

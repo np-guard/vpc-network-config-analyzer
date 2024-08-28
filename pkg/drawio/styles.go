@@ -231,7 +231,6 @@ func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
 		return reflect.TypeOf(publicSubnetTreeNode{})
 	}
 	return reflect.TypeOf(tn).Elem()
-
 }
 
 func (stl *templateStyles) Image(tn TreeNodeInterface) string {
