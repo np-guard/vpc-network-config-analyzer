@@ -45,7 +45,7 @@ func handleExternals(srcName, cidrOrAddress, vpcName string, externalsMap map[st
 	if val, ok := externalsMap[srcName]; ok {
 		return val
 	}
-	name := "external-" + vpcName + strconv.Itoa(len(externals))
+	name := "external-" + vpcName + "-" + strconv.Itoa(len(externals))
 	externalsMap[srcName] = name
 	externals[name] = cidrOrAddress
 	return name
@@ -57,18 +57,12 @@ func handleNameAndType(resource EndpointElem, externalsMap map[string]string, ex
 	resourceName = resource.SynthesisResourceName()
 	if resource.IsExternal() {
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
-			// should be always true if src is external
+			// should be always true if src is external"
 			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), vpcName, externalsMap, externals)
 		}
-	} else {
-		resourceName = fullyQualified(vpcName, resourceName)
 	}
 	resourceType = resource.SynthesisKind()
 	return
-}
-
-func fullyQualified(vpcName, resourceName string) string {
-	return vpcName + "/" + resourceName
 }
 
 func getSynthesisSpec(groupedLines []*groupedConnLine, vpcName string) spec.Spec {

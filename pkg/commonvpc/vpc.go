@@ -71,9 +71,9 @@ type NetworkInterface struct {
 // used for synthesis output, if number of nifs is > 1 we use just vsi name
 func (ni *NetworkInterface) SynthesisResourceName() string {
 	if ni.numberOfNifsInVsi == 1 {
-		return ni.VsiName()
+		return ni.VPC().Name() + vpcmodel.Deliminator + ni.VsiName()
 	}
-	return ni.ResourceName + "/" + ni.VsiName()
+	return ni.VPC().Name() + vpcmodel.Deliminator + ni.VsiName() + vpcmodel.Deliminator + ni.ResourceName
 }
 
 func (ni *NetworkInterface) SynthesisKind() spec.ResourceType {

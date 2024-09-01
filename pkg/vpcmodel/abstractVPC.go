@@ -50,7 +50,7 @@ type VPCResource struct {
 
 func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
 	if c.IsMultipleVPCsConfig {
-		return n.VPC().Name() + deliminator
+		return n.VPC().Name() + Deliminator
 	}
 	return ""
 }
@@ -60,7 +60,7 @@ func (n *VPCResource) Name() string {
 }
 
 func (n *VPCResource) SynthesisResourceName() string {
-	return n.ResourceName
+	return n.VPC().Name() + Deliminator + n.ResourceName
 }
 
 func (n *VPCResource) SynthesisKind() spec.ResourceType {
