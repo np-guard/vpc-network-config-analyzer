@@ -1,7 +1,7 @@
 {
     "externals": {
-        "external-ky-testenv-vpc0": "0.0.0.0/0",
-        "external-test-vpc-ky0": "8.8.8.8/32"
+        "external-ky-testenv-vpc-0": "0.0.0.0/0",
+        "external-test-vpc-ky-0": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -935,7 +935,7 @@
                 }
             ],
             "dst": {
-                "name": "external-ky-testenv-vpc0",
+                "name": "external-ky-testenv-vpc-0",
                 "type": "external"
             },
             "src": {
@@ -1076,7 +1076,7 @@
                 }
             ],
             "dst": {
-                "name": "external-ky-testenv-vpc0",
+                "name": "external-ky-testenv-vpc-0",
                 "type": "external"
             },
             "src": {
@@ -1217,7 +1217,7 @@
                 }
             ],
             "dst": {
-                "name": "external-ky-testenv-vpc0",
+                "name": "external-ky-testenv-vpc-0",
                 "type": "external"
             },
             "src": {
@@ -1325,7 +1325,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky0",
+                "name": "external-test-vpc-ky-0",
                 "type": "external"
             },
             "src": {
@@ -1449,7 +1449,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky0",
+                "name": "external-test-vpc-ky-0",
                 "type": "external"
             },
             "src": {

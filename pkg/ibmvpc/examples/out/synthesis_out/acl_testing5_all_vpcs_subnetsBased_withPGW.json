@@ -1,6 +1,6 @@
 {
     "externals": {
-        "external-test-vpc-ky10": "8.8.8.8/32"
+        "external-test-vpc-ky1-0": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -103,7 +103,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky10",
+                "name": "external-test-vpc-ky1-0",
                 "type": "external"
             },
             "src": {
@@ -227,7 +227,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky10",
+                "name": "external-test-vpc-ky1-0",
                 "type": "external"
             },
             "src": {
