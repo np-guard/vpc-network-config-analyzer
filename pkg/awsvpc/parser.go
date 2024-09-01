@@ -303,7 +303,7 @@ func (rc *AWSresourcesContainer) getSGconfig(
 		if err != nil {
 			return err
 		}
-		sgName := getSGName(sg)
+		sgName := getResourceName(sg.Tags, sg.GroupId)
 		commonvpc.NewSGResource(*sgName, *sg.GroupId, *sg.GroupId, vpc, NewAWSSGAnalyzer(sg), sgMap, sgLists)
 	}
 	parseSGTargets(sgMap, netIntfToSGs, res)
