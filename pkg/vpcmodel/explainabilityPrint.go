@@ -398,8 +398,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathOfSingleDirectionStr(allRulesDetails, src, filtersRelevant, rules, false,
-		externalRouter, privateSubnetRule)
+	egressPath := pathOfSingleDirectionStr(allRulesDetails, src, filtersRelevant, rules, false, privateSubnetRule)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
 	crossVpcRouterInPath := crossVpcRouterRequired(src, dst) // if cross-vpc router needed but missing, will not get here
@@ -422,8 +421,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		}
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
-	ingressPath := pathOfSingleDirectionStr(allRulesDetails, dst, filtersRelevant, rules, true,
-		externalRouter, privateSubnetRule)
+	ingressPath := pathOfSingleDirectionStr(allRulesDetails, dst, filtersRelevant, rules, true, privateSubnetRule)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
@@ -444,11 +442,9 @@ func blockedPathStr(pathSlice []string) string {
 }
 
 // returns a string with the filters (sg and nacl) part of the path above called separately for egress and for ingress
-//
-//nolint:gocyclo // better not split into two function
 func pathOfSingleDirectionStr(allRulesDetails *rulesDetails, node EndpointElem,
 	filtersRelevant map[string]bool, rules *rulesConnection, isIngress bool,
-	router RoutingResource, privateSubnetRule PrivateSubnetRule) []string {
+	privateSubnetRule PrivateSubnetRule) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
 	subnetInPath := !node.IsExternal() && slices.Contains(layers, NaclLayer)
