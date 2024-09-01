@@ -15,7 +15,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Egress:
-		traffic from proxy[10.240.10.42] to Public Internet [161.26.0.0/32] is allowed, since subnet edge is public
+		external outbound connection is allowed since subnet edge is public
 		security group GroupId:35 allows connection with the following allow rules
 			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: all
 		network ACL NetworkAclId:65 allows connection with the following allow rules
