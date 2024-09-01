@@ -398,7 +398,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	isExternal := src.IsExternal() || dst.IsExternal()
-	egressPath := pathOfSingleDirectionStr(allRulesDetails, src, filtersRelevant, rules, false, isExternal,
+	egressPath := pathOfSingleDirectionStr(allRulesDetails, src, filtersRelevant, rules, false,
 		externalRouter, privateSubnetRule)
 	pathSlice = append(pathSlice, egressPath...)
 	externalRouterBlocking := isExternal && externalRouter == nil
@@ -423,7 +423,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
 	ingressPath := pathOfSingleDirectionStr(allRulesDetails, dst, filtersRelevant, rules, true,
-		isExternal, externalRouter, privateSubnetRule)
+		externalRouter, privateSubnetRule)
 	pathSlice = append(pathSlice, ingressPath...)
 	if ingressBlocking {
 		return blockedPathStr(pathSlice)
@@ -447,12 +447,11 @@ func blockedPathStr(pathSlice []string) string {
 //
 //nolint:gocyclo // better not split into two function
 func pathOfSingleDirectionStr(allRulesDetails *rulesDetails, node EndpointElem,
-	filtersRelevant map[string]bool, rules *rulesConnection, isIngress, isExternal bool,
+	filtersRelevant map[string]bool, rules *rulesConnection, isIngress bool,
 	router RoutingResource, privateSubnetRule PrivateSubnetRule) []string {
 	pathSlice := []string{}
 	layers := getLayersToPrint(filtersRelevant, isIngress)
-	subnetInPath := !node.IsExternal() && (!isExternal || (router != nil && router.Kind() == pgwKind)) &&
-		slices.Contains(layers, NaclLayer)
+	subnetInPath := !node.IsExternal() && slices.Contains(layers, NaclLayer)
 	// ingress: subnet should come before filters tables
 	if isIngress && subnetInPath {
 		if privateSubnetRuleRelevant(isIngress, privateSubnetRule) && privateSubnetRule.Deny(true) {
