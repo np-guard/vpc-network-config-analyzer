@@ -544,31 +544,6 @@ func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connectio
 	return true, allow, deny, err2
 }
 
-func GetHeaderRulesType(filter string, rType vpcmodel.RulesType) string {
-	switch rType {
-	case vpcmodel.NoRules:
-		return filter + " blocks connection since there are no relevant allow rules\n"
-	case vpcmodel.OnlyDeny:
-		return filter + " blocks connection with the following deny rules:\n"
-	case vpcmodel.BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
-	case vpcmodel.OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
-	default:
-		return ""
-	}
-}
-
-// returns true of the filter allows traffic, false if it blocks traffic
-func GetFilterAction(rType vpcmodel.RulesType) bool {
-	switch rType {
-	case vpcmodel.BothAllowDeny, vpcmodel.OnlyAllow:
-		return true
-	default:
-		return false
-	}
-}
-
 // SecurityGroupLayer captures all SG in the vpc config, analyzes connectivity considering all SG resources
 type SecurityGroupLayer struct {
 	vpcmodel.VPCResource
