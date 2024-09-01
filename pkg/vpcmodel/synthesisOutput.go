@@ -15,6 +15,8 @@ import (
 	"github.com/np-guard/models/pkg/spec"
 )
 
+const allRanges = "0.0.0.0/0"
+
 type SynthesisOutputFormatter struct {
 }
 
@@ -46,6 +48,9 @@ func handleExternals(srcName, cidrOrAddress, vpcName string, externalsMap map[st
 		return val
 	}
 	name := "external-" + vpcName + "-" + strconv.Itoa(len(externals))
+	if cidrOrAddress == allRanges {
+		name = "PublicInternet"
+	}
 	externalsMap[srcName] = name
 	externals[name] = cidrOrAddress
 	return name

@@ -1,6 +1,6 @@
 {
     "externals": {
-        "external-test-vpc1-0": "0.0.0.0/0",
+        "PublicInternet": "0.0.0.0/0",
         "external-test-vpc1-1": "172.217.22.46/32"
     },
     "required-connections": [
@@ -118,7 +118,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc1-0",
+                "name": "PublicInternet",
                 "type": "external"
             },
             "src": {
