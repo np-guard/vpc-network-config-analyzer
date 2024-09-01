@@ -169,6 +169,14 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 			}
 		}
 	}
+	ns, _ := GetExternalNetworkNodes([]*ipblock.IPBlock{ipblock.GetCidrAll()})
+	gr := make([]*ExternalNetwork, len(ns))
+	for i := range gr {
+		gr[i] = ns[i].(*ExternalNetwork)
+	}
+	var g groupedExternalNodes = gr
+	externalNodes[&g] = true
+
 	return internalNodes, externalNodes
 }
 
