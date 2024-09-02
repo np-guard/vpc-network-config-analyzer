@@ -461,13 +461,13 @@ var tests = []*commonvpc.VpcGeneralTest{
 		Format:       vpcmodel.HTML,
 	},
 	// todo: before merge - this fails. fail seems not related to this branch. understand why and have fixed.
-	// {
-	//	InputConfig:  "iks_workers_large",
-	//	UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	Grouping:     true,
-	//	NoLbAbstract: true,
-	//	Format:       vpcmodel.DRAWIO,
-	// },
+	{
+		InputConfig:  "iks_workers_large",
+		UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Grouping:     true,
+		NoLbAbstract: true,
+		Format:       vpcmodel.DRAWIO,
+	},
 	// LB examples:
 	{
 		InputConfig: "lb_bad_practice",
