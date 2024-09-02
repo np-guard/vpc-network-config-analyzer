@@ -1,7 +1,7 @@
 {
     "externals": {
-        "PublicInternet": "0.0.0.0/0",
-        "external-test-vpc-ky-0": "8.8.8.8/32"
+        "external-0": "0.0.0.0/0",
+        "external-1": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -935,7 +935,7 @@
                 }
             ],
             "dst": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -1076,7 +1076,7 @@
                 }
             ],
             "dst": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -1217,7 +1217,7 @@
                 }
             ],
             "dst": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -1325,7 +1325,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky-0",
+                "name": "external-1",
                 "type": "external"
             },
             "src": {
@@ -1449,7 +1449,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc-ky-0",
+                "name": "external-1",
                 "type": "external"
             },
             "src": {

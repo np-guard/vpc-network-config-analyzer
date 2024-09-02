@@ -1,6 +1,6 @@
 {
     "externals": {
-        "PublicInternet": "0.0.0.0/0"
+        "external-0": "0.0.0.0/0"
     },
     "required-connections": [
         {
@@ -40,7 +40,7 @@
                 }
             ],
             "dst": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -115,7 +115,7 @@
                 }
             ],
             "dst": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -134,7 +134,7 @@
                 "type": "instance"
             },
             "src": {
-                "name": "PublicInternet",
+                "name": "external-0",
                 "type": "external"
             }
         },

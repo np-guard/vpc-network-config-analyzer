@@ -1,7 +1,7 @@
 {
     "externals": {
-        "external-test-vpc1-ky-0": "142.0.0.0/8",
-        "external-test-vpc1-ky-1": "161.26.0.0/16"
+        "external-0": "142.0.0.0/8",
+        "external-1": "161.26.0.0/16"
     },
     "required-connections": [
         {
@@ -260,7 +260,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc1-ky-0",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
@@ -293,7 +293,7 @@
                 }
             ],
             "dst": {
-                "name": "external-test-vpc1-ky-1",
+                "name": "external-1",
                 "type": "external"
             },
             "src": {

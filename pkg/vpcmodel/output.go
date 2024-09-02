@@ -24,6 +24,7 @@ const overApproximationSign = " ** "
 const statefulMessage = "\nTCP connections for which response is not permitted are marked with" + asterisk + newLine
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"
+const externalString = "external-"
 
 const (
 	JSON OutFormat = iota
@@ -318,15 +319,15 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	return res, err
 }
 
-func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem, externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
+func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem,
+	externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	for _, conn := range requiredConnections {
 		if conn.Src.Type == spec.ResourceTypeExternal {
 			if val, ok := externalsMap[conn.Src.Name]; ok {
 				conn.Src.Name = val
-
 			} else {
-				name := "external-" + strconv.Itoa(len(externalsMap))
+				name := externalString + strconv.Itoa(len(externalsMap))
 				externalsMap[conn.Src.Name] = name
 				conn.Src.Name = name
 			}
@@ -334,12 +335,10 @@ func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem, ext
 		if conn.Dst.Type == spec.ResourceTypeExternal {
 			if val, ok := externalsMap[conn.Dst.Name]; ok {
 				conn.Dst.Name = val
-
 			} else {
-				name := "external-" + strconv.Itoa(len(externalsMap))
+				name := externalString + strconv.Itoa(len(externalsMap))
 				externalsMap[conn.Dst.Name] = name
 				conn.Dst.Name = name
-
 			}
 		}
 		connLines = append(connLines, conn)
