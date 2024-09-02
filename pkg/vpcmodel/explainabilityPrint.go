@@ -563,6 +563,7 @@ func (rules rulesInLayers) rulesDetailsStr(allRulesDetails *rulesDetails, filter
 	}
 	return strings.Join(strSlice, emptyString)
 }
+
 func privateSubnetRuleRelevant(isIngress bool, privateSubnetRule PrivateSubnetRule) bool {
 	return privateSubnetRule != nil && isIngress == privateSubnetRule.IsIngress()
 }

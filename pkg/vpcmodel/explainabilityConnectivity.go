@@ -223,8 +223,12 @@ func (details *rulesAndConnDetails) computeActualRules() {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
 		actualAllowIngress, ingressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+		// ingress disabled due to private subnet?
+		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
+		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true))
 		actualAllowEgress, egressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false))
 		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
 		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
