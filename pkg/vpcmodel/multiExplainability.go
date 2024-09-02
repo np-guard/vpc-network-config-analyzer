@@ -10,6 +10,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
 )
 
 type explainInputEntry struct {
@@ -103,6 +104,17 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 			return nil, err
 		}
 		return disjointNodes, nil
+	case *allPublicNodes:
+		var externalIP = ipblock.New()
+		for _, e := range n.groupedExternalNodes {
+			externalIP = externalIP.Union(e.ipblock)
+		}
+		// gets external nodes from e as explained in getCidrExternalNodes
+		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)
+		if err != nil {
+			return nil, err
+		}
+		return disjointNodes, nil
 	}
 	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
 }
@@ -174,10 +186,19 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 	for i := range gr {
 		gr[i] = ns[i].(*ExternalNetwork)
 	}
-	var g groupedExternalNodes = gr
+	g  := allPublicNodes{gr}
 	externalNodes[&g] = true
 
 	return internalNodes, externalNodes
+}
+
+type allPublicNodes struct{
+	groupedExternalNodes
+}
+func (g *allPublicNodes) ShowOnSubnetMode() bool  { return true }
+func (g *allPublicNodes) Kind() string  { return "xxxxxx" }
+func (g *allPublicNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface{
+	return gen.publicNetwork
 }
 
 func collectMultiConnectionsForExplanation(
