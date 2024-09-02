@@ -9,13 +9,10 @@ package vpcmodel
 import (
 	"encoding/json"
 	"sort"
-	"strconv"
 
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/spec"
 )
-
-const allRanges = "0.0.0.0/0"
 
 type SynthesisOutputFormatter struct {
 }
@@ -31,9 +28,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines, c1.VPC.Name())
+		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
 	case AllSubnets:
-		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines, c1.VPC.Name())
+		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -43,43 +40,30 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
-func handleExternals(srcName, cidrOrAddress, vpcName string, externalsMap map[string]string, externals spec.SpecExternals) string {
-	if val, ok := externalsMap[srcName]; ok {
-		return val
-	}
-	name := "external-" + vpcName + "-" + strconv.Itoa(len(externals))
-	if cidrOrAddress == allRanges {
-		name = "PublicInternet"
-	}
-	externalsMap[srcName] = name
-	externals[name] = cidrOrAddress
-	return name
-}
-
-func handleNameAndType(resource EndpointElem, externalsMap map[string]string, externals spec.SpecExternals, vpcName string) (
+func handleNameAndType(resource EndpointElem, externals spec.SpecExternals) (
 	resourceName string,
 	resourceType spec.ResourceType) {
 	resourceName = resource.SynthesisResourceName()
 	if resource.IsExternal() {
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external"
-			resourceName = handleExternals(resourceName, structObj.CidrOrAddress(), vpcName, externalsMap, externals)
+			// later in aggregate we change the name with other vpc configs
+			externals[resourceName] = structObj.CidrOrAddress()
 		}
 	}
 	resourceType = resource.SynthesisKind()
 	return
 }
 
-func getSynthesisSpec(groupedLines []*groupedConnLine, vpcName string) spec.Spec {
+func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
-	externalsMap := make(map[string]string)
 	sortGroupedLines(groupedLines)
 
 	for _, groupedLine := range groupedLines {
-		srcName, srcType := handleNameAndType(groupedLine.Src, externalsMap, externals, vpcName)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externalsMap, externals, vpcName)
+		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
@@ -91,7 +75,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine, vpcName string) spec.Spec
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
-	return s
+	return &s
 }
 
 func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {

@@ -12,6 +12,7 @@ import (
 	"os"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/np-guard/models/pkg/spec"
@@ -301,12 +302,13 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	case Synthesis:
 		connLines := []spec.SpecRequiredConnectionsElem{}
 		externals := spec.SpecExternals{}
+		externalsMap := make(map[string]string)
 		for _, o := range outputList {
 			// always true
-			if structObj, ok := o.jsonStruct.(spec.Spec); ok {
-				connLines = append(connLines, structObj.RequiredConnections...)
+			if structObj, ok := o.jsonStruct.(*spec.Spec); ok {
+				connLines = append(connLines, renameExternals(structObj.RequiredConnections, externalsMap)...)
 				for k, v := range structObj.Externals {
-					externals[k] = v
+					externals[externalsMap[k]] = v
 				}
 			}
 		}
@@ -314,6 +316,35 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		res, err = writeJSON(spec.Spec{RequiredConnections: connLines, Externals: externals}, outFile)
 	}
 	return res, err
+}
+
+func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem, externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
+	connLines := []spec.SpecRequiredConnectionsElem{}
+	for _, conn := range requiredConnections {
+		if conn.Src.Type == spec.ResourceTypeExternal {
+			if val, ok := externalsMap[conn.Src.Name]; ok {
+				conn.Src.Name = val
+
+			} else {
+				name := "external-" + strconv.Itoa(len(externalsMap))
+				externalsMap[conn.Src.Name] = name
+				conn.Src.Name = name
+			}
+		}
+		if conn.Dst.Type == spec.ResourceTypeExternal {
+			if val, ok := externalsMap[conn.Dst.Name]; ok {
+				conn.Dst.Name = val
+
+			} else {
+				name := "external-" + strconv.Itoa(len(externalsMap))
+				externalsMap[conn.Dst.Name] = name
+				conn.Dst.Name = name
+
+			}
+		}
+		connLines = append(connLines, conn)
+	}
+	return connLines
 }
 
 // WriteDiffOrExplainOutput actual writing the output into file, with required format adjustments
