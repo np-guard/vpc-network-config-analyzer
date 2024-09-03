@@ -17,13 +17,14 @@ import (
 // Once multivpc support is elaborating , the struct may change
 // thus, please use get/set methods to access the structs; avoid direct access
 type MultipleVPCConfigs struct {
-	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
-	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
-	provider         collector_common.Provider
+	configs           map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
+	toCompareConfigs  map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
+	provider          collector_common.Provider
+	publicNetworkNode EndpointElem
 }
 
 func NewMultipleVPCConfigs(provider collector_common.Provider) *MultipleVPCConfigs {
-	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, provider}
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, provider, nil}
 }
 
 func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {

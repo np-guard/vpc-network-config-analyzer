@@ -84,6 +84,7 @@ func newTemplateData(network SquareTreeNodeInterface, explanations []Explanation
 			data.clickable[e.Src] = true
 			data.clickable[e.Dst] = true
 		}
+		data.clickable[network.(*NetworkTreeNode).publicNetwork] = true
 	}
 	return data
 }
