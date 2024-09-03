@@ -579,6 +579,18 @@ var tests = []*commonvpc.VpcGeneralTest{
 		Format:      vpcmodel.HTML,
 		Grouping:    true,
 	},
+	{
+		InputConfig: "vni_basic",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Grouping:    true,
+		Format:      vpcmodel.Text,
+	},
+	{
+		InputConfig: "vni_basic",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Grouping:    true,
+		Format:      vpcmodel.HTML,
+	},
 }
 
 // uncomment the function below to run for updating the expected output

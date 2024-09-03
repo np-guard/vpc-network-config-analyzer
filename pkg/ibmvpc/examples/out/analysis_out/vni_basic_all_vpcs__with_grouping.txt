@@ -1,0 +1,9 @@
+Endpoint connectivity for VPC vni-basic
+Public Internet 147.235.0.0/16 => vsi-a[10.240.0.4] : All Connections
+Public Internet 147.235.0.0/16 => wl-b2[10.240.12.4] : All Connections
+vsi-a[10.240.0.4] => Public Internet 147.235.0.0/16 : All Connections
+vsi-a[10.240.0.4],wl-a[10.240.0.5] => vsi-a[10.240.0.4],wl-a[10.240.0.5] : All Connections
+vsi-a[10.240.0.4],wl-a[10.240.0.5] => wl-b2[10.240.12.4] : protocol: TCP
+wl-b2[10.240.12.4] => Public Internet 147.235.0.0/16 : All Connections
+wl-b2[10.240.12.4] => vsi-a[10.240.0.4],wl-a[10.240.0.5] : protocol: TCP
+wl-b2[10.240.12.4] => wl-b1[10.240.12.5] : protocol: TCP dst-ports: 9080
