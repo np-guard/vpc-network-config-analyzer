@@ -10,6 +10,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1/vsi3a",
                 "type": "instance"
@@ -41,27 +42,13 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1/vsi1",
                 "type": "instance"
             },
             "src": {
                 "name": "test-vpc1/vsi3b",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1/vsi3b",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1/vsi3a",
                 "type": "instance"
             }
         },
@@ -87,6 +74,7 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1/vsi1",
                 "type": "instance"
@@ -102,6 +90,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1/vsi1",
                 "type": "instance"
@@ -123,83 +112,6 @@
             },
             "src": {
                 "name": "test-vpc1/vsi2",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_destination_port": 443,
-                    "max_source_port": 65535,
-                    "min_destination_port": 443,
-                    "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_destination_port": 443,
-                    "max_source_port": 442,
-                    "min_destination_port": 443,
-                    "min_source_port": 1,
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1/vsi3b",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1/vsi1",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "max_source_port": 443,
-                    "min_source_port": 443,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_destination_port": 443,
-                    "max_source_port": 65535,
-                    "min_destination_port": 443,
-                    "min_source_port": 444,
-                    "protocol": "TCP"
-                },
-                {
-                    "max_destination_port": 443,
-                    "max_source_port": 442,
-                    "min_destination_port": 443,
-                    "min_source_port": 1,
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1/vsi3a",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1/vsi1",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1/vsi2",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1/vsi1",
                 "type": "instance"
             }
         },

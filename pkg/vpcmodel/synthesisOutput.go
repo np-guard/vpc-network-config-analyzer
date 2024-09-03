@@ -59,23 +59,52 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
+	// map from string(src+dst+conn) to int, if bidirectional or not. just one direction will be in this map
+	bidirectionalMap := make(map[string]bool)
 	sortGroupedLines(groupedLines)
 
+	initBidirectionalMap(groupedLines, bidirectionalMap)
+
 	for _, groupedLine := range groupedLines {
-		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
-		// For now, ignoring responsiveness of TCP connection
+		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
+		bidirectional, ok := bidirectionalMap[dstName+srcName+groupedLine.CommonProperties.Conn.allConn.String()]
+
+		if !ok {
+			// it means that it is bidirectional but the conn line will be appended to the list with the other direction.
+			continue
+		}
+
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
-			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn)))})
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
+			Bidirectional:    bidirectional})
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
 	return &s
+}
+
+func initBidirectionalMap(groupedLines []*groupedConnLine, bidirectionalMap map[string]bool) {
+	for _, groupedLine := range groupedLines {
+		_, ok := bidirectionalMap[groupedLine.Src.SynthesisResourceName()+
+			groupedLine.Dst.SynthesisResourceName()+
+			groupedLine.CommonProperties.Conn.allConn.String()]
+		if ok {
+			bidirectionalMap[groupedLine.Src.SynthesisResourceName()+
+				groupedLine.Dst.SynthesisResourceName()+
+				groupedLine.CommonProperties.Conn.allConn.String()] = true
+		} else {
+			// insert to map opposite direction
+			bidirectionalMap[groupedLine.Dst.SynthesisResourceName()+
+				groupedLine.Src.SynthesisResourceName()+
+				groupedLine.CommonProperties.Conn.allConn.String()] = false
+		}
+	}
 }
 
 func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
