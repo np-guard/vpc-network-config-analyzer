@@ -373,7 +373,11 @@ func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, r
 		if effect {
 			effectStr = " allows connection"
 		} else {
-			effectStr = " blocks connection"
+			if filterLayerName == SecurityGroupLayer {
+				effectStr = " does not allow connection"
+			} else {
+				effectStr = " blocks connection"
+			}
 		}
 		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
 		i++
