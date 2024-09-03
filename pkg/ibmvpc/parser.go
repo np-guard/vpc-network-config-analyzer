@@ -386,9 +386,9 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		// the VNIs are listed at the instance.NetworkAttachments.
 		// using that list, we extract the VNIs from the rc.VirtualNIList, which holds all the VNIs of all VSIs
 		for j := range instance.NetworkAttachments {
-			vniObj,ok := vnisObj[*instance.NetworkAttachments[j].ID]
-			if !ok{
-				return fmt.Errorf("Could not find attachment %s at virtual_nis list", *instance.NetworkAttachments[j].ID)
+			vniObj, ok := vnisObj[*instance.NetworkAttachments[j].ID]
+			if !ok {
+				return fmt.Errorf("could not find attachment %s at virtual_nis list", *instance.NetworkAttachments[j].ID)
 			}
 			err := createNetworkInterface(*vniObj.Name, *vniObj.ID,
 				*vniObj.PrimaryIP.Address, instance, true, vsiNode,
@@ -422,7 +422,8 @@ func createNetworkInterface(name, id, address string, instance *datamodel.Instan
 	vsiNode *commonvpc.Vsi,
 	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	vpc *commonvpc.VPC, vpcConfig *vpcmodel.VPCConfig) error {
-	intfNode, err := commonvpc.NewNetworkInterface(name, id, *instance.Zone.Name, address, *instance.Name, len(instance.NetworkInterfaces), virtual, vpc)
+	intfNode, err := commonvpc.NewNetworkInterface(
+		name, id, *instance.Zone.Name, address, *instance.Name, len(instance.NetworkInterfaces), virtual, vpc)
 	if err != nil {
 		return err
 	}
