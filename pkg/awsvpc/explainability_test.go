@@ -15,12 +15,21 @@ import (
 )
 
 var explainTests = []*commonvpc.VpcGeneralTest{
-	// existing connection between two endpoints
+	// existing connection between two endpoints of different subnets
 	{
 		Name:          "ip_to_ip",
 		InputConfig:   "aws_sg_1",
 		ESrc:          "10.240.40.217",
 		EDst:          "10.240.20.43",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	// non-existing connection between two endpoints of different subnets due to one of the nacls
+	{
+		Name:          "nacl_blocking",
+		InputConfig:   "aws_mixed",
+		ESrc:          "10.240.2.28",
+		EDst:          "10.240.32.122",
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},

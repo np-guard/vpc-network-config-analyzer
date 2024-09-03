@@ -1,0 +1,33 @@
+Explaining connectivity from 10.240.2.28 to 10.240.32.122 within mixed
+Interpreted source: p2[10.240.2.28]
+Interpreted destination: q2[10.240.32.122]
+======================================================================
+
+No connections from p2[10.240.2.28] to q2[10.240.32.122];
+connection is blocked by ingress
+
+Egress: security group GroupId:9 allows connection; network ACL NetworkAclId:53 allows connection
+Ingress: network ACL NetworkAclId:53 blocks connection; security group GroupId:9 allows connection
+
+Path:
+	p2[10.240.2.28] -> security group GroupId:9 -> network ACL NetworkAclId:53 -> subnet public -> 
+	subnet private1 -> | network ACL NetworkAclId:53 |
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
+	Egress:
+		security group GroupId:9 allows connection with the following allow rules
+			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, conns: protocol: all
+		network ACL NetworkAclId:53 allows connection with the following allow rules
+			ruleNumber: 20, direction: outbound ,cidr: 10.240.32.0/19, action: allow, conn: all
+
+	Ingress:
+		network ACL NetworkAclId:53 blocks connection with the following deny rules:
+			ruleNumber: 32767, direction: inbound ,cidr: 0.0.0.0/0, action: deny, conn: all
+		security group GroupId:9 allows connection with the following allow rules
+			Inbound index: 0, direction: inbound, target: 10.240.0.0/18, conns: protocol: all
+
+------------------------------------------------------------------------------------------------------------------------
+
