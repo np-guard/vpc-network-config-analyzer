@@ -386,9 +386,12 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		// the VNIs are listed at the instance.NetworkAttachments.
 		// using that list, we extract the VNIs from the rc.VirtualNIList, which holds all the VNIs of all VSIs
 		for j := range instance.NetworkAttachments {
-			vniObj := vnisObj[*instance.NetworkAttachments[j].ID]
+			vniObj,ok := vnisObj[*instance.NetworkAttachments[j].ID]
+			if !ok{
+				return fmt.Errorf("Could not find attachment %s at virtual_nis list", *instance.NetworkAttachments[j].ID)
+			}
 			err := createNetworkInterface(*vniObj.Name, *vniObj.ID,
-				*vniObj.PrimaryIP.Address, instance, true, vsiNode, len(instance.NetworkAttachments),
+				*vniObj.PrimaryIP.Address, instance, true, vsiNode,
 				*vniObj.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 			if err != nil {
 				return err
@@ -404,7 +407,7 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 			netintf := instance.NetworkInterfaces[j]
 			// netintf has no CRN, thus using its ID for ResourceUID
 			err := createNetworkInterface(*netintf.Name, *netintf.ID,
-				*netintf.PrimaryIP.Address, instance, false, vsiNode, len(instance.NetworkInterfaces),
+				*netintf.PrimaryIP.Address, instance, false, vsiNode,
 				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 			if err != nil {
 				return err
@@ -416,10 +419,10 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 
 // createNetworkInterface() is used to create NIs or VNIs
 func createNetworkInterface(name, id, address string, instance *datamodel.Instance, virtual bool,
-	vsiNode *commonvpc.Vsi, numberOfNifsInVsi int,
+	vsiNode *commonvpc.Vsi,
 	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	vpc *commonvpc.VPC, vpcConfig *vpcmodel.VPCConfig) error {
-	intfNode, err := commonvpc.NewNetworkInterface(name, id, *instance.Zone.Name, address, *instance.Name, numberOfNifsInVsi, virtual, vpc)
+	intfNode, err := commonvpc.NewNetworkInterface(name, id, *instance.Zone.Name, address, *instance.Name, len(instance.NetworkInterfaces), virtual, vpc)
 	if err != nil {
 		return err
 	}
