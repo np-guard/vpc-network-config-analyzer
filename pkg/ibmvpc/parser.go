@@ -171,10 +171,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(resourceGroup string, v
 		return nil, err
 	}
 
-	err = rc.getFipConfig(res, filteredOut, shouldSkipVpcIds)
-	if err != nil {
-		return nil, err
-	}
+	rc.getFipConfig(res, filteredOut, shouldSkipVpcIds)
 
 	err = rc.getVPEconfig(res, shouldSkipVpcIds)
 	if err != nil {
@@ -363,6 +360,10 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 	filteredOutUIDs map[string]bool,
 	skipByVPC map[string]bool,
 ) error {
+	vnisObj := map[string]*datamodel.VirtualNI{}
+	for _, vniObj := range rc.VirtualNIList {
+		vnisObj[*vniObj.Target.(*vpc1.VirtualNetworkInterfaceTarget).ID] = vniObj
+	}
 	for _, instance := range rc.InstanceList {
 		vpcUID := *instance.VPC.CRN
 		if skipByVPC[vpcUID] {
@@ -380,24 +381,59 @@ func (rc *IBMresourcesContainer) getInstancesConfig(
 		vpcConfig := res.Config(vpcUID)
 		vpcConfig.NodeSets = append(vpcConfig.NodeSets, vsiNode)
 		vpcConfig.UIDToResource[vsiNode.ResourceUID] = vsiNode
-		for j := range instance.NetworkInterfaces {
-			netintf := instance.NetworkInterfaces[j]
-			// netintf has no CRN, thus using its ID for ResourceUID
-			intfNode, err := commonvpc.NewNetworkInterface(*netintf.Name, *netintf.ID,
-				*instance.Zone.Name, *netintf.PrimaryIP.Address, *instance.Name, len(instance.NetworkInterfaces), vpc)
+		// a VSI can not have both VNIs and NIs.
+		// first we check for VNIs.
+		// the VNIs are listed at the instance.NetworkAttachments.
+		// using that list, we extract the VNIs from the rc.VirtualNIList, which holds all the VNIs of all VSIs
+		for j := range instance.NetworkAttachments {
+			vniObj, ok := vnisObj[*instance.NetworkAttachments[j].ID]
+			if !ok {
+				return fmt.Errorf("could not find attachment %s at virtual_nis list", *instance.NetworkAttachments[j].ID)
+			}
+			err := createNetworkInterface(*vniObj.Name, *vniObj.ID,
+				*vniObj.PrimaryIP.Address, instance, true, vsiNode,
+				*vniObj.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
 			if err != nil {
 				return err
 			}
-			vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
-			vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
-			vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
-			subnetUID := *netintf.Subnet.CRN
-			if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
-				subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
+		}
+		if len(instance.NetworkAttachments) > 0 {
+			// this VSI has VNIs, we do not check for NIs
+			// notice that in this case, instance.NetworkInterfaces will not be empty,
+			// since each VNI has "NI representation" for backward computability
+			continue
+		}
+		for j := range instance.NetworkInterfaces {
+			netintf := instance.NetworkInterfaces[j]
+			// netintf has no CRN, thus using its ID for ResourceUID
+			err := createNetworkInterface(*netintf.Name, *netintf.ID,
+				*netintf.PrimaryIP.Address, instance, false, vsiNode,
+				*netintf.Subnet.CRN, subnetIDToNetIntf, vpc, vpcConfig)
+			if err != nil {
+				return err
 			}
-			subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
 		}
 	}
+	return nil
+}
+
+// createNetworkInterface() is used to create NIs or VNIs
+func createNetworkInterface(name, id, address string, instance *datamodel.Instance, virtual bool,
+	vsiNode *commonvpc.Vsi,
+	subnetUID string, subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
+	vpc *commonvpc.VPC, vpcConfig *vpcmodel.VPCConfig) error {
+	intfNode, err := commonvpc.NewNetworkInterface(
+		name, id, *instance.Zone.Name, address, *instance.Name, len(instance.NetworkInterfaces), virtual, vpc)
+	if err != nil {
+		return err
+	}
+	vpcConfig.Nodes = append(vpcConfig.Nodes, intfNode)
+	vpcConfig.UIDToResource[intfNode.ResourceUID] = intfNode
+	vsiNode.VPCnodes = append(vsiNode.VPCnodes, intfNode)
+	if _, ok := subnetIDToNetIntf[subnetUID]; !ok {
+		subnetIDToNetIntf[subnetUID] = []*commonvpc.NetworkInterface{}
+	}
+	subnetIDToNetIntf[subnetUID] = append(subnetIDToNetIntf[subnetUID], intfNode)
 	return nil
 }
 
@@ -514,8 +550,7 @@ func newFIP(fipName, fipCRN, fipZone, fipAddress string, vpc *commonvpc.VPC, src
 func (rc *IBMresourcesContainer) getFipConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	filteredOutUIDs map[string]bool,
-	skipByVPC map[string]bool,
-) error {
+	skipByVPC map[string]bool) {
 	for _, fip := range rc.FloatingIPList {
 		targetIntf := fip.Target
 		var targetUID string
@@ -523,10 +558,11 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		case *vpc1.FloatingIPTargetNetworkInterfaceReference:
 			targetUID = *target.ID
 		case *vpc1.FloatingIPTarget:
-			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType {
+			if *target.ResourceType != commonvpc.NetworkInterfaceResourceType &&
+				*target.ResourceType != commonvpc.VirtualNetworkInterfaceResourceType {
 				logging.Debug(ignoreFIPWarning(*fip.Name,
-					fmt.Sprintf("target.ResourceType %s is not supported (only commonvpc.NetworkInterfaceResourceType supported)",
-						*target.ResourceType)))
+					fmt.Sprintf("target.ResourceType %s is not supported (only %s and %s are supported)",
+						*target.ResourceType, commonvpc.NetworkInterfaceResourceType, commonvpc.VirtualNetworkInterfaceResourceType)))
 				continue
 			}
 			targetUID = *target.ID
@@ -540,9 +576,8 @@ func (rc *IBMresourcesContainer) getFipConfig(
 		}
 
 		var srcNodes []vpcmodel.Node
-		var vpcUID string
 		var vpcConfig *vpcmodel.VPCConfig
-		for vpcUID, vpcConfig = range res.Configs() {
+		for _, vpcConfig = range res.Configs() {
 			srcNodes = getCertainNodes(vpcConfig.Nodes, func(n vpcmodel.Node) bool { return n.UID() == targetUID })
 			if len(srcNodes) > 0 {
 				break
@@ -554,11 +589,8 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			continue // could not find network interface attached to configured fip -- skip that fip
 		}
 
-		vpc, err := commonvpc.GetVPCObjectByUID(res, vpcUID)
-		if err != nil {
-			return err
-		}
-		if skipByVPC[vpc.ResourceUID] {
+		vpc := srcNodes[0].VPC().(*commonvpc.VPC)
+		if skipByVPC[vpc.UID()] {
 			continue // skip fip because of selected vpc to analyze
 		}
 
@@ -578,7 +610,6 @@ func (rc *IBMresourcesContainer) getFipConfig(
 			}
 		}
 	}
-	return nil
 }
 
 // getZonesAndAddressPrefixes returns a map from zone name to its list of cidrs (vpc address prefixes)
@@ -625,7 +656,7 @@ func parseSGTargets(sgResource *commonvpc.SecurityGroup,
 			// get from target name + resource type -> find the address of the target
 			targetType := *targetIntfRef.ResourceType
 			switch targetType {
-			case commonvpc.NetworkInterfaceResourceType:
+			case commonvpc.NetworkInterfaceResourceType, commonvpc.VirtualNetworkInterfaceResourceType:
 				if intfNode, ok := c.UIDToResource[*targetIntfRef.ID]; ok {
 					if intfNodeObj, ok := intfNode.(*commonvpc.NetworkInterface); ok {
 						sgResource.Members[intfNodeObj.Address()] = intfNodeObj

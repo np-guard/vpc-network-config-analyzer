@@ -15,7 +15,10 @@ import (
 )
 
 const (
-	niImage        = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4="
+	ibmNiImage     = "PHN2ZyB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA0OCA0OCIgaGVpZ2h0PSI0OHB4IiB3aWR0aD0iNDhweCI+JiN4YTsgICAgPHRpdGxlPm5ldHdvcmstaW50ZXJmYWNlPC90aXRsZT4mI3hhOyAgICA8ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGZpbGw9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlPSJub25lIiBpZD0iVjItSWNvbnMiPiYjeGE7ICAgICAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtNDQ1LCAtODYpIiBpZD0iSUJNL0Nsb3VkL05ldHdvcmsiPiYjeGE7ICAgICAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNDQ1LCA4NikiIGlkPSJuZXR3b3JrLWludGVyZmFjZSI+JiN4YTsgICAgICAgICAgICAgICAgPHJlY3QgaGVpZ2h0PSI0OCIgd2lkdGg9IjQ4IiB5PSIwIiB4PSIwIiBmaWxsPSIjMTE5MkU4IiBpZD0iUmVjdGFuZ2xlLUNvcHktMzYiLz4mI3hhOyAgICAgICAgICAgICAgICA8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMiwgMTIpIj4mI3hhOyAgICAgICAgICAgICAgICAgICAgPHBhdGggZmlsbC1ydWxlPSJub256ZXJvIiBmaWxsPSIjRkZGRkZGIiBpZD0iUGF0aCIgZD0iTTIxLDEzLjUgTDE5LjUsMTMuNSBMMTkuNSw0LjUgTDkuNzUsNC41IEw5Ljc1LDMgTDE5LjUsMyBDMjAuMzI3MSwzIDIxLDMuNjcyOSAyMSw0LjUgTDIxLDEzLjUgWiIvPiYjeGE7ICAgICAgICAgICAgICAgICAgICA8cGF0aCBmaWxsLXJ1bGU9Im5vbnplcm8iIGZpbGw9IiNGRkZGRkYiIGlkPSJQYXRoIiBkPSJNMTMuNSwyMSBMNC41LDIxIEMzLjY3MjksMjEgMywyMC4zMjcxIDMsMTkuNSBMMyw5Ljc1IEw0LjUsOS43NSBMNC41LDE5LjUgTDEzLjUsMTkuNSBMMTMuNSwyMSBaIi8+JiN4YTsgICAgICAgICAgICAgICAgICAgIDxwYXRoIGZpbGwtcnVsZT0ibm9uemVybyIgZmlsbD0iI0ZGRkZGRiIgaWQ9IlNoYXBlIiBkPSJNMTkuNSwxNS43NSBMMTguMTU1MjUsMTcuMDk0NzUgTDE0LjAyNDU1LDEyLjk2MzkgQzE0LjE2NDgsMTIuNjcwNTc1IDE0LjI0OTkyNSwxMi4zNDY1IDE0LjI0OTkyNSwxMiBDMTQuMjQ5OTI1LDEwLjc1OTI3NSAxMy4yNDA2NSw5Ljc1IDExLjk5OTkyNSw5Ljc1IEMxMS42NTM2NSw5Ljc1IDExLjMyOTQyNSw5LjgzNDk3NSAxMS4wMzYwMjUsOS45NzU2IEw3LjA3NDc1LDYuMDE0MzI1IEM3LjMzODIyNSw1LjU2ODMgNy40OTk5MjUsNS4wNTQ4NSA3LjQ5OTkyNSw0LjUwMDA3NSBDNy40OTk5MjUsMi44NDU4NzUgNi4xNTQxMjUsMS41MDAwNzUgNC40OTk5MjUsMS41MDAwNzUgQzIuODQ1NzI1LDEuNTAwMDc1IDEuNSwyLjg0NTggMS41LDQuNSBDMS41LDYuMTU0MiAyLjg0NTgsNy41IDQuNSw3LjUgQzUuMDU0NjI1LDcuNSA1LjU2ODA3NSw3LjMzODUyNSA2LjAxNDI1LDcuMDc0ODI1IEw5Ljk3NTM3NSwxMS4wMzYxIEM5LjgzNTEyNSwxMS4zMjk0MjUgOS43NSwxMS42NTM1IDkuNzUsMTIgQzkuNzUsMTMuMjQwNzI1IDEwLjc1OTI3NSwxNC4yNSAxMiwxNC4yNSBDMTIuMzQ2Mjc1LDE0LjI1IDEyLjY3MDUsMTQuMTY1MDI1IDEyLjk2MzksMTQuMDI0NCBMMTcuMDk0NzUsMTguMTU1MjUgTDE1Ljc1LDE5LjUgTDE5LjUsMjMuMjUgTDIzLjI1LDE5LjUgTDE5LjUsMTUuNzUgWiBNMyw0LjUgQzMsMy42NzMxMjUgMy42NzI5LDMgNC41LDMgQzUuMzI3MSwzIDYsMy42NzMxMjUgNiw0LjUgQzYsNS4zMjY4NzUgNS4zMjcxLDYgNC41LDYgQzMuNjcyOSw2IDMsNS4zMjY4NzUgMyw0LjUgWiBNMTEuMjUsMTIgQzExLjI1LDExLjU4NjUyNSAxMS41ODYzNzUsMTEuMjUgMTIsMTEuMjUgQzEyLjQxMzYyNSwxMS4yNSAxMi43NSwxMS41ODY1MjUgMTIuNzUsMTIgQzEyLjc1LDEyLjQxMzQ3NSAxMi40MTM2MjUsMTIuNzUgMTIsMTIuNzUgQzExLjU4NjM3NSwxMi43NSAxMS4yNSwxMi40MTM0NzUgMTEuMjUsMTIgWiBNMTcuODcxNDUsMTkuNSBMMTkuNSwxNy44NzE0NSBMMjEuMTI4NTUsMTkuNSBMMTkuNSwyMS4xMjg1NSBMMTcuODcxNDUsMTkuNSBaIi8+JiN4YTsgICAgICAgICAgICAgICAgICAgIDxyZWN0IGhlaWdodD0iMjQiIHdpZHRoPSIyNCIgeT0iMCIgeD0iMCIgaWQ9Il9UcmFuc3BhcmVudF9SZWN0YW5nbGVfIi8+JiN4YTsgICAgICAgICAgICAgICAgPC9nPiYjeGE7ICAgICAgICAgICAgPC9nPiYjeGE7ICAgICAgICA8L2c+JiN4YTsgICAgPC9nPiYjeGE7PC9zdmc+"
+	awsNiImage     = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgeD0iOCIgeT0iMzUiPk5JPC90ZXh0Pgo8L3N2Zz4="
+	vniImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+DQo8ZGVmcz4NCjxzdHlsZT4uY2xzLTF7ZmlsbDojZWU1Mzk2O30uY2xzLTJ7ZmlsbDpub25lO30uY2xzLTN7ZmlsbDojZmZmO308L3N0eWxlPg0KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+DQo8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE0LjUiIHk9IjE0LjUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPg0KPHRleHQgZm9udC1zaXplPSIyNSIgZmlsbD0id2hpdGUiIHg9IjMiIHk9IjM1Ij5WTkk8L3RleHQ+DQo8L3N2Zz4NCg=="
+	elasticNiImage = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+DQo8ZGVmcz4NCjxzdHlsZT4uY2xzLTF7ZmlsbDojZWU1Mzk2O30uY2xzLTJ7ZmlsbDpub25lO30uY2xzLTN7ZmlsbDojZmZmO308L3N0eWxlPg0KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+DQo8cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE0LjUiIHk9IjE0LjUiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIvPg0KPHRleHQgZm9udC1zaXplPSIyNSIgZmlsbD0id2hpdGUiIHg9IjMiIHk9IjM1Ij5WTkk8L3RleHQ+DQo8L3N2Zz4NCg=="
 	vsiImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxOTgwMzg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxjaXJjbGUgY2xhc3M9ImNscy0yIiBjeD0iMTguODgiIGN5PSIyOC44OCIgcj0iMC42MyIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTUuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE5LjUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjIzLjI1IiB5PSIxOC4yNSIgd2lkdGg9IjIuNSIgaGVpZ2h0PSIxLjI1Ii8+PHJlY3QgY2xhc3M9ImNscy0yIiB4PSIyNyIgeT0iMTguMjUiIHdpZHRoPSIyLjUiIGhlaWdodD0iMS4yNSIvPjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMzAuNzUiIHk9IjE4LjI1IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjEuMjUiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0zMiwzMkgxN2ExLjI1LDEuMjUsMCwwLDEtMS4yNS0xLjI1VjI3QTEuMjUsMS4yNSwwLDAsMSwxNywyNS43NUgzMkExLjI1LDEuMjUsMCwwLDEsMzMuMjUsMjd2My43NUExLjI1LDEuMjUsMCwwLDEsMzIsMzJaTTE3LDI3djMuNzVIMzJWMjdaIi8+PHJlY3QgY2xhc3M9ImNscy0zIiB4PSIxNC41IiB5PSIxNC41IiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiLz48cmVjdCBjbGFzcz0iY2xzLTIiIHg9IjE1Ljc1IiB5PSIyMiIgd2lkdGg9IjE3LjUiIGhlaWdodD0iMS4yNSIvPjwvc3ZnPg=="
 	resIPImage     = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+CjxkZWZzPgo8c3R5bGU+LmNscy0xe2ZpbGw6I2VlNTM5Njt9LmNscy0ye2ZpbGw6bm9uZTt9LmNscy0ze2ZpbGw6I2ZmZjt9PC9zdHlsZT4KPC9kZWZzPg0KPHJlY3QgY2xhc3M9ImNscy0xIiB4PSIwLjUiIHk9IjAuNSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ii8+CjxyZWN0IGNsYXNzPSJjbHMtMiIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+DQo8dGV4dCBmb250LXNpemU9IjIwIiBmaWxsPSJ3aGl0ZSIgeD0iNSIgeT0iMzIiPnJlc0lQPC90ZXh0Pgo8L3N2Zz4="
 	vpeImage       = "PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OSA0OSI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiMxMTkyZTg7fS5jbHMtMntmaWxsOiNmZmY7fS5jbHMtM3tmaWxsOm5vbmU7fTwvc3R5bGU+PC9kZWZzPjxyZWN0IGNsYXNzPSJjbHMtMSIgeD0iMC41IiB5PSIwLjUiIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfYm90dG9tIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCBib3R0b20iIGNsYXNzPSJjbHMtMiIgZD0iTTI3LDMxLjM4SDE4Ljg4YTEuMjcsMS4yNywwLDAsMS0xLjI2LTEuMjVWMjJoMS4yNnY4LjEzSDI3WiIvPjxwYXRoIGlkPSJ2cGNfZ3JhZGllbnRfdG9wIiBkYXRhLW5hbWU9InZwYyBncmFkaWVudCB0b3AiIGNsYXNzPSJjbHMtMiIgZD0iTTMwLjEyLDI3aDEuMjZWMTguODhhMS4yNiwxLjI2LDAsMCwwLTEuMjYtMS4yNUgyMnYxLjI1aDguMTJaIi8+PHBhdGggaWQ9ImVuZHBvaW50cyIgY2xhc3M9ImNscy0yIiBkPSJNMjkuMTIsMjguMjVsLTIuNS0yLjVBMi4yNiwyLjI2LDAsMCwwLDI3LDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjJhMi4xOSwyLjE5LDAsMCwwLTEuMjUuMzhsLTIuNS0yLjVWMTUuNzVoLTV2NWg0LjEzbDIuNSwyLjVBMi4yNiwyLjI2LDAsMCwwLDIyLDI0LjUsMi41MSwyLjUxLDAsMCwwLDI0LjUsMjdhMi4yNiwyLjI2LDAsMCwwLDEuMjUtLjM4bDIuNSwyLjV2NC4xM2g1di01Wk0xOS41LDE5LjVIMTdWMTdoMi41Wm01LDYuMjVhMS4yNSwxLjI1LDAsMSwxLDEuMjUtMS4yNUExLjI1LDEuMjUsMCwwLDEsMjQuNSwyNS43NVpNMzIsMzJIMjkuNVYyOS41SDMyWiIvPjxyZWN0IGNsYXNzPSJjbHMtMyIgeD0iMTQuNSIgeT0iMTQuNSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIi8+PC9zdmc+"
@@ -28,9 +31,10 @@ const (
 	noneEndEdge  = "none"
 )
 
-// these two types are declared to be used as keys at the image map
+// these types are declared to be used as keys at the image map
 type publicSubnetTreeNode SubnetTreeNode
 type privateSubnetTreeNode SubnetTreeNode
+type virtualNITreeNode NITreeNode
 
 var images = map[common.Provider]map[reflect.Type]string{
 	common.IBM: {
@@ -45,6 +49,7 @@ var images = map[common.Provider]map[reflect.Type]string{
 
 		// icons
 		reflect.TypeOf(NITreeNode{}):              vsiImage,
+		reflect.TypeOf(virtualNITreeNode{}):       vsiImage,
 		reflect.TypeOf(VsiTreeNode{}):             vsiImage,
 		reflect.TypeOf(ResIPTreeNode{}):           vpeImage,
 		reflect.TypeOf(VpeTreeNode{}):             vpeImage,
@@ -76,9 +81,16 @@ var images = map[common.Provider]map[reflect.Type]string{
 		reflect.TypeOf(PrivateIPTreeNode{}):       privateIPImage,
 	},
 }
-var miniImages = map[reflect.Type]string{
-	reflect.TypeOf(NITreeNode{}):    niImage,
-	reflect.TypeOf(ResIPTreeNode{}): resIPImage,
+var miniImages = map[common.Provider]map[reflect.Type]string{
+	common.IBM: {
+		reflect.TypeOf(NITreeNode{}):        ibmNiImage,
+		reflect.TypeOf(virtualNITreeNode{}): vniImage,
+		reflect.TypeOf(ResIPTreeNode{}):     resIPImage,
+	},
+	common.AWS: {
+		reflect.TypeOf(NITreeNode{}):        awsNiImage,
+		reflect.TypeOf(virtualNITreeNode{}): elasticNiImage,
+	},
 }
 var colors = map[common.Provider]map[reflect.Type]string{
 	common.IBM: {
@@ -200,6 +212,7 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 	for _, tn := range nodes {
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VsiTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(NITreeNode{})] = true
+			stl.canTypeHaveAMiniIcon[reflect.TypeOf(virtualNITreeNode{})] = true
 		}
 		if reflect.TypeOf(tn).Elem() == reflect.TypeOf(VpeTreeNode{}) {
 			stl.canTypeHaveAMiniIcon[reflect.TypeOf(ResIPTreeNode{})] = true
@@ -209,24 +222,26 @@ func (stl *templateStyles) setCanTypeHaveAMiniIcon(nodes []TreeNodeInterface) {
 
 // ////////////////////////////////////////////////////////////////////////////////////////
 func (stl *templateStyles) representingType(tn TreeNodeInterface) reflect.Type {
-	if stl.provider != common.AWS || reflect.TypeOf(tn).Elem() != reflect.TypeOf(SubnetTreeNode{}) {
-		return reflect.TypeOf(tn).Elem()
-	}
-	if tn.(*SubnetTreeNode).IsPrivate() {
+	switch {
+	case reflect.TypeOf(tn).Elem() == reflect.TypeOf(NITreeNode{}) && tn.(*NITreeNode).isVirtual():
+		return reflect.TypeOf(virtualNITreeNode{})
+	case stl.provider == common.AWS && reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}) && tn.(*SubnetTreeNode).IsPrivate():
 		return reflect.TypeOf(privateSubnetTreeNode{})
+	case stl.provider == common.AWS && reflect.TypeOf(tn).Elem() == reflect.TypeOf(SubnetTreeNode{}) && !tn.(*SubnetTreeNode).IsPrivate():
+		return reflect.TypeOf(publicSubnetTreeNode{})
 	}
-	return reflect.TypeOf(publicSubnetTreeNode{})
+	return reflect.TypeOf(tn).Elem()
 }
 
 func (stl *templateStyles) Image(tn TreeNodeInterface) string {
 	rType := stl.representingType(tn)
 	if stl.canTypeHaveAMiniIcon[rType] && !tn.(IconTreeNodeInterface).hasMiniIcon() {
-		return miniImages[rType]
+		return miniImages[stl.provider][rType]
 	}
 	return images[stl.provider][rType]
 }
 func (stl *templateStyles) MiniImage(tn TreeNodeInterface) string {
-	return miniImages[stl.representingType(tn)]
+	return miniImages[stl.provider][stl.representingType(tn)]
 }
 func (stl *templateStyles) FIPImage() string {
 	return fipImage
