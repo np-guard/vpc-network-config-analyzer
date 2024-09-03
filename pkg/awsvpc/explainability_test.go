@@ -33,6 +33,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	// no connection between two endpoints of the same subnet
+	{
+		Name:          "same_subnet_no_connection",
+		InputConfig:   "aws_mixed",
+		ESrc:          "10.240.0.96",
+		EDst:          "10.240.3.70",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
 	// connection to the public internet blocked by sg and private subnet
 	{
 		Name:          "to_external_private_subnet",
