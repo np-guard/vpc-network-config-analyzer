@@ -185,8 +185,8 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 				respondsIngressDetails
 		}
 	}
-	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking, loadBalancerBlocking,
-		noConnection, resourceEffectHeader, path, details)
+	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
+		loadBalancerBlocking, externalRouterBlocking, noConnection, resourceEffectHeader, path, details)
 }
 
 // assumption: the func is called only if the tcp component of the connection is not empty
@@ -203,8 +203,8 @@ func respondDetailsHeader(d *detailedConn) string {
 
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
-	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking bool,
-	noConnection, resourceEffectHeader, path, details string) string {
+	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking,
+	externalRouterBlocking bool, noConnection, resourceEffectHeader, path, details string) string {
 	conn := g.CommonProperties.Conn
 	crossVpcRouter := g.CommonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
@@ -212,9 +212,9 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
-	case ingressBlocking || egressBlocking || loadBalancerBlocking:
+	case ingressBlocking || egressBlocking || externalRouterBlocking || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
-			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking),
+			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouterBlocking),
 			headerPlusPath, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
@@ -222,8 +222,8 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 }
 
 // blockSummary() return a summary of the rules that block the connection, for example:
-// "connection is blocked both by ingress and egress, and will not be initiated by Load Balancer"
-func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking bool) string {
+// "connection is blocked both by ingress, egress. will not be initiated by Load Balancer"
+func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, externalRouterBlocking bool) string {
 	blockedBy := []string{}
 	if ingressBlocking {
 		blockedBy = append(blockedBy, "ingress")
@@ -231,19 +231,19 @@ func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking bool) st
 	if egressBlocking {
 		blockedBy = append(blockedBy, "egress")
 	}
-	l := len(blockedBy)
-	var blockedByString []string
-	switch l {
-	case 1:
-		blockedByString = append(blockedByString, fmt.Sprintf("is blocked by %s", blockedBy[0]))
-	case 2:
-		blockedByString = append(blockedByString, fmt.Sprintf("is blocked both by %s and %s", blockedBy[0], blockedBy[1]))
+	if externalRouterBlocking {
+		blockedBy = append(blockedBy, "missing external router")
 	}
-
 	if loadBalancerBlocking {
-		blockedByString = append(blockedByString, "will not be initiated by Load Balancer")
+		blockedBy = append(blockedBy, "load balancer initiation")
 	}
-	return "connection " + strings.Join(blockedByString, ", and ")
+	prefixHeader := "connection is blocked due to "
+	if len(blockedBy) == 1 {
+		return prefixHeader + blockedBy[0]
+	} else if len(blockedBy) > 1 {
+		return prefixHeader + strings.Join(blockedBy[:len(blockedBy)-1], ", ") + " and " + blockedBy[len(blockedBy)]
+	}
+	return ""
 }
 
 func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRules []RulesInTable,
