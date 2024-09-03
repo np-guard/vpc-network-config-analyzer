@@ -66,6 +66,7 @@ type NetworkInterface struct {
 	vpcmodel.InternalNode
 	Vsi               string `json:"-"`
 	numberOfNifsInVsi int
+	virtual           bool
 }
 
 // used for synthesis output, if number of nifs is > 1 we use just vsi name
