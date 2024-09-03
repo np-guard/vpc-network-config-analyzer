@@ -33,6 +33,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	// existing sub-connection between two endpoints of the same subnet
+	{
+		Name:          "same_subnet_partial_connection",
+		InputConfig:   "aws_mixed",
+		ESrc:          "10.240.32.122",
+		EDst:          "10.240.32.91",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
 	// no connection between two endpoints of the same subnet
 	{
 		Name:          "same_subnet_no_connection",
