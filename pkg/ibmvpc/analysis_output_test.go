@@ -460,7 +460,6 @@ var tests = []*commonvpc.VpcGeneralTest{
 		NoLbAbstract: true,
 		Format:       vpcmodel.HTML,
 	},
-	// todo: before merge - this fails sometimes in git. understand why and have fixed (seems in Haim's areas).
 	{
 		InputConfig:  "iks_workers_large",
 		UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
