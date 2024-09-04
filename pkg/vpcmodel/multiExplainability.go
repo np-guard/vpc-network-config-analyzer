@@ -169,10 +169,12 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 			}
 		}
 	}
-	externalNodes[cConfigs.publicNetworkNode] = true
+	if cConfigs.publicNetworkNode != nil {
+		externalNodes[cConfigs.publicNetworkNode] = true
+	}
 	return internalNodes, externalNodes
 }
-func getPublicNetworkNode() EndpointElem {
+func getPublicNetworkNode() *groupedExternalNodes {
 	ns, _ := GetExternalNetworkNodes([]*ipblock.IPBlock{ipblock.GetCidrAll()})
 	gr := make([]*ExternalNetwork, len(ns))
 	for i := range gr {

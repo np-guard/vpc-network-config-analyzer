@@ -104,8 +104,9 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
-	d.cConfigs.publicNetworkNode = getPublicNetworkNode()
-	d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+	if d.cConfigs.publicNetworkNode != nil {
+		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+	}
 	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {

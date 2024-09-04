@@ -34,11 +34,16 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		res[nodeID]["otherIdForSelection"] = []string{nodeID}
 		res[nodeID]["otherIdForMarking"] = []string{nodeID}
 	}
-	publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
-	publicNetworkIconID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.(*PublicNetworkTreeNode).PublicNetworkIcon.ID())
-	res[publicNetworkSquareID]["otherIdForSelection"] = []string{publicNetworkIconID}
-	res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
-	res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
+	if network.(*NetworkTreeNode).publicNetwork != nil {
+		publicNetworkIcon := network.(*NetworkTreeNode).publicNetwork.(*PublicNetworkTreeNode).PublicNetworkIcon
+		if publicNetworkIcon != nil {
+			publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
+			publicNetworkIconID := common.UintToString(publicNetworkIcon.ID())
+			res[publicNetworkSquareID]["otherIdForSelection"] = []string{publicNetworkIconID}
+			res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
+			res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
+		}
+	}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
 }

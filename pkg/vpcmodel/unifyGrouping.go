@@ -46,6 +46,7 @@ func unifyMultiVPC(configs *MultipleVPCConfigs, nodesConn map[string]*VPCConnect
 			}
 		}
 	}
+	configs.publicNetworkNode = cache.getAndSetGroupedExternalFromCache(getPublicNetworkNode())
 }
 
 // cacheGroupedElements functionality
