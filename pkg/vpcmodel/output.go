@@ -325,7 +325,6 @@ func getNewExternalName(externalName string, externalsMap map[string]string) str
 	name := fmt.Sprintf("%s%d", externalString, len(externalsMap))
 	externalsMap[externalName] = name
 	return name
-
 }
 
 func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem,
