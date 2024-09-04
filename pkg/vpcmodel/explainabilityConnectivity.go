@@ -46,7 +46,7 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - rule of the private subnet affecting this connection, nil if non-relevant
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
 	// (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
