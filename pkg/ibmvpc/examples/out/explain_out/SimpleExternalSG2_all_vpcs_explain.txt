@@ -4,11 +4,13 @@ Interpreted destination: vsi1-ky[10.240.10.4]
 =========================================================================
 
 No connections from Public Internet 161.26.0.0/16 to vsi1-ky[10.240.10.4];
-connection is blocked due to missing external router
+connection is blocked due to ingress and missing external router
 
+Ingress: network ACL acl1-ky allows connection; security group sg1-ky does not allow connection
 
 Path:
-	Public Internet 161.26.0.0/16 -> | no resource for external connectivity |
+	Public Internet 161.26.0.0/16 -> 
+	| no resource for external connectivity |
 
 ------------------------------------------------------------------------------------------------------------------------
 

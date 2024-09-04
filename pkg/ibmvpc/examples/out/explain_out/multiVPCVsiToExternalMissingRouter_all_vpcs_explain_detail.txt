@@ -6,13 +6,21 @@ Interpreted destination: 172.217.22.46/32 (external)
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
 connection is blocked due to missing external router
 
+Egress: security group sg11-ky allows connection; network ACL acl11-ky allows connection
 
 Path:
-	vsi11-ky[10.240.11.4] -> | no resource for external connectivity |
+	vsi11-ky[10.240.11.4] -> security group sg11-ky -> network ACL acl11-ky -> subnet subnet11-ky -> 
+	| no resource for external connectivity |
 
 
 Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
+	Egress:
+		security group sg11-ky allows connection with the following allow rules
+			direction: outbound, id: id:419, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+		network ACL acl11-ky allows connection with the following allow rules
+			direction: outbound, name: acl11-out-3, priority: 3, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+
 ------------------------------------------------------------------------------------------------------------------------
 

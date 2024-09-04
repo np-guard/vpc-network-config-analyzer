@@ -6,39 +6,65 @@ Interpreted destination: 161.26.0.0/8 (external)
 No connections from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;
 connection is blocked due to missing external router
 
+Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
 
 Path:
-	db-endpoint-gateway-ky[10.240.30.6] -> | no resource for external connectivity |
+	db-endpoint-gateway-ky[10.240.30.6] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
+	| no resource for external connectivity |
 
 
 Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
+	Egress:
+		security group sg3-ky allows connection with the following allow rules
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 100-200
+		network ACL acl3-ky allows connection with the following allow rules
+			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0/8;
 connection is blocked due to missing external router
 
+Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
 
 Path:
-	vsi3a-ky[10.240.30.5] -> | no resource for external connectivity |
+	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
+	| no resource for external connectivity |
 
 
 Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
+	Egress:
+		security group sg3-ky allows connection with the following allow rules
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 100-200
+		network ACL acl3-ky allows connection with the following allow rules
+			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0/8;
-connection is blocked due to missing external router
+connection is blocked due to egress and missing external router
 
+Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
 
 Path:
-	vsi3b-ky[10.240.30.4] -> | no resource for external connectivity |
+	vsi3b-ky[10.240.30.4] -> | security group sg2-ky |
 
 
 Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
+	Egress:
+		security group sg2-ky has no relevant allow rules
+		network ACL acl3-ky allows connection with the following allow rules
+			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+
 ------------------------------------------------------------------------------------------------------------------------
 
