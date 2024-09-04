@@ -69,6 +69,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	// existing connection from the public internet
+	{
+		Name:          "from_external_public_subnet",
+		InputConfig:   "aws_mixed",
+		ESrc:          "147.235.0.0/16",
+		EDst:          "10.240.0.96",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
 	// connection to the public internet blocked only by private subnet
 	{
 		Name:          "to_external_blocked_only_private_subnet",
