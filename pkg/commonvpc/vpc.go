@@ -231,28 +231,23 @@ func (psr *privateSubnetRule) IsIngress() bool {
 	return psr.isIngress
 }
 
-//nolint:gocyclo // better not split into two function`
 func (psr *privateSubnetRule) String(detail bool) string {
-	outbound := "external outbound "
-	inbound := "external inbound "
-	allowDetailed := "connection is allowed since subnet " + psr.subnet.Name() + " is public\n"
-	denyDetailed := "connection is denied since subnet " + psr.subnet.Name() + " is private\n"
-	switch {
-	case !detail && psr.subnet.IsPrivate():
-		return fmt.Sprintf("private subnet %s denies connection", psr.subnet.Name())
-	case !detail && !psr.subnet.IsPrivate():
+	if !detail {
+		if psr.subnet.IsPrivate() {
+			return fmt.Sprintf("private subnet %s denies connection", psr.subnet.Name())
+		}
 		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
-	case detail && psr.subnet.IsPrivate() && !psr.isIngress:
-		return outbound + denyDetailed
-	case detail && psr.subnet.IsPrivate() && psr.isIngress:
-		return inbound + denyDetailed
-	case detail && !psr.subnet.IsPrivate() && !psr.isIngress:
-		return outbound + allowDetailed
-	case detail && !psr.subnet.IsPrivate() && psr.isIngress:
-		return inbound + allowDetailed
-	default: // will never get here
-		return ""
 	}
+	// detail
+	prefix := "external outbound"
+	if psr.isIngress {
+		prefix = "external inbound"
+	}
+
+	if psr.subnet.IsPrivate() {
+		return fmt.Sprintf("%s connection is denied since subnet %s is private\n", prefix, psr.subnet.Name())
+	}
+	return fmt.Sprintf("%s connection is allowed since subnet %s is public\n", prefix, psr.subnet.Name())
 }
 
 func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {
