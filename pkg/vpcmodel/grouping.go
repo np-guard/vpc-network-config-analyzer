@@ -656,7 +656,7 @@ func (details *srcDstDetails) explanationEncode(allRulesDetails *rulesDetails) s
 	encodeComponents := []string{}
 	encodeComponents = append(encodeComponents, details.conn.string())
 	appendEncodeFilterRules(&encodeComponents, allRulesDetails, details.filtersRelevant,
-		details.actualMergedRules)
+		details.actualMergedRules, details.privateSubnetRule)
 	if details.crossVpcRouter != nil {
 		encodeComponents = append(encodeComponents, details.crossVpcRouter.UID())
 		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRules)
@@ -664,26 +664,26 @@ func (details *srcDstDetails) explanationEncode(allRulesDetails *rulesDetails) s
 	if respondRulesRelevant(details.conn, details.filtersRelevant, details.crossVpcRouter) {
 		appendEncodeRouterRules(&encodeComponents, details.crossVpcRouter, details.crossVpcRespondRules)
 		appendEncodeFilterRules(&encodeComponents, allRulesDetails, details.filtersRelevant,
-			details.respondRules)
+			details.respondRules, details.privateSubnetRule)
 	}
 	return strings.Join(encodeComponents, ";")
 }
 
 func appendEncodeFilterRules(encodeComponents *[]string, allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
-	rules *rulesConnection) {
+	rules *rulesConnection, privateSubnetRule PrivateSubnetRule) {
 	appendEncodeDirectionalFilterRules(encodeComponents, allRulesDetails, filtersRelevant,
-		&rules.egressRules, "egress", false)
+		&rules.egressRules, "egress", false, privateSubnetRule)
 	appendEncodeDirectionalFilterRules(encodeComponents, allRulesDetails, filtersRelevant,
-		&rules.ingressRules, "ingress", true)
+		&rules.ingressRules, "ingress", true, privateSubnetRule)
 }
 
 func appendEncodeDirectionalFilterRules(encodeComponents *[]string, allRulesDetails *rulesDetails, filtersRelevant map[string]bool,
-	rules *rulesInLayers, header string, isIngress bool) {
+	rules *rulesInLayers, header string, isIngress bool, privateSubnetRule PrivateSubnetRule) {
 	if len(*rules) == 0 {
 		return
 	}
 	*encodeComponents = append(*encodeComponents, header+
-		rules.rulesDetailsStr(allRulesDetails, filtersRelevant, isIngress))
+		rules.rulesDetailsStr(allRulesDetails, filtersRelevant, privateSubnetRule, isIngress))
 }
 
 func appendEncodeRouterRules(encodeComponents *[]string, router RoutingResource, rulesInLayers []RulesInTable) {

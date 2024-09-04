@@ -9,7 +9,7 @@ Connections are allowed from Public Internet 147.235.219.206/32 to vsi2-ky[10.24
 Path:
 	Public Internet 147.235.219.206/32 -> 
 	FloatingIP floating-ip-ky 52.118.184.123 -> 
-	network ACL acl2-ky -> security group sg2-ky -> vsi2-ky[10.240.20.4]
+	subnet subnet2-ky -> network ACL acl2-ky -> security group sg2-ky -> vsi2-ky[10.240.20.4]
 
 
 Details:

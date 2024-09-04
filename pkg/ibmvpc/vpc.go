@@ -223,7 +223,13 @@ func NewLoadBalancerRule(lb *LoadBalancer, deny bool, src, dst vpcmodel.Node) vp
 
 func (lbr *LoadBalancerRule) Deny(isIngress bool) bool { return !isIngress && lbr.deny }
 
-func (lbr *LoadBalancerRule) String() string {
+// IsIngress load balancer potentially blocks egress connection
+func (lbr *LoadBalancerRule) IsIngress() bool {
+	return false
+}
+
+// todo: use detail to get a concise printing for !detail
+func (lbr *LoadBalancerRule) String(detail bool) string {
 	if lbr.Deny(false) {
 		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
 			lbr.lb.nameWithKind(), lbr.dst.Name())
