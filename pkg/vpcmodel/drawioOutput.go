@@ -104,21 +104,6 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 }
 
 func (d *DrawioOutputFormatter) createNodes() {
-	if d.cConfigs.publicNetworkNode != nil {
-		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
-		showPublicNetworkIconOnDrawio := false
-		for _, vpcConn := range d.gConns {
-			for _, line := range vpcConn.GroupedLines {
-				if line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode {
-					showPublicNetworkIconOnDrawio = true
-
-				}
-			}
-		}
-		if !showPublicNetworkIconOnDrawio {
-			d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
-		}
-	}
 	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {
 			for _, n := range vpcConfig.Nodes {
@@ -126,6 +111,28 @@ func (d *DrawioOutputFormatter) createNodes() {
 					d.gen.TreeNode(n)
 				}
 			}
+		}
+	}
+	d.createPublicNetworkIcon()
+}
+
+// createPublicNetworkIcon() - will always create the the iconTreeNode that represent the Public Network
+// in case that it has no connection, we will not show it in drawio
+// (it is still needed in the html, since it holds the explainability information)
+func (d *DrawioOutputFormatter) createPublicNetworkIcon() {
+	if d.cConfigs.publicNetworkNode != nil {
+		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+		publicIconHasConnection := false
+		for _, vpcConn := range d.gConns {
+			if slices.IndexFunc(vpcConn.GroupedLines, func(line *groupedConnLine) bool {
+				return line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode
+			}) >= 0 {
+				publicIconHasConnection = true
+				break
+			}
+		}
+		if !publicIconHasConnection {
+			d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
 		}
 	}
 }
