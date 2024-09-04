@@ -241,7 +241,7 @@ func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, externa
 	if len(blockedBy) == 1 {
 		return prefixHeader + blockedBy[0]
 	} else if len(blockedBy) > 1 {
-		return prefixHeader + strings.Join(blockedBy[:len(blockedBy)-1], ", ") + " and " + blockedBy[len(blockedBy)]
+		return prefixHeader + strings.Join(blockedBy[:len(blockedBy)-2], ", ") + " and " + blockedBy[len(blockedBy)-1]
 	}
 	return ""
 }
