@@ -106,6 +106,18 @@ func (d *DrawioOutputFormatter) createNodeSets() {
 func (d *DrawioOutputFormatter) createNodes() {
 	if d.cConfigs.publicNetworkNode != nil {
 		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+		showPublicNetworkIconOnDrawio := false
+		for _, vpcConn := range d.gConns {
+			for _, line := range vpcConn.GroupedLines {
+				if line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode {
+					showPublicNetworkIconOnDrawio = true
+
+				}
+			}
+		}
+		if !showPublicNetworkIconOnDrawio {
+			d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
+		}
 	}
 	for _, vpcConfig := range d.cConfigs.Configs() {
 		if !vpcConfig.IsMultipleVPCsConfig {

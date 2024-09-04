@@ -40,8 +40,10 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 			publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
 			publicNetworkIconID := common.UintToString(publicNetworkIcon.ID())
 			res[publicNetworkSquareID]["otherIdForSelection"] = []string{publicNetworkIconID}
-			res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
-			res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
+			if !publicNetworkIcon.NotShownInDrawio() {
+				res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
+				res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
+			}
 		}
 	}
 	b, _ := json.Marshal(res)
