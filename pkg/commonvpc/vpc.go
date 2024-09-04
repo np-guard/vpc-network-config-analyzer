@@ -239,15 +239,16 @@ func (psr *privateSubnetRule) String(detail bool) string {
 		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
 	}
 	// detail
-	prefix := "external outbound"
+	prefix := "Egress"
 	if psr.isIngress {
-		prefix = "external inbound"
+		prefix = "Ingress"
 	}
+	prefix += " to public internet is"
 
 	if psr.subnet.IsPrivate() {
-		return fmt.Sprintf("%s connection is denied since subnet %s is private\n", prefix, psr.subnet.Name())
+		return fmt.Sprintf("%s blocked since subnet %s is private\n", prefix, psr.subnet.Name())
 	}
-	return fmt.Sprintf("%s connection is allowed since subnet %s is public\n", prefix, psr.subnet.Name())
+	return fmt.Sprintf("%s allowed since subnet %s is public\n", prefix, psr.subnet.Name())
 }
 
 func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {

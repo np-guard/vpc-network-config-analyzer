@@ -15,7 +15,7 @@ Details:
 ~~~~~~~~
 Path is enabled; The relevant rules are:
 	Egress:
-		external outbound connection is allowed since subnet edge is public
+		Egress to public internet is allowed since subnet edge is public
 		security group GroupId:35 allows connection with the following allow rules
 			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: all
 		network ACL NetworkAclId:65 allows connection with the following allow rules

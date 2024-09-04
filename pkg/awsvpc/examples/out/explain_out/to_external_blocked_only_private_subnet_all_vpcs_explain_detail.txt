@@ -17,7 +17,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		external outbound connection is denied since subnet application is private
+		Egress to public internet is blocked since subnet application is private
 		security group GroupId:35 allows connection with the following allow rules
 			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: all
 		security group GroupId:42 has no relevant allow rules
