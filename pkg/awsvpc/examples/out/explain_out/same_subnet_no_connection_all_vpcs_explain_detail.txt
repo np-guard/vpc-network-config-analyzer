@@ -1,0 +1,29 @@
+Explaining connectivity from 10.240.0.96 to 10.240.3.70 within mixed
+Interpreted source: p3[10.240.0.96]
+Interpreted destination: p1[10.240.3.70]
+====================================================================
+
+No connections from p3[10.240.0.96] to p1[10.240.3.70];
+connection is blocked by ingress
+
+Egress: security group GroupId:35 does not allow connection; security group GroupId:9 allows connection
+Ingress: security group GroupId:35 does not allow connection
+
+Path:
+	p3[10.240.0.96] -> security group GroupId:9 -> 
+	| security group GroupId:35 |
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
+	Egress:
+		security group GroupId:35 has no relevant allow rules
+		security group GroupId:9 allows connection with the following allow rules
+			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, conns: protocol: all
+
+	Ingress:
+		security group GroupId:35 has no relevant allow rules
+
+------------------------------------------------------------------------------------------------------------------------
+

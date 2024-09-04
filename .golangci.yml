@@ -72,13 +72,13 @@ linters:
     - bidichk
     - bodyclose
     - contextcheck
+    - copyloopvar
     - dogsled
     - dupl
     - durationcheck
     - errcheck
     - errname
     - errorlint
-    - exportloopref
     - funlen
     - ginkgolinter
     - gochecknoinits
