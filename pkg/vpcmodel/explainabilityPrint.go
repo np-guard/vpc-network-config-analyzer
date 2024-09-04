@@ -241,7 +241,7 @@ func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missing
 	if len(blockedBy) == 1 {
 		return prefixHeader + blockedBy[0]
 	} else if len(blockedBy) > 1 {
-		return prefixHeader + strings.Join(blockedBy[:len(blockedBy)-2], ", ") + " and " + blockedBy[len(blockedBy)-1]
+		return prefixHeader + strings.Join(blockedBy[:len(blockedBy)-1], ", ") + " and " + blockedBy[len(blockedBy)-1]
 	}
 	return ""
 }
@@ -405,7 +405,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	if missingExternalRouter {
-		pathSlice = append(pathSlice, blockedLeft+"no resource for external connectivity")
+		pathSlice = append(pathSlice, newLineTab+blockedLeft+"no resource for external connectivity")
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
