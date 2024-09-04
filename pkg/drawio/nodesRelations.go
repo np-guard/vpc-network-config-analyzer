@@ -32,10 +32,13 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		res[nodeID]["relations"] = nodeRelations
 		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
 		res[nodeID]["otherIdForSelection"] = []string{nodeID}
+		res[nodeID]["otherIdForMarking"] = []string{nodeID}
 	}
 	publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
 	publicNetworkIconID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.(*PublicNetworkTreeNode).PublicNetworkIcon.ID())
 	res[publicNetworkSquareID]["otherIdForSelection"] = []string{publicNetworkIconID}
+	res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
+	res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
 	b, _ := json.Marshal(res)
 	data.Relations = string(b)
 }
