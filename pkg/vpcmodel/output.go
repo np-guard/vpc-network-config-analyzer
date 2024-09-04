@@ -12,7 +12,6 @@ import (
 	"os"
 	"slices"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/np-guard/models/pkg/spec"
@@ -319,27 +318,24 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 	return res, err
 }
 
+func getNewExternalName(externalName string, externalsMap map[string]string) string {
+	if val, ok := externalsMap[externalName]; ok {
+		return val
+	}
+	name := fmt.Sprintf("%s%d", externalString, len(externalsMap))
+	externalsMap[externalName] = name
+	return name
+
+}
+
 func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem,
 	externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	for _, conn := range requiredConnections {
 		if conn.Src.Type == spec.ResourceTypeExternal {
-			if val, ok := externalsMap[conn.Src.Name]; ok {
-				conn.Src.Name = val
-			} else {
-				name := externalString + strconv.Itoa(len(externalsMap))
-				externalsMap[conn.Src.Name] = name
-				conn.Src.Name = name
-			}
-		}
-		if conn.Dst.Type == spec.ResourceTypeExternal {
-			if val, ok := externalsMap[conn.Dst.Name]; ok {
-				conn.Dst.Name = val
-			} else {
-				name := externalString + strconv.Itoa(len(externalsMap))
-				externalsMap[conn.Dst.Name] = name
-				conn.Dst.Name = name
-			}
+			conn.Src.Name = getNewExternalName(conn.Src.Name, externalsMap)
+		} else if conn.Dst.Type == spec.ResourceTypeExternal {
+			conn.Dst.Name = getNewExternalName(conn.Dst.Name, externalsMap)
 		}
 		connLines = append(connLines, conn)
 	}
