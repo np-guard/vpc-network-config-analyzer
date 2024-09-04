@@ -4,6 +4,15 @@ Interpreted destination: 172.217.22.46/32 (external)
 =============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
-	The dst is external but there is no resource enabling external connectivity
+connection is blocked due to missing external router
+
+
+Path:
+	vsi11-ky[10.240.11.4] -> | no resource for external connectivity |
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 

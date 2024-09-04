@@ -4,6 +4,11 @@ Interpreted destination: vsi1-ky[10.240.10.4]
 =========================================================================
 
 No connections from Public Internet 161.26.0.0/16 to vsi1-ky[10.240.10.4];
-	There is no resource enabling inbound external connectivity
+connection is blocked due to missing external router
+
+
+Path:
+	Public Internet 161.26.0.0/16 -> | no resource for external connectivity |
+
 ------------------------------------------------------------------------------------------------------------------------
 

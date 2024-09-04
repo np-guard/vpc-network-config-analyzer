@@ -4,6 +4,11 @@ Interpreted destination: 161.26.0.0/32 (external)
 ==========================================================================
 
 No connections from vsi3b-ky[10.240.30.4] to Public Internet 161.26.0.0/32;
-	The dst is external but there is no resource enabling external connectivity
+connection is blocked due to missing external router
+
+
+Path:
+	vsi3b-ky[10.240.30.4] -> | no resource for external connectivity |
+
 ------------------------------------------------------------------------------------------------------------------------
 

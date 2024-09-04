@@ -4,7 +4,7 @@ Interpreted destination: iks-clusterid:1[192.168.32.5]
 =================================================================================================================
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.36.6] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
@@ -37,7 +37,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LB private IP][192.168.40.6] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
@@ -70,7 +70,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.0.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
@@ -103,7 +103,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.16.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
@@ -136,7 +136,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.20.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
@@ -169,7 +169,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.24.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-edge-acl allows connection
@@ -202,7 +202,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.32.0-192.168.32.4,192.168.32.6-192.168.35.255] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection
@@ -231,7 +231,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.4.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
@@ -264,7 +264,7 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[Potential LB private IP][192.168.8.0/22] to iks-clusterid:1[192.168.32.5];
-connection will not be initiated by Load Balancer
+connection is blocked due to load balancer initiation
 
 Load Balancer: kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca[LoadBalancer] will not connect to iks-clusterid:1[192.168.32.5], since it is not its pool member
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection; network ACL ky-test-private-2-others-acl allows connection
