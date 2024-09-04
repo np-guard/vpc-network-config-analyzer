@@ -44,9 +44,10 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
-	// loadBalancerRule - the lb rule affecting this connection.
+	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - the rule of the subnet affecting this connection.
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
+	// (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
@@ -222,8 +223,12 @@ func (details *rulesAndConnDetails) computeActualRules() {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
 		actualAllowIngress, ingressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
+		// ingress disabled due to private subnet?
+		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
+		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true))
 		actualAllowEgress, egressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
+		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false))
 		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
 		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}

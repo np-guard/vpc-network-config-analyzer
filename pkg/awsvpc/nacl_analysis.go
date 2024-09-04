@@ -40,7 +40,7 @@ func (na *AWSNACLAnalyzer) GetNumberOfRules() int {
 }
 
 func (na *AWSNACLAnalyzer) Name() *string {
-	return na.naclResource.NetworkAclId
+	return getResourceName(na.naclResource.Tags, na.naclResource.NetworkAclId)
 }
 
 func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
