@@ -44,7 +44,7 @@ type srcDstDetails struct {
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
 	// there could be more than one connection effecting the connection since src/dst cidr's may contain more than one AP
 
-	// loadBalancerRule - the lb rule affecting this connection, nil if non-relevant (no LB).
+	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
 	// privateSubnetRule - rule of the private subnet affecting this connection, nil if non-relevant
 	// (no external src/dst).
