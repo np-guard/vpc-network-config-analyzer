@@ -31,7 +31,7 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		}
 		res[nodeID]["relations"] = nodeRelations
 		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
-		res[nodeID]["otherIdForSelection"] = []string{nodeID}
+		res[nodeID]["idForSelection"] = []string{nodeID}
 		res[nodeID]["otherIdForMarking"] = []string{nodeID}
 	}
 	if network.(*NetworkTreeNode).publicNetwork != nil {
@@ -39,7 +39,7 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		if publicNetworkIcon != nil {
 			publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
 			publicNetworkIconID := common.UintToString(publicNetworkIcon.ID())
-			res[publicNetworkSquareID]["otherIdForSelection"] = []string{publicNetworkIconID}
+			res[publicNetworkSquareID]["idForSelection"] = []string{publicNetworkIconID}
 			if !publicNetworkIcon.NotShownInDrawio() {
 				res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
 				res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}

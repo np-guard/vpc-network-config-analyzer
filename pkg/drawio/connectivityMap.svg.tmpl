@@ -217,11 +217,11 @@
                       else {
                         const src = selectedElems[0].getAttribute('id');
                         const dst = selectedElems[1].getAttribute('id');
-                        const other_src = jsObject[src]['otherIdForSelection'][0];
-                        const other_dst = jsObject[dst]['otherIdForSelection'][0];
+                        const src_for_selection = jsObject[src]['idForSelection'][0];
+                        const dst_for_selection = jsObject[dst]['idForSelection'][0];
                         const src_name = selectedElems[0].getAttribute('title');
                         const dst_name = selectedElems[1].getAttribute('title');
-                        const entry = xmlDoc.querySelector("entry[src='"+other_src+"'][dst='"+other_dst+"']");
+                        const entry = xmlDoc.querySelector("entry[src='"+src_for_selection+"'][dst='"+dst_for_selection+"']");
                         savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
 							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
