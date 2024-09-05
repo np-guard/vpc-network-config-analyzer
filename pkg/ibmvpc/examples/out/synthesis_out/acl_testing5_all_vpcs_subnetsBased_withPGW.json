@@ -33,6 +33,7 @@
                     "type": 0
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
@@ -48,6 +49,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
@@ -82,21 +84,6 @@
         {
             "allowed-protocols": [
                 {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc-ky1/sub2-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "test-vpc-ky1/sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
                     "max_destination_port": 53,
                     "min_destination_port": 53,
                     "protocol": "UDP"
@@ -117,6 +104,7 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
@@ -132,6 +120,7 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
@@ -147,74 +136,13 @@
                     "protocol": "TCP"
                 }
             ],
-            "dst": {
-                "name": "test-vpc-ky1/sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "test-vpc-ky1/sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
                 "name": "test-vpc-ky1/sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "code": 0,
-                    "protocol": "ICMP",
-                    "type": 0
-                }
-            ],
-            "dst": {
-                "name": "test-vpc-ky1/sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "test-vpc-ky1/sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc-ky1/sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "test-vpc-ky1/sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc-ky1/sub1-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         },
