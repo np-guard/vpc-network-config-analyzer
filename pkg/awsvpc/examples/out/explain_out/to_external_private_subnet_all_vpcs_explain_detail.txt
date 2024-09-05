@@ -4,7 +4,7 @@ Interpreted destination: 161.26.0.0 (external)
 ====================================================================
 
 No connections from app1[10.240.20.245] to Public Internet 161.26.0.0/32;
-connection is blocked by egress
+	connection is blocked at egress
 
 External traffic via InternetGateway: internet_gw
 Egress: private subnet application denies connection; security group GroupId:42 does not allow connection; network ACL NetworkAclId:65 allows connection
