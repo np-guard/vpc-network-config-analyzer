@@ -1,7 +1,7 @@
 {
     "externals": {
-        "external0": "142.0.0.0/8",
-        "external1": "161.26.0.0/16"
+        "external-0": "142.0.0.0/8",
+        "external-1": "161.26.0.0/16"
     },
     "required-connections": [
         {
@@ -10,12 +10,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "vsi3b-ky",
+                "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -25,12 +26,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "vsi3a-ky",
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -41,11 +43,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -59,11 +61,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -73,12 +75,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "db-endpoint-gateway-ky",
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
             },
             "src": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3c-ky",
                 "type": "instance"
             }
         },
@@ -88,27 +91,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "vsi3c-ky",
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3b-ky",
+                "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
             }
         },
@@ -119,11 +108,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3b-ky",
+                "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
             }
         },
@@ -137,11 +126,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3b-ky",
+                "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
             }
         },
@@ -151,42 +140,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "db-endpoint-gateway-ky",
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
             },
             "src": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "vsi3a-ky",
+                "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
             }
         },
@@ -197,11 +157,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3a-ky",
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             }
         },
@@ -215,11 +175,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi3a-ky",
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             }
         },
@@ -229,12 +189,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "db-endpoint-gateway-ky",
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
             },
             "src": {
-                "name": "vsi3a-ky",
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             }
         },
@@ -245,11 +206,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi2-ky",
+                "name": "test-vpc1-ky/vsi2-ky",
                 "type": "instance"
             }
         },
@@ -260,11 +221,11 @@
                 }
             ],
             "dst": {
-                "name": "external0",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
-                "name": "vsi2-ky",
+                "name": "test-vpc1-ky/vsi2-ky",
                 "type": "instance"
             }
         },
@@ -278,11 +239,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi2-ky",
+                "name": "test-vpc1-ky/vsi2-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             }
         },
@@ -293,57 +254,12 @@
                 }
             ],
             "dst": {
-                "name": "external1",
+                "name": "external-1",
                 "type": "external"
             },
             "src": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "db-endpoint-gateway-ky",
-                "type": "vpe"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "db-endpoint-gateway-ky",
-                "type": "vpe"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "db-endpoint-gateway-ky",
-                "type": "vpe"
             }
         },
         {
@@ -353,11 +269,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "db-endpoint-gateway-ky",
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
             }
         },
@@ -371,11 +287,11 @@
                 }
             ],
             "dst": {
-                "name": "vsi1-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "db-endpoint-gateway-ky",
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
             }
         }

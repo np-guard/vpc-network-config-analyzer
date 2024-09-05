@@ -1,6 +1,6 @@
 {
     "externals": {
-        "external0": "8.8.8.8/32"
+        "external-0": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -17,11 +17,11 @@
                 }
             ],
             "dst": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             }
         },
@@ -33,12 +33,13 @@
                     "type": 0
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             }
         },
@@ -48,12 +49,13 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub2-2-ky",
+                "name": "test-vpc-ky1/sub2-2-ky",
                 "type": "subnet"
             }
         },
@@ -71,26 +73,11 @@
                 }
             ],
             "dst": {
-                "name": "sub3-1-ky",
+                "name": "test-vpc-ky1/sub3-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub2-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "sub2-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -103,11 +90,11 @@
                 }
             ],
             "dst": {
-                "name": "external0",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
-                "name": "sub2-1-ky",
+                "name": "test-vpc-ky1/sub2-1-ky",
                 "type": "subnet"
             }
         },
@@ -117,12 +104,13 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "sub1-2-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             }
         },
@@ -132,12 +120,13 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-3-ky",
                 "type": "subnet"
             }
         },
@@ -147,74 +136,13 @@
                     "protocol": "TCP"
                 }
             ],
+            "bidirectional": true,
             "dst": {
-                "name": "sub1-3-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             },
             "src": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "code": 0,
-                    "protocol": "ICMP",
-                    "type": 0
-                }
-            ],
-            "dst": {
-                "name": "sub3-1-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "sub1-3-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
-                "type": "subnet"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "sub1-2-ky",
-                "type": "subnet"
-            },
-            "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-2-ky",
                 "type": "subnet"
             }
         },
@@ -227,11 +155,11 @@
                 }
             ],
             "dst": {
-                "name": "external0",
+                "name": "external-0",
                 "type": "external"
             },
             "src": {
-                "name": "sub1-1-ky",
+                "name": "test-vpc-ky1/sub1-1-ky",
                 "type": "subnet"
             }
         }

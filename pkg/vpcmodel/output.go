@@ -13,6 +13,8 @@ import (
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/np-guard/models/pkg/spec"
 )
 
 type OutFormat int64
@@ -21,6 +23,7 @@ const overApproximationSign = " ** "
 const statefulMessage = "\nTCP connections for which response is not permitted are marked with" + asterisk + newLine
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"
+const externalString = "external-"
 
 const (
 	JSON OutFormat = iota
@@ -203,10 +206,6 @@ func (of *serialOutputFormatter) WriteOutput(cConfigs *MultipleVPCConfigs, conns
 	outFile string, grouping bool, uc OutputUseCase,
 	explainStruct *Explanation, detailExplain bool) (string, error) {
 	singleVPCAnalysis := uc == EndpointsDiff || uc == SubnetsDiff || uc == Explain
-	// TODO: remove this if condition when multi-vpc is supported in synthesis
-	if of.outFormat == Synthesis && len(cConfigs.Configs()) > 1 {
-		return "", errors.New("multi-vpc is not supported yet in synthesis format")
-	}
 	if !singleVPCAnalysis {
 		outputPerVPC := make([]*SingleAnalysisOutput, len(cConfigs.Configs()))
 		i := 0
@@ -301,12 +300,45 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		}
 		res, err = writeJSON(all, outFile)
 	case Synthesis:
+		connLines := []spec.SpecRequiredConnectionsElem{}
+		externals := spec.SpecExternals{}
+		externalsMap := make(map[string]string)
+		for _, o := range outputList {
+			// always true
+			if structObj, ok := o.jsonStruct.(*spec.Spec); ok {
+				connLines = append(connLines, renameExternals(structObj.RequiredConnections, externalsMap)...)
+				for k, v := range structObj.Externals {
+					externals[externalsMap[k]] = v
+				}
+			}
+		}
 		// in synthesis format we need to follow json spec schema
-		// https://github.com/np-guard/models/blob/main/spec_schema.json
-		// multi-vpc not supported yet
-		res, err = writeJSON(outputList[0].jsonStruct, outFile)
+		res, err = writeJSON(spec.Spec{RequiredConnections: connLines, Externals: externals}, outFile)
 	}
 	return res, err
+}
+
+func getNewExternalName(externalName string, externalsMap map[string]string) string {
+	if val, ok := externalsMap[externalName]; ok {
+		return val
+	}
+	name := fmt.Sprintf("%s%d", externalString, len(externalsMap))
+	externalsMap[externalName] = name
+	return name
+}
+
+func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem,
+	externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
+	connLines := []spec.SpecRequiredConnectionsElem{}
+	for _, conn := range requiredConnections {
+		if conn.Src.Type == spec.ResourceTypeExternal {
+			conn.Src.Name = getNewExternalName(conn.Src.Name, externalsMap)
+		} else if conn.Dst.Type == spec.ResourceTypeExternal {
+			conn.Dst.Name = getNewExternalName(conn.Dst.Name, externalsMap)
+		}
+		connLines = append(connLines, conn)
+	}
+	return connLines
 }
 
 // WriteDiffOrExplainOutput actual writing the output into file, with required format adjustments
