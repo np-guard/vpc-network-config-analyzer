@@ -51,7 +51,7 @@ func unifyMultiVPC(configs *MultipleVPCConfigs, nodesConn map[string]*VPCConnect
 }
 func getPublicNetworkNode() *groupedExternalNodes {
 	ns, _ := GetExternalNetworkNodes([]*ipblock.IPBlock{ipblock.GetCidrAll()})
-	group  := groupedExternalNodes(make([]*ExternalNetwork, len(ns)))
+	group := groupedExternalNodes(make([]*ExternalNetwork, len(ns)))
 	for i := range group {
 		group[i] = ns[i].(*ExternalNetwork)
 	}
