@@ -99,8 +99,8 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		direction = commonvpc.Inbound
 	}
 	ruleRes = &commonvpc.NACLRule{Src: src, Dst: dst, Connections: conns, Action: action}
-	ruleStr = fmt.Sprintf("ruleNumber: %d, direction: %s ,cidr: %s, action: %s, conn: %s\n",
-		ruleNumber, direction, ip, action, connStr)
+	ruleStr = fmt.Sprintf("ruleNumber: %d, action: %s, direction: %s, cidr: %s, conn: %s\n",
+		ruleNumber, action, direction, ip, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }
 

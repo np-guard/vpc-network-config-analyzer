@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg2-ky allows connection with the following allow rules
-			direction: outbound, id: id:96, remote: 10.240.10.0/24, local: 0.0.0.0/0, conns: protocol: all
+			id: id:96, direction: outbound, local: 0.0.0.0/0, remote: 10.240.10.0/24, conns: protocol: all
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:89, remote: sg2-ky (10.240.20.4/31), local: 0.0.0.0/0, conns: protocol: all
+			id: id:89, direction: inbound, local: 0.0.0.0/0, remote: sg2-ky (10.240.20.4/31), conns: protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -54,7 +54,7 @@ Path is disabled; The relevant rules are:
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:87, remote: sg1-ky (10.240.10.4/31), local: 0.0.0.0/0, conns: protocol: all
+			id: id:87, direction: inbound, local: 0.0.0.0/0, remote: sg1-ky (10.240.10.4/31), conns: protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -17,30 +17,30 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:346, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:346, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: acl1-out-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl1-out-1, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	transit gateway local-tg-ky allows connection via transit connection tg_connection1 with the following prefix filter
 		default prefix,  action: permit
 
 	Ingress:
 		network ACL acl11-ky allows connection with the following allow rules
-			direction: inbound, name: acl11-in-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl11-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 		security group sg11-ky allows connection with the following allow rules
-			direction: inbound, id: id:371, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:371, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
 
 TCP response is disabled; The relevant rules are:
 	Egress:
 		network ACL acl11-ky allows connection with the following allow rules
-			direction: outbound, name: acl11-out-2, priority: 2, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl11-out-2, priority: 2, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: inbound, name: acl1-in-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

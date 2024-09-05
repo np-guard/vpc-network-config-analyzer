@@ -15,25 +15,25 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg3-ky allows connection with the following allow rules
-			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
-			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:137, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), local: 0.0.0.0/0, conns: protocol: all
+			id: id:137, direction: inbound, local: 0.0.0.0/0, remote: sg3-ky (10.240.30.5/32,10.240.30.6/32), conns: protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
