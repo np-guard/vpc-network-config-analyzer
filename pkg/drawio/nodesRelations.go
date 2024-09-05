@@ -15,6 +15,13 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
+const (
+	relations         = "relations"
+	graphExplanation  = "graphExplanation"
+	idForSelection    = "idForSelection"
+	otherIdForMarking = "otherIdForMarking"
+)
+
 //////////////////////////////////////////////////////////////////////
 // setNodesRelations() set for each node N, what are the related nodes to be displayed when the html is filtered by N
 /////////////////////////////////////////////////////////////////////////////
@@ -29,8 +36,8 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		for _, n := range rel[node] {
 			nodeRelations = append(nodeRelations, common.UintToString(n.ID()))
 		}
-		res[nodeID]["relations"] = nodeRelations
-		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
+		res[nodeID][relations] = nodeRelations
+		res[nodeID][graphExplanation] = []string{"Connectivity graph of " + data.NodeName(node)}
 	}
 	setPublicNetworkRelation(network, res)
 	b, _ := json.Marshal(res)
@@ -43,10 +50,10 @@ func setPublicNetworkRelation(network TreeNodeInterface, res map[string]map[stri
 		if publicNetworkIcon != nil {
 			publicNetworkSquareID := common.UintToString(network.(*NetworkTreeNode).publicNetwork.ID())
 			publicNetworkIconID := common.UintToString(publicNetworkIcon.ID())
-			res[publicNetworkSquareID]["idForSelection"] = []string{publicNetworkIconID}
+			res[publicNetworkSquareID][idForSelection] = []string{publicNetworkIconID}
 			if !publicNetworkIcon.NotShownInDrawio() {
-				res[publicNetworkSquareID]["otherIdForMarking"] = []string{publicNetworkIconID}
-				res[publicNetworkIconID]["otherIdForMarking"] = []string{publicNetworkSquareID}
+				res[publicNetworkSquareID][otherIdForMarking] = []string{publicNetworkIconID}
+				res[publicNetworkIconID][otherIdForMarking] = []string{publicNetworkSquareID}
 			}
 		}
 	}
