@@ -20,6 +20,7 @@ type MultipleVPCConfigs struct {
 	configs           map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
 	toCompareConfigs  map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
 	provider          collector_common.Provider
+	// publicNetworkNode - the EndpointElem that represent all the cidr which are not in ant vpc:
 	publicNetworkNode EndpointElem
 }
 

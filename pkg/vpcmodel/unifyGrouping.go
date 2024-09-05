@@ -9,6 +9,7 @@ package vpcmodel
 import (
 	"fmt"
 
+	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
@@ -47,6 +48,14 @@ func unifyMultiVPC(configs *MultipleVPCConfigs, nodesConn map[string]*VPCConnect
 		}
 	}
 	configs.publicNetworkNode = cache.getAndSetGroupedExternalFromCache(getPublicNetworkNode())
+}
+func getPublicNetworkNode() *groupedExternalNodes {
+	ns, _ := GetExternalNetworkNodes([]*ipblock.IPBlock{ipblock.GetCidrAll()})
+	group  := groupedExternalNodes(make([]*ExternalNetwork, len(ns)))
+	for i := range group {
+		group[i] = ns[i].(*ExternalNetwork)
+	}
+	return &group
 }
 
 // cacheGroupedElements functionality

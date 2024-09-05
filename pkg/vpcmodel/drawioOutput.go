@@ -118,10 +118,11 @@ func (d *DrawioOutputFormatter) createNodes() {
 
 // createPublicNetworkIcon() - will always create the the iconTreeNode that represent the Public Network
 // in case that it has no connection, we will not show it in drawio
-// (it is still needed in the html, since it holds the explainability information)
+// however, we always create it since it's needed for holding the explainability information of the public network square
 func (d *DrawioOutputFormatter) createPublicNetworkIcon() {
 	if d.cConfigs.publicNetworkNode != nil {
 		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+		// check if to show the icon, only if it is a src/dst:
 		publicIconHasConnection := false
 		for _, vpcConn := range d.gConns {
 			if slices.IndexFunc(vpcConn.GroupedLines, func(line *groupedConnLine) bool {
