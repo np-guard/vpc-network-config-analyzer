@@ -31,9 +31,13 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 		}
 		res[nodeID]["relations"] = nodeRelations
 		res[nodeID]["graphExplanation"] = []string{"Connectivity graph of " + data.NodeName(node)}
-		res[nodeID]["idForSelection"] = []string{nodeID}
-		res[nodeID]["otherIdForMarking"] = []string{nodeID}
 	}
+	setPublicNetworkRelation(network, res)
+	b, _ := json.Marshal(res)
+	data.Relations = string(b)
+}
+
+func setPublicNetworkRelation(network TreeNodeInterface, res map[string]map[string][]string) {
 	if network.(*NetworkTreeNode).publicNetwork != nil {
 		publicNetworkIcon := network.(*NetworkTreeNode).publicNetwork.(*PublicNetworkTreeNode).PublicNetworkIcon
 		if publicNetworkIcon != nil {
@@ -46,8 +50,6 @@ func (data *templateData) setNodesRelations(network TreeNodeInterface) {
 			}
 		}
 	}
-	b, _ := json.Marshal(res)
-	data.Relations = string(b)
 }
 
 // setNodesNames() set the name of each node

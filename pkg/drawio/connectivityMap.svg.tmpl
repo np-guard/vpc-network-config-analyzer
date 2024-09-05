@@ -164,10 +164,12 @@
                     const markerElement = element.querySelector('[selection-marker]')
                     markerElement.setAttribute('stroke', color);
 				            const elementID =  element.getAttribute('id')
-				            const otherelementID = jsObject[elementID]['otherIdForMarking'][0];
-				            const otherElement = Array.from(selectableElems).find(e => e.getAttribute('id') == otherelementID);
-                    const otherMarkerElement = otherElement.querySelector('[selection-marker]')
-                    otherMarkerElement.setAttribute('stroke', color);
+                    if (jsObject[elementID].hasOwnProperty('otherIdForMarking')){
+				              const otherelementID = jsObject[elementID]['otherIdForMarking'][0];
+				              const otherElement = Array.from(selectableElems).find(e => e.getAttribute('id') == otherelementID);
+                      const otherMarkerElement = otherElement.querySelector('[selection-marker]')
+                      otherMarkerElement.setAttribute('stroke', color);
+                    }
 				        }
 
                 function selectExplPeer(event) {
@@ -215,13 +217,17 @@
                         explainExplainText =  selectDstText;
                       }
                       else {
-                        const src = selectedElems[0].getAttribute('id');
-                        const dst = selectedElems[1].getAttribute('id');
-                        const src_for_selection = jsObject[src]['idForSelection'][0];
-                        const dst_for_selection = jsObject[dst]['idForSelection'][0];
+                        src = selectedElems[0].getAttribute('id');
+                        dst = selectedElems[1].getAttribute('id');
+                        if (jsObject[src].hasOwnProperty('idForSelection')) {
+                          src = jsObject[src]['idForSelection'][0];
+                        }
+                        if (jsObject[dst].hasOwnProperty('idForSelection')) {
+                          dst = jsObject[dst]['idForSelection'][0];
+                        }
                         const src_name = selectedElems[0].getAttribute('title');
                         const dst_name = selectedElems[1].getAttribute('title');
-                        const entry = xmlDoc.querySelector("entry[src='"+src_for_selection+"'][dst='"+dst_for_selection+"']");
+                        const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
                         savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
 							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
