@@ -70,7 +70,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 		}
 		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
 		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
-		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)]
+		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
 
 		if !ok {
 			// it means that it is bidirectional but the conn line will be appended to the list with the other direction.
@@ -89,7 +89,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 }
 
 func getBidirectionalMapKeyByNames(firstName, secName, conn string) string {
-	return fmt.Sprintf("%s-%s-%s", firstName, secName, conn)
+	return fmt.Sprintf("%s_%s_%s", firstName, secName, conn)
 }
 
 func getBidirectionalMapKeyByConnLine(groupedLine *groupedConnLine, flip bool) string {
@@ -108,12 +108,11 @@ func getBidirectionalMapKeyByConnLine(groupedLine *groupedConnLine, flip bool) s
 func makeBidirectionalMap(groupedLines []*groupedConnLine) map[string]bool {
 	bidirectionalMap := make(map[string]bool)
 	for _, groupedLine := range groupedLines {
-		_, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
-		if ok {
-			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)] = true
+		_, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)]
+		if ok { // reverse direction is already in the map - just mark it bidirectional
+			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)] = true
 		} else {
-			// insert to map opposite direction
-			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)] = false
+			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)] = false
 		}
 	}
 	return bidirectionalMap
