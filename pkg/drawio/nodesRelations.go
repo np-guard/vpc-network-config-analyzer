@@ -19,7 +19,7 @@ const (
 	relations         = "relations"
 	graphExplanation  = "graphExplanation"
 	idForSelection    = "idForSelection"
-	otherIdForMarking = "otherIdForMarking"
+	otherIDForMarking = "otherIdForMarking"
 )
 
 //////////////////////////////////////////////////////////////////////
@@ -52,8 +52,8 @@ func setPublicNetworkRelation(network TreeNodeInterface, res map[string]map[stri
 			publicNetworkIconID := common.UintToString(publicNetworkIcon.ID())
 			res[publicNetworkSquareID][idForSelection] = []string{publicNetworkIconID}
 			if !publicNetworkIcon.NotShownInDrawio() {
-				res[publicNetworkSquareID][otherIdForMarking] = []string{publicNetworkIconID}
-				res[publicNetworkIconID][otherIdForMarking] = []string{publicNetworkSquareID}
+				res[publicNetworkSquareID][otherIDForMarking] = []string{publicNetworkIconID}
+				res[publicNetworkIconID][otherIDForMarking] = []string{publicNetworkSquareID}
 			}
 		}
 	}
