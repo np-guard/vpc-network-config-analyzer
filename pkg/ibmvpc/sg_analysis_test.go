@@ -104,7 +104,7 @@ func TestSGRule(t *testing.T) {
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Local.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Index, 0)
-	require.Equal(t, "direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all\n", ruleStr)
+	require.Equal(t, "id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all\n", ruleStr)
 	ruleStr, sgRule, _, err = sgResource.Analyzer.SgAnalyzer.GetSGRule(1)
 	require.Nil(t, err)
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
