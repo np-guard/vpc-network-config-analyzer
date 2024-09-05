@@ -16,7 +16,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -27,7 +27,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
@@ -56,7 +56,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -67,7 +67,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
@@ -96,7 +96,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -107,7 +107,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
@@ -136,7 +136,7 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -147,7 +147,7 @@ Path is enabled; The relevant rules are:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
@@ -180,7 +180,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -191,7 +191,7 @@ Path is disabled; The relevant rules are:
 		network ACL acl1-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -212,7 +212,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -223,7 +223,7 @@ Path is disabled; The relevant rules are:
 		network ACL acl1-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -244,7 +244,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -255,7 +255,7 @@ Path is disabled; The relevant rules are:
 		network ACL acl1-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -276,7 +276,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
 			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
@@ -287,7 +287,7 @@ Path is disabled; The relevant rules are:
 		network ACL acl1-ky allows connection with the following allow rules
 			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
