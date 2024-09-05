@@ -4,7 +4,7 @@ Interpreted destination: vsi3a-ky[10.240.30.5]
 ====================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi3a-ky[10.240.30.5];
-connection is blocked due to egress
+	connection is blocked due to egress
 
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 Ingress: network ACL acl3-ky allows connection; security group sg1-ky allows connection

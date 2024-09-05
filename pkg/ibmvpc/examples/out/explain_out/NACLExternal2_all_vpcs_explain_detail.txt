@@ -4,7 +4,7 @@ Interpreted destination: 100.128.0.0/32 (external)
 ==========================================================================
 
 No connections from vsi1-ky[10.240.10.4] to Public Internet 100.128.0.0/32;
-connection is blocked due to egress
+	connection is blocked due to egress
 
 External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection

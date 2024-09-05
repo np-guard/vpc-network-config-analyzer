@@ -4,7 +4,7 @@ Interpreted destination: 172.217.22.46/32 (external)
 =============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
-connection is blocked due to missing external router
+	connection is blocked due to missing external router
 
 Egress: security group sg11-ky allows connection; network ACL acl11-ky allows connection
 

@@ -237,7 +237,7 @@ func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missing
 	if loadBalancerBlocking {
 		blockedBy = append(blockedBy, "load balancer initiation")
 	}
-	prefixHeader := "connection is blocked due to "
+	prefixHeader := "\tconnection is blocked due to "
 	if len(blockedBy) == 1 {
 		return prefixHeader + blockedBy[0]
 	} else if len(blockedBy) > 1 {

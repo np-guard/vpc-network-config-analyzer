@@ -4,7 +4,7 @@ Interpreted destination: q2[10.240.32.122]
 ======================================================================
 
 No connections from p2[10.240.2.28] to q2[10.240.32.122];
-connection is blocked due to ingress
+	connection is blocked due to ingress
 
 Egress: security group GroupId:9 allows connection; network ACL acl1 allows connection
 Ingress: network ACL acl1 blocks connection; security group GroupId:9 allows connection
