@@ -110,7 +110,7 @@ func TestSGRule(t *testing.T) {
 	require.Equal(t, sgRule.Remote.Cidr.String(), "0.0.0.0/0")
 	require.Equal(t, sgRule.Local.String(), "10.240.10.0")
 	require.Equal(t, sgRule.Index, 1)
-	require.Equal(t, "direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 10.240.10.0/32, conns: protocol: all\n", ruleStr)
+	require.Equal(t, "id: id:154, direction: inbound, local: 10.240.10.0/32, remote: 0.0.0.0/0, conns: protocol: all\n", ruleStr)
 }
 
 type sgTest struct {
