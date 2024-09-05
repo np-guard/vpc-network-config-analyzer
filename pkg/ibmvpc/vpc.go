@@ -47,7 +47,7 @@ func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
 
 // used for synthesis output
 func (r *ReservedIP) SynthesisResourceName() string {
-	return r.vpe
+	return r.VPC().Name() + vpcmodel.Deliminator + r.vpe
 }
 
 func (r *ReservedIP) SynthesisKind() spec.ResourceType {
