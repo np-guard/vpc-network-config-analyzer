@@ -4,7 +4,7 @@ Interpreted destination: vsi2-ky[10.240.20.4]
 ==========================================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4] using "protocol: ICMP";
-	connection is blocked due to egress
+	connection is blocked at egress
 
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 Ingress: network ACL acl2-ky allows connection; security group sg1-ky allows connection

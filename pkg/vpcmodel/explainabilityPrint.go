@@ -226,18 +226,18 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter bool) string {
 	blockedBy := []string{}
 	if ingressBlocking {
-		blockedBy = append(blockedBy, "ingress")
+		blockedBy = append(blockedBy, "at ingress")
 	}
 	if egressBlocking {
-		blockedBy = append(blockedBy, "egress")
+		blockedBy = append(blockedBy, "at egress")
 	}
 	if missingExternalRouter {
-		blockedBy = append(blockedBy, "missing external router")
+		blockedBy = append(blockedBy, "because there is no resource for external connectivity")
 	}
 	if loadBalancerBlocking {
-		blockedBy = append(blockedBy, "load balancer initiation")
+		blockedBy = append(blockedBy, "by load balancer")
 	}
-	prefixHeader := "\tconnection is blocked due to "
+	prefixHeader := "\tconnection is blocked "
 	if len(blockedBy) == 1 {
 		return prefixHeader + blockedBy[0]
 	} else if len(blockedBy) > 1 {
