@@ -1,0 +1,172 @@
+{
+    "externals": {
+        "external-0": "0.0.0.0/0"
+    },
+    "required-connections": [
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-0",
+                "type": "external"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-0",
+                "type": "external"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "external-0",
+                "type": "external"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc2-ky/vsi20-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc2-ky/vsi21-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc2-ky/vsi21-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc2-ky/vsi20-ky",
+                "type": "instance"
+            }
+        }
+    ]
+}
