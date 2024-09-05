@@ -20,7 +20,7 @@ Path is disabled; The relevant rules are:
 		Egress to public internet is blocked since subnet application is private
 		security group GroupId:42 has no relevant allow rules
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, conn: all
+			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

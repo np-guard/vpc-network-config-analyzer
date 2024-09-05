@@ -62,7 +62,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	switch protocol {
 	case allProtocols:
 		conns = connection.All()
-		connStr = protocol
+		connStr = fmt.Sprintf("protocol: %s", protocol)
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
@@ -99,7 +99,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		direction = commonvpc.Inbound
 	}
 	ruleRes = &commonvpc.NACLRule{Src: src, Dst: dst, Connections: conns, Action: action}
-	ruleStr = fmt.Sprintf("ruleNumber: %d, action: %s, direction: %s, cidr: %s, conn: %s\n",
+	ruleStr = fmt.Sprintf("ruleNumber: %d, action: %s, direction: %s, cidr: %s, %s\n",
 		ruleNumber, action, direction, ip, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }

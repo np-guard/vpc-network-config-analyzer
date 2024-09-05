@@ -20,7 +20,7 @@ Path is disabled; The relevant rules are:
 	Egress:
 		security group GroupId:35 has no relevant allow rules
 		security group GroupId:9 allows connection with the following allow rules
-			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, conns: protocol: all
+			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, protocol: all
 
 	Ingress:
 		security group GroupId:35 has no relevant allow rules
