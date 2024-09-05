@@ -59,7 +59,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
 		name = *ruleObj.Name
 		conns = connection.All()
-		connStr = *ruleObj.Protocol
+		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
 		dst = *ruleObj.Destination
@@ -100,7 +100,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	isIngress = direction == commonvpc.Inbound
 	priority := na.getNACLRulePriority(direction, index)
 	ruleStr = fmt.Sprintf("name: %s, priority: %d, action: %s, direction: %s, source: %s, destination: %s,"+
-		" conn: %s\n", name, priority, action, direction, src, dst, connStr)
+		" %s\n", name, priority, action, direction, src, dst, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }
 

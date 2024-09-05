@@ -19,15 +19,15 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg3-ky allows connection with the following allow rules
-			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
-			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 100-200
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: tcp,  dstPorts: 100-200
 		network ACL acl3-ky allows connection with the following allow rules
-			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg2-ky has no relevant allow rules
 
 ------------------------------------------------------------------------------------------------------------------------

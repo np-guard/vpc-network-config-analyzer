@@ -20,18 +20,18 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg21-ky allows connection with the following allow rules
-			id: id:353, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:353, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 		network ACL acl21-ky allows connection with the following allow rules
-			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
+			name: acl21-out-2, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	transit gateway local-tg-ky blocks connection via transit connection tg_connection0 with the following prefix filter
 		index: 1, action: deny, ge: 22, le: 23, prefix: 10.240.0.0/21
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
+			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			id: id:344, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: inbound, id: id:344, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -19,15 +19,15 @@ Path is disabled; The relevant rules are:
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 has no relevant allow rules
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			name: allow-traffic-subnet-edge-inbound, priority: 1, action: allow, direction: inbound, source: 192.168.32.0/20, destination: 0.0.0.0/0, conn: all
+			name: allow-traffic-subnet-edge-inbound, priority: 1, action: allow, direction: inbound, source: 192.168.32.0/20, destination: 0.0.0.0/0, protocol: all
 		security group kube-clusterid:1 allows connection with the following allow rules
-			id: id:300, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: ICMP icmp-type: 8
+			direction: inbound, id: id:300, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: ICMP icmp-type: 8
 		security group ky-test-default-sg allows connection with the following allow rules
-			id: id:322, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: inbound, id: id:322, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

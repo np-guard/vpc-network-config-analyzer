@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 		network ACL acl2-ky allows connection with the following allow rules
-			name: acl2-out-3, priority: 3, action: allow, direction: outbound, source: 10.240.20.0/24, destination: 10.240.10.0/24, conn: all
+			name: acl2-out-3, priority: 3, action: allow, direction: outbound, source: 10.240.20.0/24, destination: 10.240.10.0/24, protocol: all
 
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-in-2, priority: 2, action: allow, direction: inbound, source: 10.240.20.0/24, destination: 10.240.10.0/24, conn: all
+			name: acl1-in-2, priority: 2, action: allow, direction: inbound, source: 10.240.20.0/24, destination: 10.240.10.0/24, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			id: id:154, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-out-3, priority: 3, action: allow, direction: outbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, conn: all
+			name: acl1-out-3, priority: 3, action: allow, direction: outbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			name: acl2-in-4, priority: 4, action: allow, direction: inbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, conn: all
+			name: acl2-in-4, priority: 4, action: allow, direction: inbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

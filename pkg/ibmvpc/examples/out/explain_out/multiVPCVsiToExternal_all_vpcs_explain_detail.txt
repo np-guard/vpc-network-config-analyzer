@@ -16,14 +16,14 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			id: id:412, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, conns: protocol: all
+			direction: outbound, id: id:412, remote: 0.0.0.0/0, local: 0.0.0.0/0, protocol: all
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-out-1, priority: 1, action: allow, direction: outbound, source: 10.240.1.0/24, destination: 172.217.22.46/32, conn: all
+			name: acl1-out-1, priority: 1, action: allow, direction: outbound, source: 10.240.1.0/24, destination: 172.217.22.46/32, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Ingress:
 		network ACL acl1-ky allows connection with the following allow rules
-			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 172.217.22.46/32, destination: 10.240.1.0/24, conn: all
+			name: acl1-in-1, priority: 1, action: allow, direction: inbound, source: 172.217.22.46/32, destination: 10.240.1.0/24, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
