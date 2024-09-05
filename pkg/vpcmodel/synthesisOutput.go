@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/np-guard/models/pkg/connection"
@@ -61,21 +62,60 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 	externals := spec.SpecExternals{}
 	sortGroupedLines(groupedLines)
 
+	bidirectionalMap := makeBidirectionalMap(groupedLines)
+
 	for _, groupedLine := range groupedLines {
-		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
-		// For now, ignoring responsiveness of TCP connection
+		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
+		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
+
+		if !ok {
+			// it means that it is bidirectional but the conn line will be appended to the list with the other direction.
+			continue
+		}
+
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
-			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn)))})
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
+			Bidirectional:    bidirectional})
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
 	return &s
+}
+
+func getBidirectionalMapKeyByNames(firstName, secName, conn string) string {
+	return fmt.Sprintf("%s_%s_%s", firstName, secName, conn)
+}
+
+func getBidirectionalMapKeyByConnLine(groupedLine *groupedConnLine, flip bool) string {
+	if flip {
+		return getBidirectionalMapKeyByNames(groupedLine.Dst.SynthesisResourceName(),
+			groupedLine.Src.SynthesisResourceName(),
+			groupedLine.CommonProperties.Conn.allConn.String())
+	}
+	return getBidirectionalMapKeyByNames(groupedLine.Src.SynthesisResourceName(),
+		groupedLine.Dst.SynthesisResourceName(),
+		groupedLine.CommonProperties.Conn.allConn.String())
+}
+
+// Returns a map from string(src+dst+conn) to whether the connection is bidirectional.
+// When bidirectional, only one direction will be in this map
+func makeBidirectionalMap(groupedLines []*groupedConnLine) map[string]bool {
+	bidirectionalMap := make(map[string]bool)
+	for _, groupedLine := range groupedLines {
+		_, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)]
+		if ok { // reverse direction is already in the map - just mark it bidirectional
+			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, true)] = true
+		} else {
+			bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)] = false
+		}
+	}
+	return bidirectionalMap
 }
 
 func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {

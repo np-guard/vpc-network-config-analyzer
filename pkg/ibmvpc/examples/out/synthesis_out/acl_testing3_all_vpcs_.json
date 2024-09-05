@@ -10,6 +10,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/vsi3b-ky",
                 "type": "instance"
@@ -25,6 +26,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
@@ -73,6 +75,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
@@ -88,21 +91,7 @@
                     "protocol": "ANY"
                 }
             ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
@@ -151,6 +140,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
@@ -163,36 +153,6 @@
         {
             "allowed-protocols": [
                 {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
                     "protocol": "TCP"
                 }
             ],
@@ -229,6 +189,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "test-vpc1-ky/db-endpoint-gateway-ky",
                 "type": "vpe"
@@ -299,51 +260,6 @@
             "src": {
                 "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
             }
         },
         {
