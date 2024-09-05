@@ -47,7 +47,7 @@ const (
 
 const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
 
-const deliminator = "/"
+const Deliminator = "/"
 
 type srcAndDstNodes struct {
 	srcNodes []Node
@@ -326,7 +326,7 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 	// endpoint name may be prefixed by vpc name
 	var vpc, endpoint string
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
-	cidrOrNameSlice := strings.Split(name, deliminator)
+	cidrOrNameSlice := strings.Split(name, Deliminator)
 	switch len(cidrOrNameSlice) {
 	case 1: // vpc name not specified
 		endpoint = name
