@@ -4,7 +4,7 @@ Interpreted destination: p1[10.240.3.70]
 ====================================================================
 
 No connections from p3[10.240.0.96] to p1[10.240.3.70];
-connection is blocked by ingress
+	connection is blocked at ingress
 
 Egress: security group GroupId:35 does not allow connection; security group GroupId:9 allows connection
 Ingress: security group GroupId:35 does not allow connection
