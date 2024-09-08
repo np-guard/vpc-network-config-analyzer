@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"fmt"
-	"slices"
 	"sort"
 	"strings"
 
@@ -254,8 +253,9 @@ func (e *ExplanationArgs) GetConnectionSet() *connection.Set {
 // given src and dst input and a VPCConfigs finds the []nodes they represent in the config
 // src/dst may refer to:
 // 1. Endpoint by UID or name; in this case we consider the network interfaces of the endpoint
-// 2. Internal IP address or cidr; in this case we consider the endpoints in that address range
-// 3. external IP address or cidr
+// 2. Subnet by name; in this case we consider its internal address, see next item
+// 3. Internal IP address or cidr; in this case we consider the endpoints in that address range
+// 4. external IP address or cidr
 func (c *VPCConfig) srcDstInputToNodes(srcName, dstName string) (srcNodes,
 	dstNodes []Node, errType int, err error) {
 	var errSrc, errDst error
@@ -293,7 +293,7 @@ func (c *VPCConfig) getSrcOrDstInputNode(name, srcOrDst string) (nodes []Node,
 	return outNodes, noErr, nil
 }
 
-// given a VPCConfig and a string cidrOrName representing an endpoint or internal/external
+// given a VPCConfig and a string cidrOrName representing a subnet, an endpoint or internal/external
 // cidr/address returns the corresponding node(s) and a bool which is true iff
 // cidrOrName is an internal address and the nodes are its network interfaces
 func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
@@ -384,8 +384,6 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	}
 	// internal address
 	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
-	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
-	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}

@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 
 	"errors"
 
@@ -113,6 +114,8 @@ func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock)
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}
+	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
+	networkInterfaceNodes = slices.DeleteFunc(networkInterfaceNodes, func(n Node) bool { return !n.RepresentedByAddress() })
 	return networkInterfaceNodes
 }
 
