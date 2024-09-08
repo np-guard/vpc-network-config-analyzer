@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -342,7 +343,7 @@ func (c *VPCConfig) getNodesOfSubnet(name string) []Node {
 	if foundSubnet == nil {
 		return nil
 	}
-	return c.GetNodesWithinInternalAddress(foundSubnet.AddressRange())
+	return c.getNodesWithinInternalAddressFilterNonRelevant(foundSubnet.AddressRange())
 }
 
 // getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
@@ -415,11 +416,18 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 		return nodes, noErr, nil
 	}
 	// internal address
-	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	networkInterfaces := c.getNodesWithinInternalAddressFilterNonRelevant(inputIPBlock)
 	if len(networkInterfaces) == 0 { // 3.
 		return nil, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
 	return networkInterfaces, noErr, nil // 4.
+}
+
+func (c *VPCConfig) getNodesWithinInternalAddressFilterNonRelevant(inputIPBlock *ipblock.IPBlock) []Node {
+	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
+	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
+	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
+	return networkInterfaces
 }
 
 // given input IPBlock, gets (disjoint) external nodes I s.t.:

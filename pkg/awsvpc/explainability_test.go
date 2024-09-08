@@ -34,6 +34,7 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		DetailExplain: true,
 	},
 	// existing sub-connection between two endpoints of the same subnet
+	// todo: https://github.com/np-guard/vpc-network-config-analyzer/issues/859
 	{
 		Name:          "same_subnet_partial_connection",
 		InputConfig:   "aws_mixed",
