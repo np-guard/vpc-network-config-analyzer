@@ -327,6 +327,9 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 
 // getNodesOfSubnet gets a string name or UID of a subnet, and
 // returns the list of all nodes within this subnet's cidr
+// note: in case there are two subnets of the same name, or a subnet and a vsi, we take the first one
+// using the same name is a bad practice but its not npGuard's responsibility to guard.
+// in this case the user may refer to the exact cidr instead of the name
 func (c *VPCConfig) getNodesOfSubnet(name string) []Node {
 	inputSubnet, inputVpc := getResourceAndVpcNames(name)
 	var foundSubnet Subnet
