@@ -44,7 +44,7 @@ const (
 	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
-const noValidInputMsg = "is not a legal IP address, CIDR, or endpoint name"
+const noValidInputMsg = "is not a legal IP address, CIDR, endpoint name or subnet name"
 
 const Deliminator = "/"
 
@@ -306,6 +306,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	if endpoint != nil {
 		return endpoint, noErr, nil
 	}
+	// 2. cidrOrName references subnet
 	// cidrOrName, if legal, references an address.
 
 	// 3. cidrOrName references an ip address
@@ -318,6 +319,23 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 	}
 	// the input is a legal cidr or IP address
 	return c.getNodesFromAddress(cidrOrName, ipBlock)
+}
+
+// getNodesOfSubnet gets a string name or UID of a subnet, and
+// returns the list of all nodes within this subnet's cidr
+func (c *VPCConfig) getNodesOfSubnet(name string) []Node {
+	inputSubnet, inputVpc := getResourceAndVpcNames(name)
+	var foundSubnet Subnet
+	for _, subnet := range c.Subnets {
+		if (inputVpc == "" || subnet.VPC().Name() == inputVpc) &&
+			(inputSubnet == subnet.UID() || inputSubnet == subnet.Name()) {
+			foundSubnet = subnet
+		}
+	}
+	if foundSubnet == nil {
+		return nil
+	}
+	return c.GetNodesWithinInternalAddress(foundSubnet.AddressRange())
 }
 
 // getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and

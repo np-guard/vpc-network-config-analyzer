@@ -759,8 +759,9 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	// should fail since vsi's name has a typo
 	_, err5 := vpcConfigSg1.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
-	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
-	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, or endpoint name", err5.Error())
+	require.NotNil(t, err5, "the test should fail since dst non existing vsi/subnet")
+	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, endpoint name or subnet name",
+		err5.Error())
 
 	// should fail since src and dst are identical
 	_, err6 := vpcConfigSg1.ExplainConnectivity("10.240.10.4/32", "10.240.10.4", nil)
@@ -815,21 +816,23 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err5 := vpcConfigMultiVpc.ExplainConnectivity(existingVsi, nonExistingVsi, nil)
 	fmt.Println(err5.Error())
 	require.NotNil(t, err5, "the test should fail since dst non existing vsi")
-	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, or endpoint name", err5.Error())
+	require.Equal(t, "illegal dst: vsi3a is not a legal IP address, CIDR, endpoint name or subnet name",
+		err5.Error())
 	fmt.Println()
 
 	// should fail since src vsi's name has a typo
 	_, err6 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, existingVsi, nil)
 	fmt.Println(err6.Error())
 	require.NotNil(t, err6, "the test should fail since src non existing vsi")
-	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, or endpoint name", err6.Error())
+	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, endpoint name or subnet name",
+		err6.Error())
 	fmt.Println()
 
 	// should fail since src and dst vsi's name has a typo - err msg should be about src
 	_, err7 := vpcConfigMultiVpc.ExplainConnectivity(nonExistingVsi, existingVsi, nil)
 	fmt.Println(err7.Error())
 	require.NotNil(t, err7, "the test should fail since src and dst non existing vsi")
-	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, or endpoint name", err7.Error())
+	require.Equal(t, "illegal src: vsi3a is not a legal IP address, CIDR, endpoint name or subnet name", err7.Error())
 	fmt.Println()
 
 	// src does not exist, dst is an internal address not connected to a vsi. should prioritize the dst error
@@ -844,7 +847,8 @@ func TestInputValidityMultipleVPCContext(t *testing.T) {
 	_, err9 := vpcConfigMultiVpc.ExplainConnectivity(cidr1, existingVsiWrongVpc, nil)
 	fmt.Println(err9.Error())
 	require.NotNil(t, err9, "the test should fail since the src vsi given with wrong vpc")
-	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky is not a legal IP address, CIDR, or endpoint name", err9.Error())
+	require.Equal(t, "illegal dst: test-vpc1-ky/vsi3a-ky is not a legal IP address,"+
+		" CIDR, endpoint name or subnet name", err9.Error())
 
 	vpcConfigTgwDupNames := getConfig(t, "tgw_larger_example_dup_names")
 	dupSrcVsi := "vsi1-ky"
