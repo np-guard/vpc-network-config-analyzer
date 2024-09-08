@@ -1,0 +1,17 @@
+Explaining connectivity from test-vpc1-ky/subnet11-ky to subnet32-ky
+Interpreted source: test-vpc1-ky/vsi11-ky[10.240.11.4]
+Interpreted destination: test-vpc3-ky/vsi32-ky[10.240.128.4]
+====================================================================
+
+No connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc3-ky/vsi32-ky[10.240.128.4];
+	connection is blocked at egress
+
+Egress: security group sg11-ky allows connection; network ACL acl11-ky blocks connection
+cross-vpc-connection: transit-connection tg_connection3 of transit-gateway local-tg-ky allows connection
+Ingress: network ACL acl31-ky allows connection; security group sg31-ky allows connection
+
+Path:
+	vsi11-ky[10.240.11.4] -> security group sg11-ky -> | network ACL acl11-ky |
+
+------------------------------------------------------------------------------------------------------------------------
+

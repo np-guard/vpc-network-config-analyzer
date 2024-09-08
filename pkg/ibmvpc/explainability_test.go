@@ -601,6 +601,13 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
+	{
+		Name:        "tgwSubnetToSubnet",
+		InputConfig: "tgw_larger_example",
+		ESrc:        "test-vpc1-ky/subnet11-ky",
+		EDst:        "subnet32-ky",
+		Format:      vpcmodel.Text,
+	},
 	// connection disabled by lack of cross-vpc router (tgw)
 	{
 		Name:          "multiVPCNoCrossVPCRouter",
