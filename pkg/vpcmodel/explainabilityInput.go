@@ -307,7 +307,8 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 		return endpoint, noErr, nil
 	}
 	// cidrOrName, if legal, references an address.
-	// 2. cidrOrName references an ip address
+
+	// 3. cidrOrName references an ip address
 	ipBlock, err2 := ipblock.FromCidrOrAddress(cidrOrName)
 	if err2 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
@@ -323,17 +324,9 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 // returns the list of all nodes within this endpoint
 func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 	var nodeSetOfEndpoint NodeSet
-	// endpoint name may be prefixed by vpc name
-	var vpc, endpoint string
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
-	cidrOrNameSlice := strings.Split(name, Deliminator)
-	switch len(cidrOrNameSlice) {
-	case 1: // vpc name not specified
-		endpoint = name
-	case 2: // vpc name specified
-		vpc = cidrOrNameSlice[0]
-		endpoint = cidrOrNameSlice[1]
-	}
+	// endpoint name may be prefixed by vpc name
+	endpoint, vpc := getResourceAndVpcNames(name)
 	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
@@ -349,6 +342,20 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 		return nil, noErr, nil
 	}
 	return nodeSetOfEndpoint.Nodes(), noErr, nil
+}
+
+// getResourceAndVpcNames given a name of a resource (endpoint, subnet) that is potentially prefixed by vpc name,
+// returns the resource name the vpc name (if any) and the resource name
+func getResourceAndVpcNames(name string) (resource, vpc string) {
+	cidrOrNameSlice := strings.Split(name, Deliminator)
+	switch len(cidrOrNameSlice) {
+	case 1: // vpc name not specified
+		resource = name
+	case 2: // vpc name specified
+		vpc = cidrOrNameSlice[0]
+		resource = cidrOrNameSlice[1]
+	}
+	return resource, vpc
 }
 
 // getNodesFromAddress gets a string and IPBlock that represents a cidr or IP address
