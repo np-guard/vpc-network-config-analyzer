@@ -79,6 +79,14 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		DetailExplain: true,
 	},
 	{
+		Name:          "subnetToVsiSingleVpc",
+		InputConfig:   "sg_testing1_new",
+		ESrc:          "subnet1-ky",
+		EDst:          "10.240.20.4",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	{
 		Name:          "SimpleExternalSG1",
 		InputConfig:   "sg_testing1_new",
 		ESrc:          "vsi1-ky",
@@ -700,7 +708,7 @@ func TestAll(t *testing.T) {
 }
 
 // uncomment the function below for generating the expected output files instead of comparing
-/*
+
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
@@ -713,7 +721,7 @@ func TestAllWithGeneration(t *testing.T) {
 		})
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestInputValiditySingleVPCContext(t *testing.T) {
 	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
