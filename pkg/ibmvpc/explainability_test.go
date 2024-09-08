@@ -709,6 +709,7 @@ func TestAll(t *testing.T) {
 
 // uncomment the function below for generating the expected output files instead of comparing
 
+/*
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
@@ -721,7 +722,7 @@ func TestAllWithGeneration(t *testing.T) {
 		})
 	}
 	fmt.Println("done")
-}
+}*/
 
 func TestInputValiditySingleVPCContext(t *testing.T) {
 	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
