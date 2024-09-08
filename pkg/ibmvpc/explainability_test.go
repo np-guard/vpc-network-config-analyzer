@@ -87,6 +87,14 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		DetailExplain: true,
 	},
 	{
+		Name:          "externalToSubnet",
+		InputConfig:   "sg_testing1_new",
+		ESrc:          "161.26.0.0",
+		EDst:          "subnet3-ky",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	{
 		Name:          "SimpleExternalSG1",
 		InputConfig:   "sg_testing1_new",
 		ESrc:          "vsi1-ky",
