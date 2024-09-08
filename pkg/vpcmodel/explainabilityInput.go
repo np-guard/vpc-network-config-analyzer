@@ -307,6 +307,10 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 		return endpoint, noErr, nil
 	}
 	// 2. cidrOrName references subnet
+	subnetEndpoints := c.getNodesOfSubnet(cidrOrName)
+	if subnetEndpoints != nil {
+		return subnetEndpoints, noErr, nil
+	}
 	// cidrOrName, if legal, references an address.
 
 	// 3. cidrOrName references an ip address
