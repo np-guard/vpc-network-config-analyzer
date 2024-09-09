@@ -22,17 +22,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: outbound, name: allow-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -55,17 +55,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: outbound, name: allow-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -88,17 +88,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			direction: outbound, name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 192.168.32.0/20, conn: all
+			name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 192.168.32.0/20, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -121,17 +121,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: outbound, name: allow-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -154,17 +154,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: outbound, name: allow-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -187,17 +187,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: outbound, name: allow-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -220,13 +220,13 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 
 	Ingress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -249,17 +249,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			direction: outbound, name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 192.168.32.0/20, conn: all
+			name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 192.168.32.0/20, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -282,17 +282,17 @@ Path is disabled; The relevant rules are:
 
 	Egress:
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: outbound, id: id:277, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 30000-32767
-			direction: outbound, id: id:279, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 30000-32767
+			id: id:277, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 30000-32767
+			id: id:279, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 30000-32767
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
-			direction: outbound, name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 192.168.32.0/20, conn: all
+			name: allow-traffic-subnet-edge-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 192.168.32.0/20, protocol: all
 
 	Ingress:
 		network ACL ky-test-edge-acl allows connection with the following allow rules
-			direction: inbound, name: allow-inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: allow-inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 allows connection with the following allow rules
-			direction: inbound, id: id:281, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: inbound, id: id:283, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:281, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:283, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: udp,  dstPorts: 1-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 
