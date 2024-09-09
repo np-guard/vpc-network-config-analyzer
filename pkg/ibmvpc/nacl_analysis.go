@@ -89,11 +89,11 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		src = *ruleObj.Source
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
-		if ruleObj.Type != nil && *ruleObj.Type != -1 {
-			portsStr = fmt.Sprintf("icmp type: %d", *ruleObj.Type)
+		if ruleObj.Type != nil {
+			portsStr = fmt.Sprintf(", type: %d", *ruleObj.Type)
 		}
-		if ruleObj.Code != nil && *ruleObj.Code != -1 {
-			portsStr += fmt.Sprintf("icmp code: %d", *ruleObj.Code)
+		if ruleObj.Code != nil {
+			portsStr += fmt.Sprintf(", code: %d", *ruleObj.Code)
 		}
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported type for rule: %s ", rule)
