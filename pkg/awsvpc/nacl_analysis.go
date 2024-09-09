@@ -81,10 +81,10 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 			return "", nil, false, err
 		}
 		if ruleObj.IcmpTypeCode.Type != nil && *ruleObj.IcmpTypeCode.Type != -1 {
-			portsStr = fmt.Sprintf("icmp type: %d", *ruleObj.IcmpTypeCode.Type)
+			portsStr = fmt.Sprintf(", type: %d", *ruleObj.IcmpTypeCode.Type)
 		}
 		if ruleObj.IcmpTypeCode.Code != nil && *ruleObj.IcmpTypeCode.Code != -1 {
-			portsStr += fmt.Sprintf("icmp code: %d", *ruleObj.IcmpTypeCode.Code)
+			portsStr += fmt.Sprintf(", code: %d", *ruleObj.IcmpTypeCode.Code)
 		}
 		conns = connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	default:
