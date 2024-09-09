@@ -22,8 +22,8 @@ vpcanalyzer explain [flags]
 ```
       --src string         source endpoint for explanation; can be specified as a VSI/subnet name/CRN or an internal/external IP-address/CIDR;
                            VSI/subnet name can be specified as <vsi-name/subnet-name> <vpc-name>/<vsi-name/subnet-name>
-      --dst string         destination endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;
-                           VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>
+      --dst string         destination endpoint for explanation; can be specified as a VSI/subnet name/CRN or an internal/external IP-address/CIDR;
+                           VSI/subnet name can be specified as <vsi-name/subnet-name> <vpc-name>/<vsi-name/subnet-name>
       --protocol string    protocol for connection description
       --src-min-port int   minimum source port for connection description (default 1)
       --src-max-port int   maximum source port for connection description (default 65535)
