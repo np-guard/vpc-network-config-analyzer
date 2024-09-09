@@ -796,8 +796,8 @@ func TestInputValiditySingleVPCContext(t *testing.T) {
 	// should fail since subnet sub1-1-ky contains no endpoints
 	_, err7 := vpcConfigNACL3.ExplainConnectivity("sub1-1-ky", "169.255.0.0", nil)
 	fmt.Println(err7.Error())
-	require.NotNil(t, err7, "subnet sub1-1-ky [10.240.1.0/24] contains no endpoints")
-	//require.Equal(t, "specified src and dst are equal", err7.Error())
+	require.NotNil(t, err7, "the test should fail since subnet contains no endpoints")
+	require.Equal(t, "illegal src: subnet sub1-1-ky [10.240.1.0/24] contains no endpoints", err7.Error())
 }
 
 func TestInputValidityMultipleVPCContext(t *testing.T) {
