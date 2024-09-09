@@ -59,10 +59,10 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	ruleObj := na.prioritiesEntries[index]
 	protocol := convertProtocol(*ruleObj.Protocol)
 	ruleNumber := *ruleObj.RuleNumber
+	portsStr := ""
 	switch protocol {
 	case allProtocols:
 		conns = connection.All()
-		connStr = protocol
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
@@ -72,7 +72,7 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 			minPort,
 			maxPort,
 		)
-		connStr = fmt.Sprintf("protocol: %s, dstPorts: %d-%d", protocol, minPort, maxPort)
+		portsStr = fmt.Sprintf(", dstPorts: %d-%d", minPort, maxPort)
 	case protocolICMP:
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
 			err := handleIcmpTypeCode(ruleObj.IcmpTypeCode.Type, ruleObj.IcmpTypeCode.Code)
@@ -80,12 +80,18 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		if err != nil {
 			return "", nil, false, err
 		}
+		if ruleObj.IcmpTypeCode.Type != nil && *ruleObj.IcmpTypeCode.Type != -1 {
+			portsStr = fmt.Sprintf(", type: %d", *ruleObj.IcmpTypeCode.Type)
+		}
+		if ruleObj.IcmpTypeCode.Code != nil && *ruleObj.IcmpTypeCode.Code != -1 {
+			portsStr += fmt.Sprintf(", code: %d", *ruleObj.IcmpTypeCode.Code)
+		}
 		conns = connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-		connStr = fmt.Sprintf("protocol: %s", protocol)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)
 		return "", nil, false, err
 	}
+	connStr = "protocol: " + protocol + portsStr
 	action := string(ruleObj.RuleAction)
 	ip, err := ipblock.FromCidr(*ruleObj.CidrBlock)
 	if err != nil {
@@ -99,8 +105,8 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		direction = commonvpc.Inbound
 	}
 	ruleRes = &commonvpc.NACLRule{Src: src, Dst: dst, Connections: conns, Action: action}
-	ruleStr = fmt.Sprintf("ruleNumber: %d, direction: %s ,cidr: %s, action: %s, conn: %s\n",
-		ruleNumber, direction, ip, action, connStr)
+	ruleStr = fmt.Sprintf("ruleNumber: %d, action: %s, direction: %s, cidr: %s, %s\n",
+		ruleNumber, action, direction, ip, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }
 

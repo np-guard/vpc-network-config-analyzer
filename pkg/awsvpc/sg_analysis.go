@@ -104,7 +104,7 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 }
 
 func getRuleStr(direction, connStr, ipRanges string) string {
-	return fmt.Sprintf("direction: %s, target: %s, conns: %s\n", direction, ipRanges, connStr)
+	return fmt.Sprintf("direction: %s, target: %s, %s\n", direction, ipRanges, connStr)
 }
 
 func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeMax,
