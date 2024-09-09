@@ -39,10 +39,11 @@ func (e *ExplanationArgs) Dst() string {
 // consts for managing errors from the single vpc context in the global, multi-vpc, context.
 // error are prioritized: the larger the error, the higher its severity
 const (
-	noErr                        = iota
-	noValidInputErr              // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
-	internalNoConnectedEndpoints // internal address not connected to any of the VPC's eps - wait until we go over all vpcs
-	fatalErr                     // fatal error that implies immediate termination (do not wait until we go over all vpcs)
+	noErr                = iota
+	noValidInputErr      // string does not represent a valid input w.r.t. this config - wait until we go over all vpcs
+	noConnectedEndpoints // no connected endpoints: either internal address not connected to any of the VPC's eps
+	// or no endpoints in subnet - in both cases wait until we go over all vpcs
+	fatalErr // fatal error that implies immediate termination (do not wait until we go over all vpcs)
 )
 
 const noValidInputMsg = "is not a legal IP address, CIDR, endpoint name or subnet name"
@@ -96,7 +97,7 @@ type srcAndDstNodes struct {
 //nolint:gocyclo // better not split into two function
 func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, err error) {
-	var errMsgInternalNoEP, errMsgNoValidSrc, errMsgNoValidDst error
+	var errMsgNoEp, errMsgNoValidSrc, errMsgNoValidDst error
 	var srcFoundSomeCfg, dstFoundSomeCfg bool
 	if unifyInput(src) == unifyInput(dst) {
 		return nil, nil, nil, fmt.Errorf("specified src and dst are equal")
@@ -115,8 +116,8 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 			switch {
 			case errType == fatalErr:
 				return c.Config(cfgID), nil, nil, err
-			case errType == internalNoConnectedEndpoints:
-				errMsgInternalNoEP = err
+			case errType == noConnectedEndpoints:
+				errMsgNoEp = err
 			case errType == noValidInputErr && srcNodes == nil:
 				errMsgNoValidSrc = err
 			case errType == noValidInputErr: // srcNodes != nil, dstNodes == nil
@@ -134,14 +135,14 @@ func (c *MultipleVPCConfigs) getVPCConfigAndSrcDstNodes(src, dst string) (vpcCon
 	// no match: no single vpc config or multi vpc config in which a match for both src and dst was found
 	// this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 0:
-		return noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg, errMsgInternalNoEP,
+		return noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg, errMsgNoEp,
 			errMsgNoValidSrc, errMsgNoValidDst)
 	// single config in which both src and dst were found, and the matched config is a multi vpc config: returns the matched config
 	case len(configsWithSrcDstNodeSingleVpc) == 0 && len(configsWithSrcDstNodeMultiVpc) == 1:
 		for cfgID, val := range configsWithSrcDstNodeMultiVpc {
 			return c.Config(cfgID), val.srcNodes, val.dstNodes, nil
 		}
-	// Src and dst were found in a exactly one single-vpc config. Its likely src and dst were also found in
+	// Src and dst were found in exactly one single-vpc config. Its likely src and dst were also found in
 	// multi-vpc configs (in each such config that connects their vpc to another one).
 	// In this case the relevant config for analysis is the single vpc config, which is the returned config
 	case len(configsWithSrcDstNodeSingleVpc) == 1:
@@ -165,9 +166,9 @@ func unifyInput(str string) string {
 // no match for both src and dst in any of the cfgs:
 // this can be either a result of input error, or of src and dst of different vpc that are not connected via cross-vpc router
 // prioritizes cases and possible errors as follows:
-// valid input but no cross vpc router >  errMsgInternalNoEP > errMsgNoValidSrc > errMsgNoValidDst
+// valid input but no cross vpc router >  errMsgNoEp > errMsgNoValidSrc > errMsgNoValidDst
 // this function was tested manually; having a dedicated test for it is too much work w.r.t its simplicity
-func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNoEP,
+func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgNoEp,
 	errMsgNoValidSrc, errMsgNoValidDst error) (vpcConfig *VPCConfig,
 	srcNodes, dstNodes []Node, err error) {
 	switch {
@@ -175,8 +176,8 @@ func noConfigMatchSrcDst(srcFoundSomeCfg, dstFoundSomeCfg bool, errMsgInternalNo
 	// this is not considered an error - the output will explain the src, dst are not connected via cross-vpc router
 	case srcFoundSomeCfg && dstFoundSomeCfg:
 		return nil, nil, nil, nil
-	case errMsgInternalNoEP != nil:
-		return nil, nil, nil, errMsgInternalNoEP
+	case errMsgNoEp != nil:
+		return nil, nil, nil, errMsgNoEp
 	case !srcFoundSomeCfg:
 		return nil, nil, nil, errMsgNoValidSrc
 	default: // !dstFoundSomeCfg:
@@ -308,15 +309,18 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 		return endpoint, noErr, nil
 	}
 	// 2. cidrOrName references subnet
-	subnetEndpoints := c.getNodesOfSubnet(cidrOrName)
+	subnetEndpoints, err2 := c.getNodesOfSubnet(cidrOrName)
+	if err2 != nil {
+		return nil, noConnectedEndpoints, err2
+	}
 	if subnetEndpoints != nil {
 		return subnetEndpoints, noErr, nil
 	}
 	// cidrOrName, if legal, references an address.
 
 	// 3. cidrOrName references an ip address
-	ipBlock, err2 := ipblock.FromCidrOrAddress(cidrOrName)
-	if err2 != nil {
+	ipBlock, err3 := ipblock.FromCidrOrAddress(cidrOrName)
+	if err3 != nil {
 		// the input is not a legal cidr or IP address, which in this stage means it is not a
 		// valid presentation for src/dst. Lint demands that an error is returned here
 		return nil, noValidInputErr,
@@ -331,7 +335,7 @@ func (c *VPCConfig) getNodesFromInputString(cidrOrName string) (nodes []Node,
 // note: in case there are two subnets of the same name, or a subnet and a vsi, we take the first one
 // using the same name is a bad practice but its not npGuard's responsibility to guard.
 // in this case the user may refer to the exact cidr instead of the name
-func (c *VPCConfig) getNodesOfSubnet(name string) []Node {
+func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	inputSubnet, inputVpc := getResourceAndVpcNames(name)
 	var foundSubnet Subnet
 	for _, subnet := range c.Subnets {
@@ -341,9 +345,13 @@ func (c *VPCConfig) getNodesOfSubnet(name string) []Node {
 		}
 	}
 	if foundSubnet == nil {
-		return nil
+		return nil, nil
 	}
-	return c.getNodesWithinInternalAddressFilterNonRelevant(foundSubnet.AddressRange())
+	subnetNodes := c.getNodesWithinInternalAddressFilterNonRelevant(foundSubnet.AddressRange())
+	if len(subnetNodes) == 0 {
+		return nil, fmt.Errorf("subnet %s [%s] contains no endpoints", foundSubnet.Name(), foundSubnet.AddressRange())
+	}
+	return subnetNodes, nil
 }
 
 // getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
@@ -418,7 +426,7 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	// internal address
 	networkInterfaces := c.getNodesWithinInternalAddressFilterNonRelevant(inputIPBlock)
 	if len(networkInterfaces) == 0 { // 3.
-		return nil, internalNoConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
+		return nil, noConnectedEndpoints, fmt.Errorf("no network interfaces are connected to %s", ipOrCidr)
 	}
 	return networkInterfaces, noErr, nil // 4.
 }
