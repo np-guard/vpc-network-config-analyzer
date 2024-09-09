@@ -1,6 +1,6 @@
 Explaining connectivity from vsi2-ky to vsi3b-ky within test-vpc1-ky
-Interpreted source: vsi2-ky[10.240.20.4]
-Interpreted destination: vsi3b-ky[10.240.30.4]
+Interpreted source(s): vsi2-ky[10.240.20.4]
+Interpreted destination(s): vsi3b-ky[10.240.30.4]
 ====================================================================
 
 Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP

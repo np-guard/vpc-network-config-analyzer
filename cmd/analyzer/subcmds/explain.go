@@ -27,8 +27,8 @@ const (
 	dstMaxPortFlag = "dst-max-port"
 	detailFlag     = "detail"
 
-	srcDstUsage = "endpoint; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;\n" +
-		"VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>"
+	srcDstUsage = "endpoint; can be specified as a VSI/subnet name/CRN or an internal/external IP-address/CIDR;\n" +
+		"VSI/subnet name can be specified as <vsi-name/subnet-name> or as <vpc-name>/<vsi-name/subnet-name>"
 )
 
 func NewExplainCommand(args *inArgs) *cobra.Command {

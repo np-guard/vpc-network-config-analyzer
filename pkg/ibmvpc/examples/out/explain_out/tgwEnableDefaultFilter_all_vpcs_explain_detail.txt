@@ -1,6 +1,6 @@
 Explaining connectivity from ky-vsi0-subnet5 to ky-vsi0-subnet11
-Interpreted source: test-vpc0-ky/ky-vsi0-subnet5[10.240.9.4]
-Interpreted destination: test-vpc1-ky/ky-vsi0-subnet11[10.240.80.4]
+Interpreted source(s): test-vpc0-ky/ky-vsi0-subnet5[10.240.9.4]
+Interpreted destination(s): test-vpc1-ky/ky-vsi0-subnet11[10.240.80.4]
 ================================================================
 
 Connections from test-vpc0-ky/ky-vsi0-subnet5[10.240.9.4] to test-vpc1-ky/ky-vsi0-subnet11[10.240.80.4]: All Connections

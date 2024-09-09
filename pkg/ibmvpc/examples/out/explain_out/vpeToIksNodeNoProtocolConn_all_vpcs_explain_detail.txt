@@ -1,6 +1,6 @@
 Explaining connectivity from 192.168.40.5 to 192.168.0.4 within ky-test-vpc using "protocol: ICMP"
-Interpreted source: iks-clusterid:1[192.168.40.5]
-Interpreted destination: iks-node[192.168.0.4]
+Interpreted source(s): iks-clusterid:1[192.168.40.5]
+Interpreted destination(s): iks-node[192.168.0.4]
 ==================================================================================================
 
 No connections from iks-clusterid:1[192.168.40.5] to iks-node[192.168.0.4] using "protocol: ICMP";

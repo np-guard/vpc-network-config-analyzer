@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.20.245 to 161.26.0.0 within vpc0
-Interpreted source: app1[10.240.20.245]
-Interpreted destination: 161.26.0.0 (external)
+Interpreted source(s): app1[10.240.20.245]
+Interpreted destination(s): 161.26.0.0 (external)
 ====================================================================
 
 No connections from app1[10.240.20.245] to Public Internet 161.26.0.0/32;

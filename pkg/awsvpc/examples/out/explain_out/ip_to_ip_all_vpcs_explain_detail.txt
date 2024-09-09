@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.40.217 to 10.240.20.43 within vpc0
-Interpreted source: dashboard[10.240.40.217]
-Interpreted destination: app2[10.240.20.43]
+Interpreted source(s): dashboard[10.240.40.217]
+Interpreted destination(s): app2[10.240.20.43]
 ======================================================================
 
 Connections from dashboard[10.240.40.217] to app2[10.240.20.43]: All Connections

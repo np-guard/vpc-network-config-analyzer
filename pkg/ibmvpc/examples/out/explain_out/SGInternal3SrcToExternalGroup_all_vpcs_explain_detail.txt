@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.30.4/24 to 161.26.0.0/8 within test-vpc1-ky
-Interpreted source: vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint-gateway-ky[10.240.30.6]
-Interpreted destination: 161.26.0.0/8 (external)
+Interpreted source(s): vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint-gateway-ky[10.240.30.6]
+Interpreted destination(s): 161.26.0.0/8 (external)
 ===============================================================================
 
 No connections from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;

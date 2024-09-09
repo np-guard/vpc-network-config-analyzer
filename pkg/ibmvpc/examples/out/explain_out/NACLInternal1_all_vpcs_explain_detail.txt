@@ -1,6 +1,6 @@
 Explaining connectivity from vsi1-ky to 10.240.20.4 within test-vpc1-ky
-Interpreted source: vsi1-ky[10.240.10.4]
-Interpreted destination: vsi2-ky[10.240.20.4]
+Interpreted source(s): vsi1-ky[10.240.10.4]
+Interpreted destination(s): vsi2-ky[10.240.20.4]
 =======================================================================
 
 Connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4]: protocol: TCP,UDP

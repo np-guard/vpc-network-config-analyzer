@@ -1,6 +1,6 @@
 Explaining connectivity from test-vpc0-ky/vsi1-ky to 172.217.22.46/32 within test-vpc0-ky
-Interpreted source: vsi1-ky[10.240.1.4]
-Interpreted destination: 172.217.22.46/32 (external)
+Interpreted source(s): vsi1-ky[10.240.1.4]
+Interpreted destination(s): 172.217.22.46/32 (external)
 =========================================================================================
 
 Connections from vsi1-ky[10.240.1.4] to Public Internet 172.217.22.46/32: All Connections

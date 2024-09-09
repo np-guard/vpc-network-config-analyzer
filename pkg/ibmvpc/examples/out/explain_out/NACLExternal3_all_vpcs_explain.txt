@@ -1,6 +1,6 @@
 Explaining connectivity from 100.128.0.0/32 to vsi1-ky within test-vpc1-ky
-Interpreted source: 100.128.0.0/32 (external)
-Interpreted destination: vsi1-ky[10.240.10.4]
+Interpreted source(s): 100.128.0.0/32 (external)
+Interpreted destination(s): vsi1-ky[10.240.10.4]
 ==========================================================================
 
 No connections from Public Internet 100.128.0.0/32 to vsi1-ky[10.240.10.4];

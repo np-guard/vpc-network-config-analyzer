@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.10.42 to 161.26.0.0 within vpc0
-Interpreted source: proxy[10.240.10.42]
-Interpreted destination: 161.26.0.0 (external)
+Interpreted source(s): proxy[10.240.10.42]
+Interpreted destination(s): 161.26.0.0 (external)
 ===================================================================
 
 Connections from proxy[10.240.10.42] to Public Internet 161.26.0.0/32: All Connections

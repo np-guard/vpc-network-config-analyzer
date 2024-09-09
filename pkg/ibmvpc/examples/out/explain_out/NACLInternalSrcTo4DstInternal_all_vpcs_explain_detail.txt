@@ -1,6 +1,6 @@
 Explaining connectivity from vsi3b-ky to 10.240.30.4/26 within test-vpc1-ky
-Interpreted source: vsi3b-ky[10.240.30.6]
-Interpreted destination: vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]
+Interpreted source(s): vsi3b-ky[10.240.30.6]
+Interpreted destination(s): vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]
 ===========================================================================
 
 Connections from vsi3b-ky[10.240.30.6] to db-endpoint-gateway-ky[10.240.30.7]: All Connections
