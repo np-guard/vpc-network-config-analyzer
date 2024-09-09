@@ -20,8 +20,8 @@ vpcanalyzer explain [flags]
 ### Options
 
 ```
-      --src string         source endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;
-                           VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>
+      --src string         source endpoint for explanation; can be specified as a VSI/subnet name/CRN or an internal/external IP-address/CIDR;
+                           VSI/subnet name can be specified as <vsi-name/subnet-name> <vpc-name>/<vsi-name/subnet-name>
       --dst string         destination endpoint for explanation; can be specified as a VSI name/CRN or an internal/external IP-address/CIDR;
                            VSI name can be specified as <vsi-name> or  <vpc-name>/<vsi-name>
       --protocol string    protocol for connection description
