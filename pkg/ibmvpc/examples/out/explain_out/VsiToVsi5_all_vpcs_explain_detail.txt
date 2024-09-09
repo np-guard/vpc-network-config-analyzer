@@ -1,6 +1,6 @@
 Explaining connectivity from vsi3a-ky to vsi2-ky within test-vpc1-ky
-Interpreted source: vsi3a-ky[10.240.30.5]
-Interpreted destination: vsi2-ky[10.240.20.4]
+Interpreted source(s): vsi3a-ky[10.240.30.5]
+Interpreted destination(s): vsi2-ky[10.240.20.4]
 ====================================================================
 
 No connections from vsi3a-ky[10.240.30.5] to vsi2-ky[10.240.20.4];

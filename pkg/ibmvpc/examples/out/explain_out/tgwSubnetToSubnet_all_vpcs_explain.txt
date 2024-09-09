@@ -1,6 +1,6 @@
 Explaining connectivity from test-vpc1-ky/subnet11-ky to subnet32-ky
-Interpreted source: test-vpc1-ky/vsi11-ky[10.240.11.4]
-Interpreted destination: test-vpc3-ky/vsi32-ky[10.240.128.4]
+Interpreted source(s): test-vpc1-ky/vsi11-ky[10.240.11.4]
+Interpreted destination(s): test-vpc3-ky/vsi32-ky[10.240.128.4]
 ====================================================================
 
 No connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc3-ky/vsi32-ky[10.240.128.4];

@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.32.122 to 10.240.32.91 within mixed
-Interpreted source: q2[10.240.32.122]
-Interpreted destination: q1[10.240.32.91]
+Interpreted source(s): q2[10.240.32.122]
+Interpreted destination(s): q1[10.240.32.91]
 =======================================================================
 
 Connections from q2[10.240.32.122] to q1[10.240.32.91]: protocol: UDP

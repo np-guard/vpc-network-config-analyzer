@@ -1,6 +1,6 @@
 Explaining connectivity from 192.168.8.4 to 192.168.4.4 within ky-test-vpc
-Interpreted source: iks-node[192.168.8.4]
-Interpreted destination: iks-node[192.168.4.4]
+Interpreted source(s): iks-node[192.168.8.4]
+Interpreted destination(s): iks-node[192.168.4.4]
 ==========================================================================
 
 Connections from iks-node[192.168.8.4] to iks-node[192.168.4.4]: All Connections

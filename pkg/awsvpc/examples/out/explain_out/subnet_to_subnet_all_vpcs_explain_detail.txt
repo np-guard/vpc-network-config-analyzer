@@ -1,6 +1,6 @@
 Explaining connectivity from private2 to private1 within mixed
-Interpreted source: r1[10.240.48.198]
-Interpreted destination: q2[10.240.32.122], q1[10.240.32.91]
+Interpreted source(s): r1[10.240.48.198]
+Interpreted destination(s): q2[10.240.32.122], q1[10.240.32.91]
 ==============================================================
 
 Connections from r1[10.240.48.198] to q1[10.240.32.91]: No Connections

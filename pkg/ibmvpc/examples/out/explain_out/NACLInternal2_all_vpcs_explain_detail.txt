@@ -1,6 +1,6 @@
 Explaining connectivity from vsi2-ky to 10.240.10.4 within test-vpc1-ky
-Interpreted source: vsi2-ky[10.240.20.4]
-Interpreted destination: vsi1-ky[10.240.10.4]
+Interpreted source(s): vsi2-ky[10.240.20.4]
+Interpreted destination(s): vsi1-ky[10.240.10.4]
 =======================================================================
 
 Connections from vsi2-ky[10.240.20.4] to vsi1-ky[10.240.10.4]: All Connections
