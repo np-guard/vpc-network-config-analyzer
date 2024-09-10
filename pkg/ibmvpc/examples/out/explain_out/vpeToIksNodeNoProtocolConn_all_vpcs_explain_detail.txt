@@ -17,7 +17,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 has no relevant allow rules
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 has no relevant rules
 		network ACL ky-test-edge-acl allows connection with the following allow rules
 			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
