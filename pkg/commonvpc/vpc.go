@@ -728,7 +728,7 @@ func getTableEffect(connQuery, conn *connection.Set) vpcmodel.TableEffect {
 		}
 	case conn.Intersect(connQuery).IsEmpty():
 		return vpcmodel.Deny
-	case connQuery.ContainedIn(connQuery):
+	case connQuery.ContainedIn(conn):
 		return vpcmodel.Allow
 	default:
 		return vpcmodel.PartlyAllow
