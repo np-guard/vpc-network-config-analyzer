@@ -1,0 +1,62 @@
+Explaining connectivity from private2 to private1 within mixed
+Interpreted source(s): r1[10.240.48.198]
+Interpreted destination(s): q2[10.240.32.122], q1[10.240.32.91]
+==============================================================
+
+Connections from r1[10.240.48.198] to q1[10.240.32.91]: No Connections
+
+Path:
+	r1[10.240.48.198] -> security group GroupId:22 -> network ACL acl1 -> subnet private2 -> 
+	subnet private1 -> network ACL acl1 -> security group GroupId:15 -> q1[10.240.32.91]
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
+	Egress:
+		security group GroupId:22 allows connection with the following allow rules
+			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, protocol: tcp, dstPorts: 9080-9080
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: outbound, cidr: 10.240.32.0/19, protocol: all
+
+	Ingress:
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: inbound, cidr: 10.240.32.0/19, protocol: all
+		security group GroupId:15 allows connection with the following allow rules
+			Inbound index: 0, direction: inbound, target: 0.0.0.0/0, protocol: udp, dstPorts: 0-65535
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from r1[10.240.48.198] to q2[10.240.32.122]: protocol: TCP dst-ports: 9080
+
+Path:
+	r1[10.240.48.198] -> security group GroupId:22 -> network ACL acl1 -> subnet private2 -> 
+	subnet private1 -> network ACL acl1 -> security group GroupId:9 -> q2[10.240.32.122]
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Egress:
+		security group GroupId:22 allows connection with the following allow rules
+			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, protocol: tcp, dstPorts: 9080-9080
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: outbound, cidr: 10.240.32.0/19, protocol: all
+
+	Ingress:
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: inbound, cidr: 10.240.32.0/19, protocol: all
+		security group GroupId:9 allows connection with the following allow rules
+			Inbound index: 0, direction: inbound, target: 10.240.0.0/18, protocol: all
+
+TCP response is enabled; The relevant rules are:
+	Egress:
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: outbound, cidr: 10.240.32.0/19, protocol: all
+
+	Ingress:
+		network ACL acl1 allows connection with the following allow rules
+			ruleNumber: 20, action: allow, direction: inbound, cidr: 10.240.32.0/19, protocol: all
+
+------------------------------------------------------------------------------------------------------------------------
+

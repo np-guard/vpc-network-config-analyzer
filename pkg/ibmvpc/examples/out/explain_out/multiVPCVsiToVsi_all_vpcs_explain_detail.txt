@@ -1,6 +1,6 @@
 Explaining connectivity from vsi31-ky to vsi32-ky within test-vpc3-ky
-Interpreted source: vsi31-ky[10.240.31.4]
-Interpreted destination: vsi32-ky[10.240.128.4]
+Interpreted source(s): vsi31-ky[10.240.31.4]
+Interpreted destination(s): vsi32-ky[10.240.128.4]
 =====================================================================
 
 Connections from vsi31-ky[10.240.31.4] to vsi32-ky[10.240.128.4]: All Connections
@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg31-ky allows connection with the following allow rules
-			direction: outbound, id: id:405, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:405, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl31-ky allows connection with the following allow rules
-			direction: outbound, name: acl31-out-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl31-out-1, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl31-ky allows connection with the following allow rules
-			direction: inbound, name: acl31-in-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl31-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg31-ky allows connection with the following allow rules
-			direction: inbound, id: id:403, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:403, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl31-ky allows connection with the following allow rules
-			direction: outbound, name: acl31-out-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl31-out-1, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl31-ky allows connection with the following allow rules
-			direction: inbound, name: acl31-in-1, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: acl31-in-1, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

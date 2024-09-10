@@ -39,9 +39,9 @@ func explainHeader(explanation *Explanation) string {
 	// ToDo srcNodes, dstNodes is empty when no cross-vpc router connects src and dst.
 	//      See https://github.com/np-guard/vpc-network-config-analyzer/issues/655
 	if len(explanation.srcNodes) > 0 && len(explanation.dstNodes) > 0 {
-		srcInterpretation = fmt.Sprintf("Interpreted source: %s\n", endPointInterpretation(explanation.c,
+		srcInterpretation = fmt.Sprintf("Interpreted source(s): %s\n", endPointInterpretation(explanation.c,
 			explanation.src, explanation.srcNodes))
-		dstInterpretation = fmt.Sprintf("Interpreted destination: %s\n", endPointInterpretation(explanation.c,
+		dstInterpretation = fmt.Sprintf("Interpreted destination(s): %s\n", endPointInterpretation(explanation.c,
 			explanation.dst, explanation.dstNodes))
 	}
 	underLine := strings.Repeat("=", len(title))

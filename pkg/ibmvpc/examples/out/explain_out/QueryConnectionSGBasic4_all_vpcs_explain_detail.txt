@@ -1,6 +1,6 @@
 Explaining connectivity from vsi1-ky to 161.26.0.0/12 within test-vpc1-ky using "protocol: UDP src-ports: 10-100 dst-ports: 443"
-Interpreted source: vsi1-ky[10.240.10.4]
-Interpreted destination: 161.26.0.0/12 (external)
+Interpreted source(s): vsi1-ky[10.240.10.4]
+Interpreted destination(s): 161.26.0.0/12 (external)
 ================================================================================================================================
 
 Connections are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: UDP src-ports: 10-100 dst-ports: 443"
@@ -16,9 +16,9 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:133, remote: 161.26.0.0/16, local: 0.0.0.0/0, conns: protocol: udp,  dstPorts: 1-65535
+			id: id:133, direction: outbound, local: 0.0.0.0/0, remote: 161.26.0.0/16, protocol: udp,  dstPorts: 1-65535
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ Path is disabled; The relevant rules are:
 	Egress:
 		security group sg1-ky has no relevant allow rules
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

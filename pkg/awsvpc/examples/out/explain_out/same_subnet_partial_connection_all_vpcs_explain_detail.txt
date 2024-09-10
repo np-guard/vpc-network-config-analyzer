@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.32.122 to 10.240.32.91 within mixed
-Interpreted source: q2[10.240.32.122]
-Interpreted destination: q1[10.240.32.91]
+Interpreted source(s): q2[10.240.32.122]
+Interpreted destination(s): q1[10.240.32.91]
 =======================================================================
 
 Connections from q2[10.240.32.122] to q1[10.240.32.91]: protocol: UDP
@@ -15,11 +15,11 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group GroupId:9 allows connection with the following allow rules
-			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, conns: protocol: all
+			Outbound index: 0, direction: outbound, target: 10.240.0.0/18, protocol: all
 
 	Ingress:
 		security group GroupId:15 allows connection with the following allow rules
-			Inbound index: 0, direction: inbound, target: 0.0.0.0/0, conns: protocol: udp, dstPorts: 0-65535
+			Inbound index: 0, direction: inbound, target: 0.0.0.0/0, protocol: udp, dstPorts: 0-65535
 
 ------------------------------------------------------------------------------------------------------------------------
 

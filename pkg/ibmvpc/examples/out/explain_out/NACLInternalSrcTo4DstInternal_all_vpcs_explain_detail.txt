@@ -1,6 +1,6 @@
 Explaining connectivity from vsi3b-ky to 10.240.30.4/26 within test-vpc1-ky
-Interpreted source: vsi3b-ky[10.240.30.6]
-Interpreted destination: vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]
+Interpreted source(s): vsi3b-ky[10.240.30.6]
+Interpreted destination(s): vsi3a-ky[10.240.30.5], vsi3c-ky[10.240.30.4], vsi3b-ky[10.240.30.6], db-endpoint-gateway-ky[10.240.30.7]
 ===========================================================================
 
 Connections from vsi3b-ky[10.240.30.6] to db-endpoint-gateway-ky[10.240.30.7]: All Connections
@@ -15,11 +15,11 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:154, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -35,11 +35,11 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:154, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -55,11 +55,11 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:154, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 
