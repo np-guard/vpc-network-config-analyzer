@@ -339,8 +339,8 @@ func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	inputSubnet, inputVpc := getResourceAndVpcNames(name)
 	var foundSubnet Subnet
 	for _, subnet := range c.Subnets {
-		if (inputVpc == "" || subnet.VPC().Name() == inputVpc) &&
-			(inputSubnet == subnet.UID() || inputSubnet == subnet.Name()) {
+		if (inputVpc == "" || subnet.VPC().NameForAnalyzerOut() == inputVpc) &&
+			(inputSubnet == subnet.UID() || inputSubnet == subnet.NameForAnalyzerOut()) {
 			foundSubnet = subnet
 		}
 	}
@@ -349,7 +349,7 @@ func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	}
 	subnetNodes := c.getNodesWithinInternalAddressFilterNonRelevant(foundSubnet.AddressRange())
 	if len(subnetNodes) == 0 {
-		return nil, fmt.Errorf("subnet %s [%s] contains no endpoints", foundSubnet.Name(), foundSubnet.AddressRange())
+		return nil, fmt.Errorf("subnet %s [%s] contains no endpoints", foundSubnet.NameForAnalyzerOut(), foundSubnet.AddressRange())
 	}
 	return subnetNodes, nil
 }
