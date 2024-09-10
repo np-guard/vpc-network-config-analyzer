@@ -379,7 +379,6 @@ func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, t
 			}
 		}
 		strSlice[i] = FilterKindName(filterLayerName) + space + tableName + effectStr
-		i++
 	}
 	sort.Strings(strSlice)
 	return strings.Join(strSlice, semicolon+space)
