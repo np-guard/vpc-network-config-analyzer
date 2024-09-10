@@ -718,20 +718,19 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
-func getTableEffect(connQuery, conn *connection.Set) (tableEffect vpcmodel.TableEffect) {
+func getTableEffect(connQuery, conn *connection.Set) vpcmodel.TableEffect {
 	switch {
 	case connQuery == nil: // connection not part of query
 		if !conn.IsEmpty() {
-			tableEffect = vpcmodel.Allow
+			return vpcmodel.Allow
 		} else {
-			tableEffect = vpcmodel.Deny
+			return vpcmodel.Deny
 		}
 	case conn.Intersect(connQuery).IsEmpty():
-		tableEffect = vpcmodel.Deny
+		return vpcmodel.Deny
 	case connQuery.ContainedIn(connQuery):
-		tableEffect = vpcmodel.Allow
+		return vpcmodel.Allow
 	default:
-		tableEffect = vpcmodel.PartlyAllow
+		return vpcmodel.PartlyAllow
 	}
-	return tableEffect
 }
