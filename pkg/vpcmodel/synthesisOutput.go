@@ -38,7 +38,8 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	if c2 != nil {
 		v2Name = c2.VPC.NameForAnalyzerOut()
 	}
-	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.NameForAnalyzerOut(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.NameForAnalyzerOut(),
+		VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
 func handleNameAndType(resource EndpointElem, externals spec.SpecExternals) (

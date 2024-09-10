@@ -85,7 +85,8 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 		} else if subnetCidrIPB.Overlap(ipb) {
 			// the ACL splits connectivity to part of that subnet,
 			// this is currently not supported in subnets connectivity analysis
-			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s", subnet.NameForAnalyzerOut())
+			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s",
+				subnet.NameForAnalyzerOut())
 		}
 	}
 
@@ -275,7 +276,8 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				if egressConns == nil {
 					// should not get here
-					return nil, fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.NameForAnalyzerOut(), subnetNodeSet.NameForAnalyzerOut())
+					return nil, fmt.Errorf("could not find egress connection from %s to  %s",
+						concPeerNode.NameForAnalyzerOut(), subnetNodeSet.NameForAnalyzerOut())
 				}
 				combinedConns = conns.Intersect(egressConns)
 				// for subnets cross-vpc connection, add intersection with tgw connectivity (prefix filters)

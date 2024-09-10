@@ -618,7 +618,8 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 		var tgwAB *TransitGateway
 		for _, tgw := range tgws {
 			for _, vpc := range tgw.vpcs {
-				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.NameForAnalyzerOut(), vpc.NameForAnalyzerOut(), vpc.AddressPrefixesIPBlock.ToCidrListString())
+				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.NameForAnalyzerOut(),
+					vpc.NameForAnalyzerOut(), vpc.AddressPrefixesIPBlock.ToCidrListString())
 				// TODO: shouldn't be containment rather than intersection?? (works with intersection on hub-n-spoke config object)
 				if vpc.UID() != irt.vpc.UID() && routeCidr.Overlap(vpc.AddressPrefixesIPBlock) {
 					vpcB = vpc

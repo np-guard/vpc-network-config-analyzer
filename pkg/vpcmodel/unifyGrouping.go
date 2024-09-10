@@ -120,7 +120,8 @@ func (o *OutputGenerator) UnificationDebugPrint() string {
 					k := common.FromList[EndpointElem](*g).AsKey()
 					if g2, ok := elg[k]; ok {
 						if g != g2 {
-							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n", g, g.NameForAnalyzerOut(), g2, g2.NameForAnalyzerOut())
+							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n",
+								g, g.NameForAnalyzerOut(), g2, g2.NameForAnalyzerOut())
 						}
 					}
 					elg[k] = g

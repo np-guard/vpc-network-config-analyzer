@@ -335,7 +335,8 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 		endpoint = cidrOrNameSlice[1]
 	}
 	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
-		if (vpc == "" || nodeSet.VPC().NameForAnalyzerOut() == vpc) && nodeSet.NameForAnalyzerOut() == endpoint || // if vpc of endpoint specified, equality must hold
+		if (vpc == "" || nodeSet.VPC().NameForAnalyzerOut() == vpc) &&
+			nodeSet.NameForAnalyzerOut() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetOfEndpoint != nil {
 				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+

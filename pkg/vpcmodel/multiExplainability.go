@@ -70,7 +70,8 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errConn}
 			continue
 		}
-		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.NameForAnalyzerOut(), srcDstCouple.dst.NameForAnalyzerOut(),
+		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.NameForAnalyzerOut(),
+			srcDstCouple.dst.NameForAnalyzerOut(),
 			srcNodes, dstNodes, nil, connectivity)
 		if errExplain != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errExplain}

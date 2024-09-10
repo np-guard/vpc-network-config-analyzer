@@ -590,7 +590,8 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 // prints a matching non-verbose header
 func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
 	rulesType vpcmodel.RulesType) string {
-	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.NameForAnalyzerOut())
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ",
+		*transitConn.Name, tgw.NameForAnalyzerOut())
 	switch rulesType {
 	case vpcmodel.OnlyAllow:
 		return noVerboseStr + "allows connection"

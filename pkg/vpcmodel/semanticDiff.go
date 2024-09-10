@@ -265,7 +265,8 @@ func printGroupedDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, 
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
 	diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
 	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo)
-	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), connDiffStr)
+	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr,
+		src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), connDiffStr)
 	return printDiff
 }
 
@@ -578,7 +579,8 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 //						return areIntersecting, err1
 //					}
 //					if intersecting {
-//						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), otherSrc.NameForAnalyzerOut(), otherDst.NameForAnalyzerOut())
+//						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.NameForAnalyzerOut(),
+//							dst.NameForAnalyzerOut(), otherSrc.NameForAnalyzerOut(), otherDst.NameForAnalyzerOut())
 //					}
 //				}
 //			}
