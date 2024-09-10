@@ -360,22 +360,25 @@ func (rules rulesInLayers) summaryRulesSingleDirectionStr(allRulesDetails *rules
 
 // for a given layer (e.g. nacl) and []RulesInTable describing ingress/egress rules,
 // returns a string with the effect of each filter, called by summaryRulesSingleDirectionStr
-func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, rules []RulesInTable) string {
-	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
-	strSlice := make([]string, len(filtersToActionMap))
-	i := 0
-	for name, effect := range filtersToActionMap {
+func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, tablesRulesDetails []RulesInTable) string {
+	strSlice := make([]string, len(tablesRulesDetails))
+	for i, tableRulesDetails := range tablesRulesDetails {
+		tableEffect := tableRulesDetails.TableHasEffect
+		tableName := (*allRulesDetails)[filterLayerName][tableRulesDetails.TableIndex].tableName
 		effectStr := ""
-		if effect {
+		switch tableEffect {
+		case Allow:
 			effectStr = " allows connection"
-		} else {
+		case PartlyAllow:
+			effectStr = " partly allows connection"
+		case Deny:
 			if filterLayerName == SecurityGroupLayer {
 				effectStr = " does not allow connection"
 			} else {
 				effectStr = " blocks connection"
 			}
 		}
-		strSlice[i] = FilterKindName(filterLayerName) + space + name + effectStr
+		strSlice[i] = FilterKindName(filterLayerName) + space + tableName + effectStr
 		i++
 	}
 	sort.Strings(strSlice)
@@ -507,31 +510,31 @@ func FilterKindName(filterLayer string) string {
 	}
 }
 
-// for a given filter layer (e.g. sg) returns a string of the allowing tables,
+// for a given filter layer (e.g. sg) returns a string of the allowing/partly allowing tables,
 // and string of the denying table(s) if the connection is indeed denied
 // the connection is denied if the denying table is NACL (in which case there is only one attached table)
-// or if the table is SG and then there are no allowing tables. This is since one SG suffice to enable connection
+// or if the table is SG and then there are no allowing/partly allowing tables. This is since one SG suffice to enable connection
 func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
-	rules []RulesInTable) (allowPath, denyPath string) {
-	filtersToActionMap := allRulesDetails.listFilterWithAction(filterLayerName, rules)
+	tablesDetails []RulesInTable) (allowPath, denyPath string) {
 	allowTablesSlice := []string{}
 	denyTablesSlice := []string{}
 	// Is there at least one allowing SG? if so, we ignore non-allowing SGs (if any)
 	ignoreBlocking := false
 	if filterLayerName == SecurityGroupLayer {
-		for _, allow := range filtersToActionMap {
-			if allow {
+		for _, tableDetails := range tablesDetails {
+			if tableDetails.TableHasEffect == Allow || tableDetails.TableHasEffect == PartlyAllow {
 				ignoreBlocking = true
 			}
 		}
 	}
-	for name, allow := range filtersToActionMap {
-		if !allow {
+	for _, tableDetails := range tablesDetails {
+		tableName := (*allRulesDetails)[filterLayerName][tableDetails.TableIndex].tableName
+		if tableDetails.TableHasEffect == Deny {
 			if !ignoreBlocking {
-				denyTablesSlice = append(denyTablesSlice, name)
+				denyTablesSlice = append(denyTablesSlice, tableName)
 			}
-		} else {
-			allowTablesSlice = append(allowTablesSlice, name)
+		} else { // allow or partly allow
+			allowTablesSlice = append(allowTablesSlice, tableName)
 		}
 	}
 	return sgsString(filterLayerName, allowTablesSlice), sgsString(filterLayerName, denyTablesSlice)
