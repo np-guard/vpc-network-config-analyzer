@@ -76,18 +76,18 @@ func (rules *rulesDetails) stringRulesDetails(filterLayer string, filterIndex in
 }
 
 func getHeaderRulesType(filter string, tableEffect TableEffect, rType RulesType) string {
+	partly := ""
+	if tableEffect == PartlyAllow {
+		partly = " partly"
+	}
 	switch rType {
 	case NoRules:
 		return filter + " has no relevant rules\n"
 	case OnlyDeny:
 		return filter + " blocks connection with the following deny rules:\n"
 	case BothAllowDeny:
-		return filter + " partly allows connection with the following allow and deny rules\n"
+		return filter + partly + " allows connection with the following allow and deny rules\n"
 	case OnlyAllow:
-		partly := ""
-		if tableEffect == PartlyAllow {
-			partly = " partly"
-		}
 		return filter + partly + " allows connection with the following allow rules\n"
 	default:
 		return ""
