@@ -38,6 +38,100 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 }
 
 var explainTests = []*commonvpc.VpcGeneralTest{
+	// allow connection subset of the queried one
+	{
+		Name:          "NACLQueryAllowSubset",
+		InputConfig:   "acl_testing3_4th",
+		ESrc:          "vsi1-ky",
+		EDst:          "161.26.0.0/16",
+		EProtocol:     netp.ProtocolStringUDP,
+		ESrcMinPort:   connection.MinPort,
+		ESrcMaxPort:   connection.MaxPort,
+		EDstMinPort:   connection.MinPort,
+		EDstMaxPort:   connection.MaxPort,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	{
+		Name:          "NACLQueryConnection1",
+		InputConfig:   "acl_testing3",
+		ESrc:          "vsi1-ky",
+		EDst:          "161.26.0.0/16",
+		EProtocol:     netp.ProtocolStringUDP,
+		ESrcMinPort:   connection.MinPort,
+		ESrcMaxPort:   connection.MaxPort,
+		EDstMinPort:   connection.MinPort,
+		EDstMaxPort:   connection.MaxPort,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	{
+		Name:          "NACLQueryConnectionRules2",
+		InputConfig:   "acl_testing3_3rd",
+		ESrc:          "vsi1-ky",
+		EDst:          "161.26.0.0/16",
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	// without the "all" rule since udp rule has higher priority
+	{
+		Name:          "NACLQueryConnectionRules4",
+		InputConfig:   "acl_testing3_3rd",
+		ESrc:          "10.240.10.4/32",
+		EDst:          "161.26.0.0/16",
+		EProtocol:     netp.ProtocolStringUDP,
+		ESrcMinPort:   connection.MinPort,
+		ESrcMaxPort:   connection.MaxPort,
+		EDstMinPort:   connection.MinPort,
+		EDstMaxPort:   connection.MaxPort,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	// a subset of the required ports exists
+	{
+		Name:          "QueryConnectionSGSubsetPorts",
+		InputConfig:   "sg_testing1_new",
+		ESrc:          "147.235.219.206/32",
+		EDst:          "vsi2-ky",
+		EProtocol:     netp.ProtocolStringTCP,
+		ESrcMinPort:   connection.MinPort,
+		ESrcMaxPort:   connection.MaxPort,
+		EDstMinPort:   10,
+		EDstMaxPort:   30,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	// respond w.r.t. specific ports query
+	{
+		Name:          "TCPRespondPortsQuery",
+		InputConfig:   "sg_testing1_new_respond_partly",
+		ESrc:          "vsi3a-ky",
+		EDst:          "vsi1-ky",
+		EProtocol:     netp.ProtocolStringTCP,
+		ESrcMinPort:   90,
+		ESrcMaxPort:   180,
+		EDstMinPort:   20,
+		EDstMaxPort:   60,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+	// vpe to iks-node, not all rules relevant
+	{
+		Name:          "vpeToIksNodeSubsetRules",
+		InputConfig:   "iks_config_object",
+		ESrc:          "192.168.40.5",
+		EDst:          "192.168.0.4",
+		EProtocol:     netp.ProtocolStringTCP,
+		ESrcMinPort:   connection.MinPort,
+		ESrcMaxPort:   connection.MaxPort,
+		EDstMinPort:   connection.MinPort,
+		EDstMaxPort:   connection.MaxPort,
+		Format:        vpcmodel.Text,
+		DetailExplain: true,
+	},
+}
+
+var explainTests1 = []*commonvpc.VpcGeneralTest{
 	{
 		Name:          "VsiToVsi1",
 		InputConfig:   "sg_testing1_new",
@@ -723,7 +817,7 @@ func TestAll(t *testing.T) {
 }
 
 // uncomment the function below for generating the expected output files instead of comparing
-/*
+
 func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
@@ -736,7 +830,7 @@ func TestAllWithGeneration(t *testing.T) {
 		})
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestInputValiditySingleVPCContext(t *testing.T) {
 	vpcConfigSg1 := getConfig(t, "sg_testing1_new")
