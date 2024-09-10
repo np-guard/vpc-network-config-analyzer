@@ -46,17 +46,15 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
-	// (no external src/dst).
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
-	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
-	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL non-relevant same subnet
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
+	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
