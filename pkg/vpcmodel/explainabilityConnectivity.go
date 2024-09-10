@@ -327,7 +327,8 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 			default: // no rules
 				rType = NoRules
 			}
-			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType}
+			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
+				TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
 			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer
