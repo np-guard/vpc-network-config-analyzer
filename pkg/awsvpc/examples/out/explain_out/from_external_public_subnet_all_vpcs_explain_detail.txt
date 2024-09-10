@@ -26,7 +26,7 @@ Path is enabled; The relevant rules are:
 
 TCP response is partly enabled; The relevant rules are:
 	Egress:
-		network ACL acl1 allows connection with the following allow and deny rules
+		network ACL acl1 partly allows connection with the following allow and deny rules
 			ruleNumber: 10, action: allow, direction: outbound, cidr: 147.235.0.0/16, protocol: tcp, dstPorts: 1025-5000
 			ruleNumber: 32767, action: deny, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 
