@@ -571,13 +571,13 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 }
 
 // RulesInConnectivity return allow rules between src and dst,
-// or between src and dst of connection conn if conn specified
+// or between src and dst of connection connQuery if connQuery specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	connQuery *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
 	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, sg := range sgl.SgList {
-		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, connQuery, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
