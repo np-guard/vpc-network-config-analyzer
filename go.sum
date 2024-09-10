@@ -8,8 +8,8 @@ github.com/IBM/networking-go-sdk v0.49.0 h1:lPS34u3C0JVrbxH+Ulua76Nwl6Frv8BEfq6L
 github.com/IBM/networking-go-sdk v0.49.0/go.mod h1:G9CKbmPE8gSLjN+ABh4hIZ1bMx076enl5Eekvj6zQnA=
 github.com/IBM/platform-services-go-sdk v0.65.0 h1:SAk/Rsn2BLRmeU3z6YJm54TK23/9QJaOPjrjYNGBiPU=
 github.com/IBM/platform-services-go-sdk v0.65.0/go.mod h1:6rYd3stLSnotYmZlxclw45EJPaQuLmh5f7c+Mg7rOg4=
-github.com/IBM/vpc-go-sdk v0.56.0 h1:GVlehMD2rYxETF2S/OSIgPHW7xZlfNsz1C59YLTVPis=
-github.com/IBM/vpc-go-sdk v0.56.0/go.mod h1:BpIOxz9FRDsAY7NQFUYdxiPWjqvcRbBrw8fiAvzNqDE=
+github.com/IBM/vpc-go-sdk v0.57.0 h1:E8CPDpUE4z0cvvmFZzqUthMtGJx71Fne6vdvkjZdXfg=
+github.com/IBM/vpc-go-sdk v0.57.0/go.mod h1:swmxiYLT+OfBsBYqJWGeRd6NPmBk4u/het2PZdtzIaw=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
@@ -165,8 +165,6 @@ github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RR
 github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe/go.mod h1:wL8QJuTMNUDYhXwkmfOly8iTdp5TEcJFWZD2D7SIkUc=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
-github.com/np-guard/cloud-resource-collector v0.14.0 h1:MBPtPBYVCQoMfUkn/wODpF7SRpJ9TlOfMszO8N0PePo=
-github.com/np-guard/cloud-resource-collector v0.14.0/go.mod h1:klCHnNnuuVcCtGQHA7R1a8fqnvfMCk/5Jdld6V7sN2A=
 github.com/np-guard/cloud-resource-collector v0.15.0 h1:jkmxql6D1uBr/qmSOsBzUgeDxlUXSCe7dBKfqfK+QZ4=
 github.com/np-guard/cloud-resource-collector v0.15.0/go.mod h1:klCHnNnuuVcCtGQHA7R1a8fqnvfMCk/5Jdld6V7sN2A=
 github.com/np-guard/models v0.3.4 h1:HOhVi6wyGvo+KmYBnQ5Km5HYCF+/PQlDs1v7mL1v05g=
