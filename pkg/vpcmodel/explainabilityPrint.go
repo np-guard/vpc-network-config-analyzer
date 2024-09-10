@@ -31,7 +31,7 @@ func explainHeader(explanation *Explanation) string {
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
-		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
+		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.NameForAnalyzerOut())
 	}
 	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
@@ -135,7 +135,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	privateSubnetRule := g.CommonProperties.expDetails.privateSubnetRule
 	if externalRouter != nil && isExternal {
-		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.NameForAnalyzerOut() + newLine
 	}
 	if loadBalancerRule != nil {
 		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String(true)
@@ -391,7 +391,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection, privateSubnetRule PrivateSubnetRule) string {
 	var pathSlice []string
-	pathSlice = append(pathSlice, "\t"+src.Name())
+	pathSlice = append(pathSlice, "\t"+src.NameForAnalyzerOut())
 	if loadBalancerBlocking {
 		// todo: add loadBalancer as part of the path and also as blocking??? separate PR?
 		// connection is stopped at the src itself:
@@ -409,20 +409,20 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.Name()
+		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.NameForAnalyzerOut()
 		// externalRouter is fip - add its cidr
 		if externalRouter.Kind() == fipRouter {
 			externalRouterStr += space + externalRouter.ExternalIP()
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
-			crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().NameForAnalyzerOut(),
+			crossVpcRouter.Kind()+space+crossVpcRouter.NameForAnalyzerOut())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
 		}
-		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
+		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().NameForAnalyzerOut())
 	}
 	ingressPath := pathOfSingleDirectionStr(allRulesDetails, dst, filtersRelevant, rules, true, privateSubnetRule)
 	pathSlice = append(pathSlice, ingressPath...)
@@ -431,9 +431,9 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 	}
 	// got here: full path
 	if len(ingressPath) == 0 {
-		pathSlice = append(pathSlice, newLineTab+dst.Name())
+		pathSlice = append(pathSlice, newLineTab+dst.NameForAnalyzerOut())
 	} else {
-		pathSlice = append(pathSlice, dst.Name())
+		pathSlice = append(pathSlice, dst.NameForAnalyzerOut())
 	}
 	return strings.Join(pathSlice, arrow)
 }
@@ -492,7 +492,7 @@ func returnPathSlice(isIngress bool, pathSlice []string) []string {
 
 func getSubnetStr(node EndpointElem) string {
 	subnet := node.(InternalNodeIntf).Subnet()
-	return strings.ToLower(subnet.Kind()) + space + subnet.Name()
+	return strings.ToLower(subnet.Kind()) + space + subnet.NameForAnalyzerOut()
 }
 
 // FilterKindName returns the name of a filter kind within filter layers - e.g. "security group".

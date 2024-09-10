@@ -282,7 +282,7 @@ func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnet
 	}
 	// add references between subnet to interface (both directions)
 	for _, subnet := range config.Subnets {
-		if subnet.Name() == subnetName {
+		if subnet.NameForAnalyzerOut() == subnetName {
 			subnetActual := subnet.(*commonvpc.Subnet)
 			intfNode.SubnetResource = subnetActual
 			subnetActual.VPCnodes = append(subnetActual.VPCnodes, intfNode)

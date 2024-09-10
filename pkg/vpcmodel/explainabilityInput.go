@@ -208,7 +208,7 @@ func (c *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAn
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
 		// the endpoints are in more than one config; lists all the configs it is in for the error msg
-		matchConfigs[i] = c.Config(vpcUID).VPC.Name()
+		matchConfigs[i] = c.Config(vpcUID).VPC.NameForAnalyzerOut()
 		i++
 	}
 	sort.Strings(matchConfigs)
@@ -225,9 +225,9 @@ func (c *MultipleVPCConfigs) listNamesCrossVpcRouters(
 		routingResources := c.Config(vpcUID).RoutingResources
 		if len(routingResources) != 1 {
 			return "", fmt.Errorf("np-guard error: multi-vpc config %s should have a single routing resource, "+
-				"but has %v routing resources", c.Config(vpcUID).VPC.Name(), len(routingResources))
+				"but has %v routing resources", c.Config(vpcUID).VPC.NameForAnalyzerOut(), len(routingResources))
 		}
-		crossVpcRouters[i] = routingResources[0].Name()
+		crossVpcRouters[i] = routingResources[0].NameForAnalyzerOut()
 		i++
 	}
 	sort.Strings(crossVpcRouters)
@@ -335,7 +335,7 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 		endpoint = cidrOrNameSlice[1]
 	}
 	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
-		if (vpc == "" || nodeSet.VPC().Name() == vpc) && nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
+		if (vpc == "" || nodeSet.VPC().NameForAnalyzerOut() == vpc) && nodeSet.NameForAnalyzerOut() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetOfEndpoint != nil {
 				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+

@@ -429,11 +429,11 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	}
 	logging.Debug("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.NameForAnalyzerOut())
 	}
 	commonvpc.PrintLineSection()
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
+		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.NameForAnalyzerOut())
 		printConfig(config)
 	}
 	commonvpc.PrintLineSection()
@@ -446,15 +446,15 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {

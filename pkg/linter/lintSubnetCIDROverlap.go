@@ -75,12 +75,12 @@ func (finding *overlapSubnets) vpc() []vpcmodel.VPCResourceIntf {
 func (finding *overlapSubnets) string() string {
 	subnet1 := finding.overlapSubnets[0]
 	subnet2 := finding.overlapSubnets[1]
-	return fmt.Sprintf("VPC %q's %s and VPC %q's %s overlap", subnet1.VPC().Name(), subnetStr(subnet1),
-		subnet2.VPC().Name(), subnetStr(subnet2))
+	return fmt.Sprintf("VPC %q's %s and VPC %q's %s overlap", subnet1.VPC().NameForAnalyzerOut(), subnetStr(subnet1),
+		subnet2.VPC().NameForAnalyzerOut(), subnetStr(subnet2))
 }
 
 func subnetStr(subnet vpcmodel.Subnet) string {
-	return fmt.Sprintf("subnet %q [%s]", subnet.Name(), subnet.CIDR())
+	return fmt.Sprintf("subnet %q [%s]", subnet.NameForAnalyzerOut(), subnet.CIDR())
 }
 
 // for json: details of overlapping subnets
@@ -98,8 +98,8 @@ type subnetJSON struct {
 func (finding *overlapSubnets) toJSON() any {
 	overlapsSubnetsJSON := make([]subnetJSON, 2)
 	for i := range finding.overlapSubnets {
-		overlapsSubnetsJSON[i] = subnetJSON{Name: finding.overlapSubnets[i].Name(),
-			VpcName: finding.overlapSubnets[i].VPC().Name(), CIDR: finding.overlapSubnets[i].CIDR()}
+		overlapsSubnetsJSON[i] = subnetJSON{Name: finding.overlapSubnets[i].NameForAnalyzerOut(),
+			VpcName: finding.overlapSubnets[i].VPC().NameForAnalyzerOut(), CIDR: finding.overlapSubnets[i].CIDR()}
 	}
 	res := overlapSubnetsJSON{OverlapSubnets: overlapsSubnetsJSON, OverlapCidr: finding.overlapIPBlocks.String()}
 	return res

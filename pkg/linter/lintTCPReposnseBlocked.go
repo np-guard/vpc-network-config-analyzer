@@ -76,7 +76,7 @@ func (finding *blockedTCPResponseConn) string() string {
 	vpcSrcName := finding.getVpcName(0)
 	vpcDstName := finding.getVpcName(1)
 	srcToDstStr := fmt.Sprintf("from \"%v%s\" to \"%v%s\"",
-		vpcSrcName, finding.src.Name(), vpcDstName, finding.dst.Name())
+		vpcSrcName, finding.src.NameForAnalyzerOut(), vpcDstName, finding.dst.NameForAnalyzerOut())
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
 		strings.ReplaceAll(finding.tcpRspDisable.String(), "protocol: ", ""))
@@ -84,7 +84,7 @@ func (finding *blockedTCPResponseConn) string() string {
 
 func (finding *blockedTCPResponseConn) getVpcName(i int) string {
 	if finding.vpc()[i] != nil { // nil if external address
-		return finding.vpc()[i].Name() + deliminator
+		return finding.vpc()[i].NameForAnalyzerOut() + deliminator
 	}
 	return ""
 }
@@ -97,9 +97,9 @@ type blockedTCPResponseConnJSON struct {
 }
 
 func (finding *blockedTCPResponseConn) toJSON() any {
-	vpcSrcName := finding.vpc()[0].Name()
-	vpcDstName := finding.vpc()[1].Name()
-	res := blockedTCPResponseConnJSON{Src: vpcSrcName + deliminator + finding.src.Name(),
-		Dst: vpcDstName + deliminator + finding.dst.Name(), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
+	vpcSrcName := finding.vpc()[0].NameForAnalyzerOut()
+	vpcDstName := finding.vpc()[1].NameForAnalyzerOut()
+	res := blockedTCPResponseConnJSON{Src: vpcSrcName + deliminator + finding.src.NameForAnalyzerOut(),
+		Dst: vpcDstName + deliminator + finding.dst.NameForAnalyzerOut(), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
 	return res
 }

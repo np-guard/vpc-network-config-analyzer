@@ -340,11 +340,11 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 			}
 			srcName := srcNode.CidrOrAddress()
 			if srcNode.IsInternal() {
-				srcName = src.Name()
+				srcName = src.NameForAnalyzerOut()
 			}
 			dstName := dstNode.CidrOrAddress()
 			if dstNode.IsInternal() {
-				dstName = dst.Name()
+				dstName = dst.NameForAnalyzerOut()
 			}
 			var connsStr string
 			if onlyBidirectional {

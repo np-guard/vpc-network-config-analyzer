@@ -191,7 +191,7 @@ func (finding *ruleRedundant) vpc() []vpcmodel.VPCResourceIntf {
 func (finding *ruleRedundant) string() string {
 	rule := finding.rule
 	strResPrefix := fmt.Sprintf("In VPC %q, %s %q rule is ",
-		finding.vpcResource.Name(), finding.rule.Filter.LayerName, rule.Filter.FilterName)
+		finding.vpcResource.NameForAnalyzerOut(), finding.rule.Filter.LayerName, rule.Filter.FilterName)
 	if rule.Filter.LayerName == NetworkACL {
 		if len(finding.containRules) == 1 {
 			strResPrefix += "shadowed by a higher priority rule"
@@ -241,7 +241,7 @@ func (finding *ruleRedundant) toJSON() any {
 		containRules[i] = *rule
 		i++
 	}
-	res := ruleRedundantJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
+	res := ruleRedundantJSON{VpcName: finding.vpc()[0].NameForAnalyzerOut(), Rule: vpcmodel.RuleOfFilter{Filter: table,
 		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc}, ContainRules: containRules}
 	return res
 }

@@ -37,9 +37,9 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	// get output by analysis type
 	v2Name := ""
 	if c2 != nil {
-		v2Name = c2.VPC.Name()
+		v2Name = c2.VPC.NameForAnalyzerOut()
 	}
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1, explanation)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.NameForAnalyzerOut(), v2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	out += linesToOutput(connLines, lines)
 
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD,
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.NameForAnalyzerOut(), VPC2Name: v2Name, format: MD,
 		hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }
 
@@ -102,8 +102,8 @@ func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string
 		diffType, endpointsDiff := diffAndEndpointsDescription(line.CommonProperties.connDiff.diff,
 			line.Src, line.Dst, line.CommonProperties.connDiff.thisMinusOther)
 		conn1Str, conn2Str := conn1And2Str(line.CommonProperties.connDiff)
-		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.Name(),
-			line.Dst.Name(), conn1Str, conn2Str, endpointsDiff)
+		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.NameForAnalyzerOut(),
+			line.Dst.NameForAnalyzerOut(), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
 }
@@ -114,5 +114,5 @@ func connectivityLineMD(src, dst, conn string) string {
 }
 
 func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.CommonProperties.groupingStrKey)
+	return connectivityLineMD(line.Src.NameForAnalyzerOut(), line.Dst.NameForAnalyzerOut(), line.CommonProperties.groupingStrKey)
 }

@@ -111,7 +111,7 @@ func (rt *systemImplicitRT) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path
 	// traffic from some source is by default simply routed to dest node
 	path := rt.destAsPath(dest)
 	if len(path) == 0 {
-		return nil, fmt.Errorf("getIngressPath: failed to find path to dest resource address %s in VPC %s", dest.String(), rt.vpc.Name())
+		return nil, fmt.Errorf("getIngressPath: failed to find path to dest resource address %s in VPC %s", dest.String(), rt.vpc.NameForAnalyzerOut())
 	}
 	return path, nil
 }

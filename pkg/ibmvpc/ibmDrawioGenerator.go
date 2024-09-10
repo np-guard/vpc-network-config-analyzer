@@ -22,12 +22,12 @@ func (pip *PrivateIP) ShowOnSubnetMode() bool      { return false }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(n.Subnet()).(drawio.SquareTreeNodeInterface), n.Name(), false)
+		gen.TreeNode(n.Subnet()).(drawio.SquareTreeNodeInterface), n.NameForAnalyzerOut(), false)
 }
 
 func (r *ReservedIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewResIPTreeNode(
-		gen.TreeNode(r.Subnet()).(drawio.SquareTreeNodeInterface), r.Name())
+		gen.TreeNode(r.Subnet()).(drawio.SquareTreeNodeInterface), r.NameForAnalyzerOut())
 }
 
 func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
@@ -39,27 +39,27 @@ func (v *Vpe) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 		resIPs[i] = gen.TreeNode(resIP)
 	}
 	vpcTn := gen.TreeNode(v.VPC()).(drawio.SquareTreeNodeInterface)
-	return drawio.GroupResIPsWithVpe(vpcTn, v.Name(), resIPs)
+	return drawio.GroupResIPsWithVpe(vpcTn, v.NameForAnalyzerOut(), resIPs)
 }
 
 func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - how to handle this error:
 	zone, _ := pgw.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())
+	return drawio.NewGatewayTreeNode(zoneTn, pgw.NameForAnalyzerOut())
 }
 
 func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// todo - what if r.Src() is not at size of one?
 	itn := gen.TreeNode(fip.Sources()[0])
 	if itn != nil {
-		itn.(drawio.IconTreeNodeInterface).SetFIP(fip.Name())
+		itn.(drawio.IconTreeNodeInterface).SetFIP(fip.NameForAnalyzerOut())
 	}
 	return itn
 }
 
 func (tgw *TransitGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewTransitGatewayTreeNode(gen.TreeNode(tgw.Region()).(*drawio.RegionTreeNode), tgw.Name())
+	return drawio.NewTransitGatewayTreeNode(gen.TreeNode(tgw.Region()).(*drawio.RegionTreeNode), tgw.NameForAnalyzerOut())
 }
 func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	if len(lb.Nodes()) == 0 {
@@ -72,13 +72,12 @@ func (lb *LoadBalancer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) dr
 		}
 	}
 	vpcTn := gen.TreeNode(lb.VPC()).(drawio.SquareTreeNodeInterface)
-	// here we do not call lb.Name() because lb.Name() add the kind to the name
-	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.ResourceName, privateIPs)
+	return drawio.GroupPrivateIPsWithLoadBalancer(vpcTn, lb.Name(), privateIPs)
 }
 func (pip *PrivateIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	if gen.LBAbstraction() {
 		return nil
 	}
 	return drawio.NewPrivateIPTreeNode(
-		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.Name(), pip.original)
+		gen.TreeNode(pip.Subnet()).(drawio.SquareTreeNodeInterface), pip.NameForAnalyzerOut(), pip.original)
 }

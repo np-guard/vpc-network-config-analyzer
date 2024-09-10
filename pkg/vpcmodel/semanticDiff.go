@@ -142,7 +142,7 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 			nodeSameCidr := findNodeWithCidr(other.Nodes, node.CidrStr)
 			return nodeSameCidr, nil
 		}
-		return nil, fmt.Errorf(castingNodeErr, ep.Name())
+		return nil, fmt.Errorf(castingNodeErr, ep.NameForAnalyzerOut())
 	}
 	// endpoint is a vsi or a subnet, depending on diffAnalysis value
 	if diffAnalysis == Vsis {
@@ -150,14 +150,14 @@ func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResou
 			if !node.IsInternal() {
 				continue
 			}
-			if node.Name() == ep.Name() {
+			if node.NameForAnalyzerOut() == ep.NameForAnalyzerOut() {
 				res = VPCResourceIntf(node)
 				return res, nil
 			}
 		}
 	} else if diffAnalysis == Subnets {
 		for _, subnet := range other.Subnets {
-			if subnet.Name() == ep.Name() {
+			if subnet.NameForAnalyzerOut() == ep.NameForAnalyzerOut() {
 				res = VPCResourceIntf(subnet)
 				return res, nil
 			}
@@ -265,7 +265,7 @@ func printGroupedDiffLine(diffAnalysis diffAnalysisType, src, dst EndpointElem, 
 	diffTypeStr := fmt.Sprintf("%v %s", diffTypeStr, diffType)
 	diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
 	connDiffStr := fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo)
-	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.Name(), dst.Name(), connDiffStr)
+	printDiff := fmt.Sprintf("%s, source: %s, destination: %s, %s\n", diffTypeStr, src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), connDiffStr)
 	return printDiff
 }
 
@@ -321,12 +321,12 @@ func diffAndEndpointsDescription(diff DiffType, src, dst EndpointElem, thisMinus
 	}
 	switch diff {
 	case missingSrcEP:
-		return addOrRemoved, fmt.Sprintf(doubleString, src.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(doubleString, src.NameForAnalyzerOut(), addOrRemoved)
 	case missingDstEP:
-		return addOrRemoved, fmt.Sprintf(doubleString, dst.Name(), addOrRemoved)
+		return addOrRemoved, fmt.Sprintf(doubleString, dst.NameForAnalyzerOut(), addOrRemoved)
 	case missingSrcDstEP:
 		return addOrRemoved, fmt.Sprintf("%s and %s %s",
-			src.Name(), dst.Name(), addOrRemoved)
+			src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), addOrRemoved)
 	case missingConnection:
 		return addOrRemoved, ""
 	case changedConnection:
@@ -458,13 +458,13 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 				if node, ok := src.(Node); ok {
 					origIPBlock = node.IPBlock()
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut())
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
 					origIPBlock = node.IPBlock()
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, node.Name())
+					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut())
 				}
 			}
 			if err != nil {
@@ -529,14 +529,14 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 				if srcNode, ok := src.(Node); ok {
 					ipbList = append(ipbList, srcNode.IPBlock())
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, src.Name())
+					return nil, fmt.Errorf(castingNodeErr, src.NameForAnalyzerOut())
 				}
 			}
 			if dst.IsExternal() {
 				if dstNode, ok := dst.(Node); ok {
 					ipbList = append(ipbList, dstNode.IPBlock())
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, dst.Name())
+					return nil, fmt.Errorf(castingNodeErr, dst.NameForAnalyzerOut())
 				}
 			}
 		}
@@ -578,7 +578,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 //						return areIntersecting, err1
 //					}
 //					if intersecting {
-//						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.Name(), dst.Name(), otherSrc.Name(), otherDst.Name())
+//						areIntersecting += fmt.Sprintf("<%v, %v> and <%v, %v> intersects\n", src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), otherSrc.NameForAnalyzerOut(), otherDst.NameForAnalyzerOut())
 //					}
 //				}
 //			}
@@ -622,7 +622,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 //		return false, nil
 //	}
 //	if isMySubnet { // implies that isOtherSubnet as well
-//		if mySubnet.Name() == otherSubnet.Name() {
+//		if mySubnet.NameForAnalyzerOut() == otherSubnet.NameForAnalyzerOut() {
 //			return true, nil
 //		}
 //		return false, nil
@@ -656,7 +656,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 //			if conns.isEmpty() {
 //				continue
 //			}
-//			fmt.Printf("\t%v => %v %v\n", src.Name(), dst.Name(), conns.string())
+//			fmt.Printf("\t%v => %v %v\n", src.NameForAnalyzerOut(), dst.NameForAnalyzerOut(), conns.string())
 //		}
 //	}
 // }

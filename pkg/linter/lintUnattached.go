@@ -76,7 +76,7 @@ func (finding *nonConnectedTable) vpc() []vpcmodel.VPCResourceIntf {
 }
 
 func (finding *nonConnectedTable) string() string {
-	return fmt.Sprintf("In VPC %q, %s %q has no resources attached to it", finding.vpc()[0].Name(),
+	return fmt.Sprintf("In VPC %q, %s %q has no resources attached to it", finding.vpc()[0].NameForAnalyzerOut(),
 		finding.layerName, finding.table.FilterName)
 }
 
@@ -87,5 +87,5 @@ type nonConnectedTableJSON struct {
 }
 
 func (finding *nonConnectedTable) toJSON() any {
-	return nonConnectedTableJSON{vpcName: finding.vpc()[0].Name(), layerName: finding.layerName, tableName: finding.table.FilterName}
+	return nonConnectedTableJSON{vpcName: finding.vpc()[0].NameForAnalyzerOut(), layerName: finding.layerName, tableName: finding.table.FilterName}
 }

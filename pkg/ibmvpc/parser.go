@@ -249,7 +249,7 @@ func (rc *IBMresourcesContainer) getRoutingTables(
 			// skipping this rt
 			continue
 		}
-		logging.Debugf("add rt %s for vpc %s\n", rtObj.Name(), vpcUID)
+		logging.Debugf("add rt %s for vpc %s\n", rtObj.NameForAnalyzerOut(), vpcUID)
 
 		vpcConfig.AddRoutingTable(rtObj)
 		res.SetConfig(vpcUID, vpcConfig)
@@ -1060,7 +1060,7 @@ func getSubnetFromObject(subnetObj vpc1.SubnetReference, vpcConfig *vpcmodel.VPC
 	if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok {
 		return nil, fmt.Errorf("subnet %s is missing from config of vpc %s",
 			*subnetObj.Name,
-			vpcConfig.VPC.Name(),
+			vpcConfig.VPC.NameForAnalyzerOut(),
 		)
 	}
 	if subnet, ok = subnetRes.(*commonvpc.Subnet); !ok {
@@ -1414,7 +1414,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				continue
 			default:
 				// subnet does not have a private IP, we create unique ip info
-				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
+				name = "pip-name-of-" + subnet.NameForAnalyzerOut() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
 				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
@@ -1478,7 +1478,7 @@ func createPrivateIP(name, id, address, publicAddress string,
 	if publicAddress != "" {
 		routerFip := &FloatingIP{
 			VPCResource: vpcmodel.VPCResource{
-				ResourceName: "fip-name-of-" + privateIP.Name(),
+				ResourceName: "fip-name-of-" + privateIP.NameForAnalyzerOut(),
 				ResourceUID:  "fip-uid-of-" + privateIP.UID(),
 				Zone:         privateIP.ZoneName(),
 				ResourceType: commonvpc.ResourceTypeFloatingIP,
@@ -1499,11 +1499,11 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	}
 	fmt.Println("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
+		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.NameForAnalyzerOut())
 	}
 	commonvpc.PrintLineSection()
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
+		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.NameForAnalyzerOut())
 		printConfig(config)
 	}
 	commonvpc.PrintLineSection()
@@ -1517,19 +1517,19 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("LoadBalancers:")
 	for _, lb := range c.LoadBalancers {
-		logging.Debug(strings.Join([]string{lb.Kind(), lb.Name(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
+		logging.Debug(strings.Join([]string{lb.Kind(), lb.NameForAnalyzerOut(), lb.AddressRange().ToIPRanges(), lb.UID()}, separator))
 	}
 	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.Name(), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.NameForAnalyzerOut(), n.UID()}, separator))
 	}
 	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {
@@ -1554,14 +1554,14 @@ func printConfig(c *vpcmodel.VPCConfig) {
 	}
 	logging.Debug("RoutingResources:")
 	for _, r := range c.RoutingResources {
-		logging.Debug(strings.Join([]string{r.Kind(), r.Name(), r.UID()}, separator))
+		logging.Debug(strings.Join([]string{r.Kind(), r.NameForAnalyzerOut(), r.UID()}, separator))
 		if tgw, ok := r.(*TransitGateway); ok {
 			printTGWAvailableRoutes(tgw)
 		}
 	}
 	logging.Debug("RoutingTables:")
 	for _, r := range c.RoutingTables {
-		logging.Debug(strings.Join([]string{r.Kind(), r.Name(), r.UID(), "vpc:", r.VPC().UID()}, separator))
+		logging.Debug(strings.Join([]string{r.Kind(), r.NameForAnalyzerOut(), r.UID(), "vpc:", r.VPC().UID()}, separator))
 		if rt, ok := r.(*ingressRoutingTable); ok {
 			logging.Debug("ingress routing table")
 			logging.Debug(rt.string())
@@ -1572,7 +1572,7 @@ func printConfig(c *vpcmodel.VPCConfig) {
 			logging.Debug("subnets:")
 			subnetsList := make([]string, len(rt.subnets))
 			for i := range rt.subnets {
-				subnetsList[i] = rt.subnets[i].Name()
+				subnetsList[i] = rt.subnets[i].NameForAnalyzerOut()
 			}
 			logging.Debug(strings.Join(subnetsList, ","))
 		}

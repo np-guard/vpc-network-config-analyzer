@@ -37,17 +37,17 @@ type ReservedIP struct {
 	vpe string
 }
 
-func (r *ReservedIP) Name() string {
+func (r *ReservedIP) NameForAnalyzerOut() string {
 	return nameWithBracketsInfo(r.vpe, r.Address())
 }
 
 func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return r.ExtendedPrefix(c) + r.Name()
+	return r.ExtendedPrefix(c) + r.NameForAnalyzerOut()
 }
 
 // used for synthesis output
 func (r *ReservedIP) SynthesisResourceName() string {
-	return r.VPC().Name() + vpcmodel.Deliminator + r.vpe
+	return r.VPC().NameForAnalyzerOut() + vpcmodel.Deliminator + r.vpe
 }
 
 func (r *ReservedIP) SynthesisKind() spec.ResourceType {
@@ -66,7 +66,7 @@ type PrivateIP struct {
 	block *ipblock.IPBlock
 }
 
-func (pip *PrivateIP) Name() string {
+func (pip *PrivateIP) NameForAnalyzerOut() string {
 	kind := "LB private IP"
 	address := pip.Address()
 	if !pip.original {
@@ -74,12 +74,12 @@ func (pip *PrivateIP) Name() string {
 		// todo - use ToRangesListString() instead of ListToPrint()
 		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
-	name := nameWithBracketsInfo(pip.loadBalancer.ResourceName, kind)
+	name := nameWithBracketsInfo(pip.loadBalancer.NameForAnalyzerOut(), kind)
 	return nameWithBracketsInfo(name, address)
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return pip.ExtendedPrefix(c) + pip.Name()
+	return pip.ExtendedPrefix(c) + pip.NameForAnalyzerOut()
 }
 
 // AbstractedToNodeSet returns the pip load balancer if it was abstracted
@@ -103,12 +103,12 @@ func (n *IKSNode) VsiName() string {
 	return ""
 }
 
-func (n *IKSNode) Name() string {
-	return nameWithBracketsInfo(n.ResourceName, n.Address())
+func (n *IKSNode) NameForAnalyzerOut() string {
+	return nameWithBracketsInfo(n.Name(), n.Address())
 }
 
 func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return n.ExtendedPrefix(c) + n.Name()
+	return n.ExtendedPrefix(c) + n.NameForAnalyzerOut()
 }
 
 // vpe can be in multiple zones - depending on the zones of its network interfaces..
@@ -232,10 +232,10 @@ func (lbr *LoadBalancerRule) IsIngress() bool {
 func (lbr *LoadBalancerRule) String(detail bool) string {
 	if lbr.Deny(false) {
 		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
-			lbr.lb.nameWithKind(), lbr.dst.Name())
+			lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut())
 	}
 	return fmt.Sprintf("%s may initiate a connection to %s, which is one of its pool members\n",
-		lbr.lb.nameWithKind(), lbr.dst.Name())
+		lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut())
 }
 
 // routing resource elements
@@ -493,7 +493,7 @@ func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
 	}
 	if len(tc.PrefixFilters) < prefixIndx+1 {
 		return "", "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
-			prefixIndx, *tc.Name, tgw.Name())
+			prefixIndx, *tc.Name, tgw.NameForAnalyzerOut())
 	}
 	prefixFilter := tc.PrefixFilters[prefixIndx]
 	actionName, err = actionNameStr(prefixFilter.Action)
@@ -579,7 +579,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 			action = "blocks"
 		}
 		thisPrefixStr = fmt.Sprintf("\ttransit gateway %s %s connection via transit connection %s "+
-			"with the following prefix filter\n%s%s\n", tgw.Name(), action, *transitConn.Name,
+			"with the following prefix filter\n%s%s\n", tgw.NameForAnalyzerOut(), action, *transitConn.Name,
 			doubleTab, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
@@ -590,7 +590,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 // prints a matching non-verbose header
 func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
 	rulesType vpcmodel.RulesType) string {
-	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.Name())
+	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ", *transitConn.Name, tgw.NameForAnalyzerOut())
 	switch rulesType {
 	case vpcmodel.OnlyAllow:
 		return noVerboseStr + "allows connection"

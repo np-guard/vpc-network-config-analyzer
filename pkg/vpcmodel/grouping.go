@@ -141,6 +141,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedEndpointsElems / NodeSet(subnet or LB)
 type EndpointElem interface {
 	Name() string
+	NameForAnalyzerOut() string
 	ExtendedName(*VPCConfig) string
 	UID() string
 	IsExternal() bool
@@ -214,7 +215,11 @@ func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 type groupedEndpointsElems []EndpointElem
 
 func (g *groupedEndpointsElems) Name() string {
-	return listEndpointElemStr(*g, EndpointElem.Name)
+	return listEndpointElemStr(*g, EndpointElem.NameForAnalyzerOut)
+}
+
+func (g *groupedEndpointsElems) NameForAnalyzerOut() string {
+	return g.Name()
 }
 
 func (g *groupedEndpointsElems) SynthesisResourceName() string {
@@ -227,7 +232,7 @@ func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
 
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
-		return g.Name()
+		return g.NameForAnalyzerOut()
 	}
 	prefix := ""
 	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
@@ -236,9 +241,9 @@ func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	}
 	// add the vpc prefix only once for grouped elements which are always of the same VPC
 	if prefix != "" && len(*g) > 1 {
-		return prefix + "[" + g.Name() + "]"
+		return prefix + "[" + g.NameForAnalyzerOut() + "]"
 	}
-	return prefix + g.Name()
+	return prefix + g.NameForAnalyzerOut()
 }
 
 func (g *groupedEndpointsElems) UID() string {
@@ -263,6 +268,10 @@ func (g *groupedExternalNodes) Name() string {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
+}
+
+func (g *groupedExternalNodes) NameForAnalyzerOut() string {
+	return g.Name()
 }
 
 func (g *groupedExternalNodes) SynthesisResourceName() string {
@@ -411,7 +420,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
 		src.IsExternal() && !srcIsNode {
-		return fmt.Errorf("%s or %s is External but not a node", src.Name(), dst.Name())
+		return fmt.Errorf("%s or %s is External but not a node", src.NameForAnalyzerOut(), dst.NameForAnalyzerOut())
 	}
 	if dst.IsExternal() && src.IsExternal() {
 		return fmt.Errorf("unexpected grouping - both src and dst external")

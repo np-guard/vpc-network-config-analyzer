@@ -50,11 +50,11 @@ func subnetConnLine(subnet string, conn *connection.Set) string {
 func (c *ConfigBasedConnectivityResults) string() string {
 	res := "Ingress: \n"
 	for n, conn := range c.IngressAllowedConns {
-		res += subnetConnLine(n.Name(), conn)
+		res += subnetConnLine(n.NameForAnalyzerOut(), conn)
 	}
 	res += "Egress: \n"
 	for n, conn := range c.EgressAllowedConns {
-		res += subnetConnLine(n.Name(), conn)
+		res += subnetConnLine(n.NameForAnalyzerOut(), conn)
 	}
 
 	return res
@@ -65,7 +65,7 @@ var _ = (*VPCsubnetConnectivity).printAllowedConns // avoiding "unused" warning
 // print AllowedConns (not combined)
 func (v *VPCsubnetConnectivity) printAllowedConns() {
 	for n, connMap := range v.AllowedConns {
-		fmt.Println(n.Name())
+		fmt.Println(n.NameForAnalyzerOut())
 		fmt.Println(connMap.string())
 		fmt.Println("-----------------")
 	}
@@ -85,7 +85,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 		} else if subnetCidrIPB.Overlap(ipb) {
 			// the ACL splits connectivity to part of that subnet,
 			// this is currently not supported in subnets connectivity analysis
-			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s", subnet.Name())
+			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s", subnet.NameForAnalyzerOut())
 		}
 	}
 
@@ -275,7 +275,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 				egressConns := v.AllowedConns[concPeerNode].EgressAllowedConns[subnetNodeSet]
 				if egressConns == nil {
 					// should not get here
-					return nil, fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.Name(), subnetNodeSet.Name())
+					return nil, fmt.Errorf("could not find egress connection from %s to  %s", concPeerNode.NameForAnalyzerOut(), subnetNodeSet.NameForAnalyzerOut())
 				}
 				combinedConns = conns.Intersect(egressConns)
 				// for subnets cross-vpc connection, add intersection with tgw connectivity (prefix filters)
@@ -298,7 +298,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 		for peerNode, conns := range connsRes.EgressAllowedConns {
 			src := subnetNodeSet
 			dst := peerNode
-			if src.Name() == dst.Name() {
+			if src.NameForAnalyzerOut() == dst.NameForAnalyzerOut() {
 				continue
 			}
 			combinedConns := conns

@@ -39,9 +39,9 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
 	if c2 != nil {
-		v2Name = c2.VPC.Name()
+		v2Name = c2.VPC.NameForAnalyzerOut()
 	}
-	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.NameForAnalyzerOut(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {
@@ -64,10 +64,10 @@ type diffLine struct {
 
 func sortConnLines(connLines []connLine) {
 	sort.Slice(connLines, func(i, j int) bool {
-		if connLines[i].Src.Name() != connLines[j].Src.Name() {
-			return connLines[i].Src.Name() < connLines[j].Src.Name()
+		if connLines[i].Src.NameForAnalyzerOut() != connLines[j].Src.NameForAnalyzerOut() {
+			return connLines[i].Src.NameForAnalyzerOut() < connLines[j].Src.NameForAnalyzerOut()
 		}
-		return connLines[i].Dst.Name() < connLines[j].Dst.Name()
+		return connLines[i].Dst.NameForAnalyzerOut() < connLines[j].Dst.NameForAnalyzerOut()
 	})
 }
 
@@ -150,10 +150,10 @@ func sortDiffLines(diffLines []diffLine) {
 		if diffLines[i].DstChange != diffLines[j].DstChange {
 			return diffLines[i].DstChange < diffLines[j].DstChange
 		}
-		if diffLines[i].Src.Name() != diffLines[j].Src.Name() {
-			return diffLines[i].Src.Name() < diffLines[j].Src.Name()
+		if diffLines[i].Src.NameForAnalyzerOut() != diffLines[j].Src.NameForAnalyzerOut() {
+			return diffLines[i].Src.NameForAnalyzerOut() < diffLines[j].Src.NameForAnalyzerOut()
 		}
-		return diffLines[i].Dst.Name() < diffLines[j].Dst.Name()
+		return diffLines[i].Dst.NameForAnalyzerOut() < diffLines[j].Dst.NameForAnalyzerOut()
 	})
 }
 

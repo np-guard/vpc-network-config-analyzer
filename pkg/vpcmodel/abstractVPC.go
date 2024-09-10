@@ -21,6 +21,7 @@ const (
 type VPCResourceIntf interface {
 	UID() string
 	Name() string
+	NameForAnalyzerOut() string
 	// ExtendedName returns a resource name that includes its VPC as prefix when necessary.
 	// for example, a subnet with name "s1" within VPC "v1" will have extended name: "v1/s1"
 	// note this method is relevant only for Node and Subnet objects.
@@ -50,7 +51,7 @@ type VPCResource struct {
 
 func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
 	if c.IsMultipleVPCsConfig {
-		return n.VPC().Name() + Deliminator
+		return n.VPC().NameForAnalyzerOut() + Deliminator
 	}
 	return ""
 }
@@ -59,8 +60,12 @@ func (n *VPCResource) Name() string {
 	return n.ResourceName
 }
 
+func (n *VPCResource) NameForAnalyzerOut() string {
+	return n.ResourceName
+}
+
 func (n *VPCResource) SynthesisResourceName() string {
-	return n.VPC().Name() + Deliminator + n.ResourceName
+	return n.VPC().NameForAnalyzerOut() + Deliminator + n.ResourceName
 }
 
 func (n *VPCResource) SynthesisKind() spec.ResourceType {
@@ -68,7 +73,7 @@ func (n *VPCResource) SynthesisKind() spec.ResourceType {
 }
 
 func (n *VPCResource) ExtendedName(c *VPCConfig) string {
-	return n.ExtendedPrefix(c) + n.Name()
+	return n.ExtendedPrefix(c) + n.NameForAnalyzerOut()
 }
 
 func (n *VPCResource) UID() string {
@@ -95,7 +100,7 @@ func (n *VPCResource) RegionName() string {
 }
 
 func (n *VPCResource) NameAndUID() string {
-	return n.Name() + leftParentheses + n.UID() + rightParentheses
+	return n.NameForAnalyzerOut() + leftParentheses + n.UID() + rightParentheses
 }
 
 // todo: define enum for filters

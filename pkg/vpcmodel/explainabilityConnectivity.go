@@ -429,7 +429,7 @@ func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
 func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
-		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.Name())
+		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.NameForAnalyzerOut())
 	}
 	for _, configNode := range c.Nodes {
 		if configNode.IsInternal() {
@@ -479,14 +479,14 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	}
 	errMsg := "could not find containing config node for %v"
 	if srcForConnection == nil {
-		return nil, fmt.Errorf(errMsg, src.Name())
+		return nil, fmt.Errorf(errMsg, src.NameForAnalyzerOut())
 	}
 	dstForConnection, err2 := c.getConnectedResource(dst)
 	if err2 != nil {
 		return nil, err2
 	}
 	if dstForConnection == nil {
-		return nil, fmt.Errorf(errMsg, dst.Name())
+		return nil, fmt.Errorf(errMsg, dst.NameForAnalyzerOut())
 	}
 	var ok bool
 	srcMapValue, ok := v.AllowedConnsCombinedResponsive[srcForConnection]
@@ -495,7 +495,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	}
 	if !ok {
 		return nil, fmt.Errorf("error: there is a connection between %v and %v, but connection computation failed",
-			srcForConnection.Name(), dstForConnection.Name())
+			srcForConnection.NameForAnalyzerOut(), dstForConnection.NameForAnalyzerOut())
 	}
 	return conn, nil
 }

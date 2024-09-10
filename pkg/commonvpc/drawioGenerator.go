@@ -24,7 +24,7 @@ func (ni *NetworkInterface) ShowOnSubnetMode() bool    { return false }
 func (nl *NaclLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	for _, acl := range nl.NaclList {
 		for _, sn := range acl.Subnets {
-			gen.TreeNode(sn).(*drawio.SubnetTreeNode).SetACL(acl.Name())
+			gen.TreeNode(sn).(*drawio.SubnetTreeNode).SetACL(acl.NameForAnalyzerOut())
 		}
 	}
 	return nil
@@ -41,7 +41,7 @@ func (r *Region) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 }
 
 func (v *VPC) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewVpcTreeNode(gen.TreeNode(v.Region()).(*drawio.RegionTreeNode), v.Name())
+	return drawio.NewVpcTreeNode(gen.TreeNode(v.Region()).(*drawio.RegionTreeNode), v.NameForAnalyzerOut())
 }
 
 func (z *Zone) IsExternal() bool { return false }
@@ -53,7 +53,7 @@ func (s *Subnet) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.Tr
 	// todo - how to handle this error:
 	zone, _ := s.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	subnetTn := drawio.NewSubnetTreeNode(zoneTn, s.Name(), s.Cidr, "")
+	subnetTn := drawio.NewSubnetTreeNode(zoneTn, s.NameForAnalyzerOut(), s.Cidr, "")
 	subnetTn.SetIsPrivate(s.IsPrivate())
 	return subnetTn
 }
@@ -68,7 +68,7 @@ func (sgl *SecurityGroupLayer) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenera
 
 func (sg *SecurityGroup) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	// creating the SG treeNodes:
-	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.Name())
+	tn := drawio.NewSGTreeNode(gen.TreeNode(sg.VPC()).(*drawio.VpcTreeNode), sg.NameForAnalyzerOut())
 	for _, member := range sg.Members {
 		// every SG member is added as an icon treeNode to the SG treeNode:
 		if mTn := gen.TreeNode(member); mTn != nil {
@@ -89,10 +89,10 @@ func (v *Vsi) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeN
 	// todo - how to handle this error:
 	zone, _ := v.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
-	return drawio.GroupNIsWithVSI(zoneTn, v.Name(), vsiNIs)
+	return drawio.GroupNIsWithVSI(zoneTn, v.NameForAnalyzerOut(), vsiNIs)
 }
 
 func (ni *NetworkInterface) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
-		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.Name(), ni.virtual)
+		gen.TreeNode(ni.Subnet()).(drawio.SquareTreeNodeInterface), ni.NameForAnalyzerOut(), ni.virtual)
 }
