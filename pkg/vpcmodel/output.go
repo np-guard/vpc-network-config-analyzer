@@ -309,10 +309,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		for _, o := range outputList {
 			// always true
 			if structObj, ok := o.jsonStruct.(*spec.Spec); ok {
-				connLines = append(connLines, renameExternalsSegments(structObj.RequiredConnections, externalsMap,
-					externalString, spec.ResourceTypeExternal)...)
-				connLines = append(connLines, renameExternalsSegments(structObj.RequiredConnections, segmentsMap,
-					segmentString, spec.ResourceTypeSegment)...)
+				connLines = append(connLines, renameExternalsSegments(structObj.RequiredConnections, externalsMap, segmentsMap)...)
 				for k, v := range structObj.Externals {
 					externals[externalsMap[k]] = v
 				}
@@ -337,14 +334,18 @@ func getNewExternalSegmentName(externalSegmentName, prefixString string, namesMa
 }
 
 func renameExternalsSegments(requiredConnections []spec.SpecRequiredConnectionsElem,
-	externalsMap map[string]string, prefixString string, resourceType spec.ResourceType) []spec.SpecRequiredConnectionsElem {
+	externalsMap map[string]string, segmentsMap map[string]string) []spec.SpecRequiredConnectionsElem {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	for _, conn := range requiredConnections {
-		if conn.Src.Type == resourceType {
-			conn.Src.Name = getNewExternalSegmentName(conn.Src.Name, prefixString, externalsMap)
+		if conn.Src.Type == spec.ResourceTypeExternal {
+			conn.Src.Name = getNewExternalSegmentName(conn.Src.Name, externalString, externalsMap)
+		} else if conn.Src.Type == spec.ResourceTypeSegment {
+			conn.Src.Name = getNewExternalSegmentName(conn.Src.Name, segmentString, segmentsMap)
 		}
-		if conn.Dst.Type == resourceType {
-			conn.Dst.Name = getNewExternalSegmentName(conn.Dst.Name, prefixString, externalsMap)
+		if conn.Dst.Type == spec.ResourceTypeExternal {
+			conn.Dst.Name = getNewExternalSegmentName(conn.Dst.Name, externalString, externalsMap)
+		} else if conn.Dst.Type == spec.ResourceTypeSegment {
+			conn.Dst.Name = getNewExternalSegmentName(conn.Dst.Name, segmentString, segmentsMap)
 		}
 		connLines = append(connLines, conn)
 	}

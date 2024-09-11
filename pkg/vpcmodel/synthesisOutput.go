@@ -84,6 +84,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine, grouping bool) *spec.Spec
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
+		fmt.Printf("grouping: %v\n", grouping)
 		srcName, srcType := handleNameAndType(groupedLine.Src, externals, segments, grouping)
 		dstName, dstType := handleNameAndType(groupedLine.Dst, externals, segments, grouping)
 		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
