@@ -246,6 +246,7 @@ func (details *rulesAndConnDetails) computeActualRules() {
 // given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
 // given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
 // this is called separately for each direction (ingress/egress) and allow/deny
+// todo: here. start with understanding what has to be done. remove the enable only after the conn is working
 func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
@@ -266,6 +267,7 @@ func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[s
 }
 
 // returns true if filter contains rules
+// todo: delete
 func filterHasRelevantRules(rulesInFilter []RulesInTable) bool {
 	for _, rulesFilter := range rulesInFilter {
 		if len(rulesFilter.Rules) > 0 {
