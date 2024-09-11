@@ -110,6 +110,8 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //  3. Connection path description. E.g.:
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |
+//     Note: if there is no connection since ingress connection and egress connection intersection is empty, path is not printed
+//     since the path is not blocked in a well defined spot
 //
 // 4. Details of enabling and disabling rules/prefixes, including details of each rule
 //
@@ -156,6 +158,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 	// path in "3" above
 	missingExternalRouter := isExternal && externalRouter == nil
+	// todo 859
 	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst, ingressBlocking, egressBlocking,
 		loadBalancerBlocking, missingExternalRouter, externalRouter, crossVpcRouter,
 		crossVpcConnection, rules, privateSubnetRule) + newLine
@@ -212,6 +215,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
+	// todo 859
 	case ingressBlocking || egressBlocking || missingExternalRouter || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
 			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter),

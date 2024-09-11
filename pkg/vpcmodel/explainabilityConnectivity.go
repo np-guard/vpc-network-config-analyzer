@@ -34,11 +34,16 @@ type srcDstDetails struct {
 	dst         Node
 	connEnabled bool
 	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
-	ingressEnabled bool
-	egressEnabled  bool
+	ingressEnabled bool // todo delete
+	egressEnabled  bool // todo delete
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn           *detailedConn
+	conn *detailedConn
+	// the ingress, egress and whole connection between src to dst, in case the connection was not part of the query;
+	// the part of the connection relevant to the query otherwise.
+	// used to detect cases in which there is no connection due to empty intersection between ingress and egress
+	ingressConn    *connection.Set
+	egressConn     *connection.Set
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
