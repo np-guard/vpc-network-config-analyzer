@@ -269,15 +269,16 @@ const (
 
 // RulesInTable for a given layer (SGLayer/NACLLayer) or transit gateway contains
 // index of the SG/NACL/transit gateway filter and the indexes of the rules within it
-// this struct is also used for intermediate computation of only allow or only deny rules; TableHasEffect is always
-// w.r.t. the entire table
+// this struct is also used for intermediate computation of only allow or only deny rules; TableHasEffect,
+// TableConn are always w.r.t. the entire table
 // todo: once transformation is completed - can be un-exported and moved to rulesDetailesProvided?
 type RulesInTable struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
 	TableIndex     int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
 	Rules          []int // list of indexes of rules in the sg/nacl/transit connection
 	RulesOfType    RulesType
-	TableHasEffect TableEffect // effect of the table w.r.t. queried src, dst and query
+	TableConn      *connection.Set // connection of the table w.r.t. queried src, dst and query
+	TableHasEffect TableEffect     // effect of the table w.r.t. queried src, dst and query
 }
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
