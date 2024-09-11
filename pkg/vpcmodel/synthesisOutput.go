@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -29,9 +30,12 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
+		if grouping {
+			return nil, errors.New("report endpoints in synthesis format with grouping is not supported")
+		}
+		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines, grouping)
 	case AllSubnets:
-		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines, grouping)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -41,10 +45,12 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
-func handleNameAndType(resource EndpointElem, externals spec.SpecExternals) (
+func handleNameAndType(resource EndpointElem, externals spec.SpecExternals,
+	segments spec.SpecSegments, grouping bool) (
 	resourceName string,
 	resourceType spec.ResourceType) {
 	resourceName = resource.SynthesisResourceName()
+	resourceType = resource.SynthesisKind()
 	if resource.IsExternal() {
 		if structObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external"
@@ -52,24 +58,34 @@ func handleNameAndType(resource EndpointElem, externals spec.SpecExternals) (
 			externals[resourceName] = structObj.CidrOrAddress()
 		}
 	}
-	resourceType = resource.SynthesisKind()
+	if grouping && !resource.IsExternal() {
+		if structObj, ok := resource.(*groupedEndpointsElems); ok {
+			// should be always true if src is internal"
+			// later in aggregate we change the name with other vpc configs
+			if structObj.LenOfGroupedEndpoints() > 1 {
+				segments[resourceName] = spec.Segment{Items: structObj.GroupedEndpointsElemsNamesList(), Type: spec.SegmentTypeSubnet}
+			} else {
+				// grouping in synthesis only allowed with subnets
+				resourceType = spec.ResourceTypeSubnet
+			}
+		}
+	}
 	return
 }
 
-func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
+func getSynthesisSpec(groupedLines []*groupedConnLine, grouping bool) *spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
+	segments := spec.SpecSegments{}
 	sortGroupedLines(groupedLines)
-
 	bidirectionalMap := makeBidirectionalMap(groupedLines)
-
 	for _, groupedLine := range groupedLines {
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
-		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
+		srcName, srcType := handleNameAndType(groupedLine.Src, externals, segments, grouping)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externals, segments, grouping)
 		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
 
 		if !ok {
@@ -85,6 +101,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
+	s.Segments = segments
 	return &s
 }
 

@@ -221,8 +221,21 @@ func (g *groupedEndpointsElems) SynthesisResourceName() string {
 	return g.Name()
 }
 
+func (g *groupedEndpointsElems) GroupedEndpointsElemsNamesList() []string {
+	names := make([]string, len(*g))
+	for i, ep := range *g {
+		names[i] = ep.Name()
+	}
+	sort.Strings(names)
+	return names
+}
+
 func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
-	return ""
+	return spec.ResourceTypeSegment
+}
+
+func (g *groupedEndpointsElems) LenOfGroupedEndpoints() int {
+	return len(*g)
 }
 
 func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
