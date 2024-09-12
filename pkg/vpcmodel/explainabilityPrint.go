@@ -197,7 +197,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *connection.Set) string {
 	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
-		return fmt.Sprintf("\tconnection is blocked since ingress's and egress's connection do not intersect.\n\t"+
+		return fmt.Sprintf("\tconnection is blocked since ingress's and egress's connections do not intersect.\n\t"+
 			"egress connection: %v, ingress connection: %v", egressConn, ingressConn)
 	}
 	return ""

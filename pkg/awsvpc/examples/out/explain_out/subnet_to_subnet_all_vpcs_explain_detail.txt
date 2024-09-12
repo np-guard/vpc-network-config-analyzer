@@ -37,7 +37,7 @@ TCP response is enabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connections from r1[10.240.48.198] to q1[10.240.32.91];
-	connection is blocked since ingress's and egress's connection do not intersect.
+	connection is blocked since ingress's and egress's connections do not intersect.
 	egress connection: protocol: TCP dst-ports: 9080, ingress connection: protocol: UDP
 
 Egress: security group GroupId:22 allows connection; network ACL acl1 allows connection
