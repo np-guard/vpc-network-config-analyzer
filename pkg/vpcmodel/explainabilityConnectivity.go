@@ -33,17 +33,15 @@ type srcDstDetails struct {
 	src         Node
 	dst         Node
 	connEnabled bool
-	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
-	ingressEnabled bool // todo delete
-	egressEnabled  bool // todo delete
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	conn *detailedConn
 	// the ingress, egress and whole connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
-	// used to detect cases in which there is no connection due to empty intersection between ingress and egress
+	// used to detect ingress and egress block and to
+	// detect cases in which there is no connection due to empty intersection between ingress and egress
 	ingressConn    *connection.Set
 	egressConn     *connection.Set
+	conn           *detailedConn
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
 	crossVpcRules  []RulesInTable  // cross vpc (only tgw at the moment) prefix rules effecting the connection (or lack of)
@@ -224,27 +222,23 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
-		actualAllowIngress, ingressConn, ingressEnabled :=
+		actualAllowIngress, ingressConn :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
 		// ingress disabled due to private subnet?
 		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
-		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true)) // todo delete
 		if privateSubnetRule != nil && privateSubnetRule.Deny(true) {
 			ingressConn = connection.None()
 		}
-		actualAllowEgress, egressConn, egressEnabled :=
+		actualAllowEgress, egressConn :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
-		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false)) // todo delete
 		if privateSubnetRule != nil && privateSubnetRule.Deny(false) {
 			egressConn = connection.None()
 		}
-		actualDenyIngress, _, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
-		singleSrcDstDetails.ingressEnabled = ingressEnabled // todo delete
-		singleSrcDstDetails.egressEnabled = egressEnabled   // todo delete
 		singleSrcDstDetails.actualDenyRules = actualDeny
 		singleSrcDstDetails.ingressConn = ingressConn
 		singleSrcDstDetails.egressConn = egressConn
@@ -255,26 +249,19 @@ func (details *rulesAndConnDetails) computeActualRules() {
 // could be different than the connection implied by the rules, in case there are both deny and allow rules).
 // this is called separately for each direction (ingress/egress) and allow/deny (for nacl, sg has only allow)
 func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers,
-	*connection.Set, bool) {
+	*connection.Set) {
 	actualRules := rulesInLayers{}
-	directionEnabled := true
 	conn := connection.All()
 	// connection of direction: intersection between connections of layers;
 	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
 		potentialRules := rulesLayers[layer]
-		// The filter is blocking if it is relevant and has no allow rules
-		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
-		if filterIsRelevant && !filterHasRelevantRules(potentialRules) { // todo: delete
-			directionEnabled = false
-		}
 		if filterIsRelevant {
 			conn = conn.Intersect(connOfLayer(potentialRules))
 			actualRules[layer] = potentialRules
 		}
 	}
-	// the direction is enabled if none of the filters is blocking it todo delete
-	return &actualRules, conn, directionEnabled
+	return &actualRules, conn
 }
 
 // connection of each layer is the union of the connection's of tables in the layer; (nacl single table; relevant for sg)
@@ -284,17 +271,6 @@ func connOfLayer(layerTables []RulesInTable) *connection.Set {
 		conn = conn.Union(table.TableConn)
 	}
 	return conn
-}
-
-// returns true if filter contains rules
-// todo: delete
-func filterHasRelevantRules(rulesInFilter []RulesInTable) bool {
-	for _, rulesFilter := range rulesInFilter {
-		if len(rulesFilter.Rules) > 0 {
-			return true
-		}
-	}
-	return false
 }
 
 // computes combined list of rules, both deny and allow
@@ -469,9 +445,6 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 			return configNode, nil
 		}
 	}
-	// todo: at the moment gets here for certain internal addresses not connected to vsi.
-	//       should be handled as part of the https://github.com/np-guard/vpc-network-config-analyzer/issues/305
-	//       verify internal addresses gets her - open a issue if this is the case
 	return nil, nil
 }
 

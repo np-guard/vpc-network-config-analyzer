@@ -39,8 +39,6 @@ type explainDetails struct {
 	privateSubnetRule    PrivateSubnetRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
-	ingressEnabled       bool // todo delete
-	egressEnabled        bool // todo delete
 	ingressConn          *connection.Set
 	egressConn           *connection.Set
 }
@@ -396,10 +394,8 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails
 			loadBalancerRule:     details.loadBalancerRule, privateSubnetRule: details.privateSubnetRule,
 			filtersRelevant: details.filtersRelevant,
 			connEnabled:     details.connEnabled,
-			ingressEnabled:  details.ingressEnabled,
 			ingressConn:     details.ingressConn,
-			egressConn:      details.egressConn,
-			egressEnabled:   details.egressEnabled}
+			egressConn:      details.egressConn}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{Conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})
