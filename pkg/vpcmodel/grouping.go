@@ -8,11 +8,11 @@ package vpcmodel
 
 import (
 	"fmt"
-	"github.com/np-guard/models/pkg/connection"
 	"reflect"
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
 )
