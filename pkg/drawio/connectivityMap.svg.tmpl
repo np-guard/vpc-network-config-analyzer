@@ -56,6 +56,7 @@
         {{ $ay := $data.AY $node}}
         <g id="{{$node.ID}}" clickable="true" selectable="{{$data.Clickable $node}}" title="{{$data.NodeName $node}}">
         <rect x="{{$data.Add $ax -3}}" y="{{$data.Add $ay -3 }}" width="{{$data.Add $node.Width 6}}" height="{{$data.Add $node.Height 6}}" fill="none" stroke="none" stroke-width="6" selection-marker="true" />
+        <title></title>
         {{if $data.IsFamily $node $data.Cnst.IbmSquare }}
                 <rect x="{{$ax}}" y="{{$ay}}" width="{{$node.Width}}" height="{{$node.Height}}" fill="none" stroke="{{$data.Color $node}}" pointer-events="all"/>
             {{if $data.HasImage $node}} 
@@ -78,7 +79,6 @@
                 {{ if $node.HasFip  }}
                     {{ $xTextOffset = 0 }}
                 {{end}}
-                <title></title>
                 <image x="{{$ax}}" y="{{$ay}}" width="{{$node.IconSize}}" height="{{$node.IconSize}}" opacity="0.{{$data.Opacity $node}}" xlink:href="data:image/svg+xml;base64,{{$data.Image $node}}"/>
                 <foreignObject  x="{{$data.Add $ax $xTextOffset}}" y="{{$data.Add $ay 40}}" width="120" height="70">
           				<p xmlns="http://www.w3.org/1999/xhtml" fill="rgb(0, 0, 0)" font-family="IBM Plex Sans" text-anchor="middle" font-size="14px">{{$data.SvgLabel $node}}</p>
@@ -160,13 +160,23 @@
                         explainText + '\n'+
                         '<span style="color: deepPink; font-size: 14px; ">'+explainExplainText+'</span>\n'
                 }
+                function markElement(element, color) {
+                    const markerElement = element.querySelector('[selection-marker]')
+                    markerElement.setAttribute('stroke', color);
+				            const elementID =  element.getAttribute('id')
+                    if (jsObject[elementID].hasOwnProperty('otherIdForMarking')){
+				              const otherelementID = jsObject[elementID]['otherIdForMarking'][0];
+				              const otherElement = Array.from(selectableElems).find(e => e.getAttribute('id') == otherelementID);
+                      const otherMarkerElement = otherElement.querySelector('[selection-marker]')
+                      otherMarkerElement.setAttribute('stroke', color);
+                    }
+				        }
 
                 function selectExplPeer(event) {
                   let nodeElement = event.target;
                   while (nodeElement && !nodeElement.hasAttribute('selectable')) {
                     nodeElement = nodeElement.parentNode;
                   }
-                  const markerElement = nodeElement.querySelector('[selection-marker]')
                   clickFlag = true;
                   setTimeout(function() {
                     // If clickFlag is still true after the timer, trigger single-click action
@@ -175,25 +185,24 @@
                       selectedElems[1].getElementsByTagName("title")[0].textContent = savedTooltip
                         selectedElems.forEach((item) => {
                           item.classList.remove('selected');
-                          const markerElement = item.querySelector('[selection-marker]')
-                          markerElement.setAttribute('stroke', 'none');
+                          markElement(item, 'none');
                         });
                         selectedElems.length = 0;
                       }
                       if (nodeElement.classList.contains('selected')) {
                               // If the clicked element is already selected, deselect it
                               nodeElement.classList.remove('selected');
-                              markerElement.setAttribute('stroke', 'none');
+                              markElement(nodeElement, 'none');
                               selectedElems.splice(selectedElems.indexOf(nodeElement), 1);
                       }
                       else if (selectedElems.length < 2) {
                         // If less than 2 elements are selected, select the clicked element
                         nodeElement.classList.add('selected');
                         if (selectedElems.length === 0) {  // src
-                          markerElement.setAttribute('stroke', 'yellow');
+                          markElement(nodeElement, 'yellow');
                         }
                         else { // dst
-                          markerElement.setAttribute('stroke', '#ADD8E6');
+                          markElement(nodeElement, '#ADD8E6');
                         }
                         selectedElems.push(nodeElement);
                       }
@@ -208,14 +217,20 @@
                         explainExplainText =  selectDstText;
                       }
                       else {
-                        const src = selectedElems[0].getAttribute('id');
-                        const dst = selectedElems[1].getAttribute('id');
+                        src = selectedElems[0].getAttribute('id');
+                        dst = selectedElems[1].getAttribute('id');
+                        if (jsObject[src].hasOwnProperty('idForSelection')) {
+                          src = jsObject[src]['idForSelection'][0];
+                        }
+                        if (jsObject[dst].hasOwnProperty('idForSelection')) {
+                          dst = jsObject[dst]['idForSelection'][0];
+                        }
                         const src_name = selectedElems[0].getAttribute('title');
                         const dst_name = selectedElems[1].getAttribute('title');
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
                         savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
-							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
+							            explainTitle = 'Explaining connectivity from <span style="background-color: yellow;">'+src_name+'</span> to <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
                           // color the src and dst names
                           explainText = explainTitle + entry.textContent;

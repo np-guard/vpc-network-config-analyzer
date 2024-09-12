@@ -57,7 +57,7 @@ type srcDstDetails struct {
 	// for two internal nodes within same subnet, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL non-relevant same subnet
+	actualAllowRules    *rulesConnection // enabling rules affecting connection given externalRouter; e.g. NACL is irrelevant if same subnet
 	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
 	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
@@ -315,6 +315,9 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		// translates []RulesInTable to a map for access efficiency
 		allowRulesMap := rulesInLayerToMap(allowForLayer)
 		denyRulesMap := rulesInLayerToMap(denyForLayer)
+		// todo: allow and deny - only nacl, and there is a single nacl associated for each subnet.
+		//       hence, allIndexes is always of size 1; the code would dump had it not been the case.
+		//      https://github.com/np-guard/vpc-network-config-analyzer/issues/871
 		for filterIndex := range allIndexes {
 			allowRules := allowRulesMap[filterIndex]
 			denyRules := denyRulesMap[filterIndex]

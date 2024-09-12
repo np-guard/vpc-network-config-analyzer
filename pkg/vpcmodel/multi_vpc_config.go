@@ -20,10 +20,12 @@ type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
 	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
 	provider         collector_common.Provider
+	// publicNetworkNode is an EndpointElem representing all public-internet CIDRs
+	publicNetworkNode EndpointElem
 }
 
 func NewMultipleVPCConfigs(provider collector_common.Provider) *MultipleVPCConfigs {
-	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, provider}
+	return &MultipleVPCConfigs{map[string]*VPCConfig{}, nil, provider, nil}
 }
 
 func (c *MultipleVPCConfigs) Configs() map[string]*VPCConfig {

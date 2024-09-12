@@ -239,11 +239,11 @@ func (psr *privateSubnetRule) String(detail bool) string {
 		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
 	}
 	// detail
-	prefix := "Egress"
+	prefix := "Egress to"
 	if psr.isIngress {
-		prefix = "Ingress"
+		prefix = "Ingress from"
 	}
-	prefix += " to public internet is"
+	prefix += " public internet is"
 
 	if psr.subnet.IsPrivate() {
 		return fmt.Sprintf("%s blocked since subnet %s is private\n", prefix, psr.subnet.Name())
@@ -594,8 +594,6 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
-			conn := sg.AllowedConnectivity(src, dst, isIngress)
-			tableConn, tableHasEffect := getTableConnEffect(connQuery, conn)
 			rulesInSg := vpcmodel.RulesInTable{
 				TableIndex:     index,
 				Rules:          sgRules,

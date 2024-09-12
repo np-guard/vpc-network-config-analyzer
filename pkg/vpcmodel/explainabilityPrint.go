@@ -516,7 +516,7 @@ func FilterKindName(filterLayer string) string {
 // for a given filter layer (e.g. sg) returns a string of the allowing/partly allowing tables,
 // and string of the denying table(s) if the connection is indeed denied
 // the connection is denied if the denying table is NACL (in which case there is only one attached table)
-// or if the table is SG and then there are no allowing/partly allowing tables. This is since one SG suffice to enable connection
+// or if the layer is SG and then there are no allowing/partly allowing tables. This is since one SG suffice to enable connection
 func pathFiltersSingleLayerStr(allRulesDetails *rulesDetails, filterLayerName string,
 	tablesDetails []RulesInTable) (allowPath, denyPath string) {
 	allowTablesSlice := []string{}
