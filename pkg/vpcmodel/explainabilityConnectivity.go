@@ -305,10 +305,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		// Namely, allowForLayer and denyForLayer each have a single element originating from the same table
 		allowRules := allowForLayer[0]
 		denyRules := denyForLayer[0]
-		mergedRules := []int{}
-		// todo: once we update to go.1.22 use slices.Concat
-		mergedRules = append(mergedRules, allowRules.Rules...)
-		mergedRules = append(mergedRules, denyRules.Rules...)
+		mergedRules := slices.Concat(allowRules.Rules, denyRules.Rules)
 		slices.Sort(mergedRules)
 		var rType RulesType
 		switch {
