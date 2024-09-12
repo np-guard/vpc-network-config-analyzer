@@ -22,7 +22,7 @@ Path is enabled; The relevant rules are:
 		security group GroupId:35 allows connection with the following allow rules
 			Inbound index: 0, direction: inbound, target: 147.0.0.0/8, protocol: tcp, dstPorts: 0-65535
 		security group GroupId:9 has no relevant rules
-		Ingress to public internet is allowed since subnet public is public
+		Ingress from public internet is allowed since subnet public is public
 
 TCP response is partly enabled; The relevant rules are:
 	Egress:
