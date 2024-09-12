@@ -28,7 +28,7 @@ Path is disabled; The relevant rules are:
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
-		security group sg2-ky has no relevant allow rules
+		security group sg2-ky has no relevant rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
