@@ -308,6 +308,9 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		// translates []RulesInTable to a map for access efficiency
 		allowRulesMap := rulesInLayerToMap(allowForLayer)
 		denyRulesMap := rulesInLayerToMap(denyForLayer)
+		// todo: allow and deny - only nacl, and there is a single nacl associated for each subnet.
+		//       hence, allIndexes is always of size 1; the code would dump had it not been the case.
+		//      https://github.com/np-guard/vpc-network-config-analyzer/issues/871
 		for filterIndex := range allIndexes {
 			allowRules := allowRulesMap[filterIndex]
 			denyRules := denyRulesMap[filterIndex]
