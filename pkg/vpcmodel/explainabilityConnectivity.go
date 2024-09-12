@@ -224,46 +224,66 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
-		actualAllowIngress, ingressEnabled :=
+		actualAllowIngress, ingressConn, ingressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
 		// ingress disabled due to private subnet?
 		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
-		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true))
-		actualAllowEgress, egressEnabled :=
+		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true)) // todo delete
+		if privateSubnetRule != nil && privateSubnetRule.Deny(true) {
+			ingressConn = connection.None()
+		}
+		actualAllowEgress, egressConn, egressEnabled :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
-		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false))
-		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
-		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
+		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false)) // todo delete
+		if privateSubnetRule != nil && privateSubnetRule.Deny(false) {
+			egressConn = connection.None()
+		}
+		actualDenyIngress, _, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
+		actualDenyEgress, _, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
-		singleSrcDstDetails.ingressEnabled = ingressEnabled
-		singleSrcDstDetails.egressEnabled = egressEnabled
+		singleSrcDstDetails.ingressEnabled = ingressEnabled // todo delete
+		singleSrcDstDetails.egressEnabled = egressEnabled   // todo delete
 		singleSrcDstDetails.actualDenyRules = actualDeny
+		singleSrcDstDetails.ingressConn = ingressConn
+		singleSrcDstDetails.egressConn = egressConn
 	}
 }
 
-// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
-// given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
-// this is called separately for each direction (ingress/egress) and allow/deny
-// todo: here. start with understanding what has to be done. remove the enable only after the conn is working
-func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+// given rulesInLayers and the relevant filters, computes actual rules and the connection implied by the filter (which
+// could be different than the connection implied by the rules, in case there are both deny and allow rules).
+// this is called separately for each direction (ingress/egress) and allow/deny (for nacl, sg has only allow)
+func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers,
+	*connection.Set, bool) {
 	actualRules := rulesInLayers{}
 	directionEnabled := true
+	conn := connection.All()
+	// connection of direction: intersection between connections of layers;
 	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
 		potentialRules := rulesLayers[layer]
 		// The filter is blocking if it is relevant and has no allow rules
 		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
-		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
+		if filterIsRelevant && !filterHasRelevantRules(potentialRules) { // todo: delete
 			directionEnabled = false
 		}
 		if filterIsRelevant {
+			conn = conn.Intersect(connOfLayer(potentialRules))
 			actualRules[layer] = potentialRules
 		}
 	}
-	// the direction is enabled if none of the filters is blocking it
-	return &actualRules, directionEnabled
+	// the direction is enabled if none of the filters is blocking it todo delete
+	return &actualRules, conn, directionEnabled
+}
+
+// connection of each layer is the union of the connection's of tables in the layer; (nacl single table; relevant for sg)
+func connOfLayer(layerTables []RulesInTable) *connection.Set {
+	conn := connection.None()
+	for _, table := range layerTables {
+		conn = conn.Union(table.TableConn)
+	}
+	return conn
 }
 
 // returns true if filter contains rules

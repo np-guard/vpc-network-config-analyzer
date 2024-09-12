@@ -129,8 +129,10 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	needEgress := !src.IsExternal()
 	needIngress := !dst.IsExternal()
 	loadBalancerBlocking := loadBalancerRule != nil && loadBalancerRule.Deny(false)
-	ingressBlocking := !expDetails.ingressEnabled && needIngress
-	egressBlocking := !expDetails.egressEnabled && needEgress
+	ingressEnabled := expDetails.ingressConn != nil && !expDetails.ingressConn.IsEmpty()
+	egressEnabled := expDetails.egressConn != nil && !expDetails.egressConn.IsEmpty()
+	ingressBlocking := !ingressEnabled && needIngress
+	egressBlocking := !egressEnabled && needEgress
 	isExternal := src.IsExternal() || dst.IsExternal()
 	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
 		crossRouterFilterDetails, loadBalancerDetails, details string
