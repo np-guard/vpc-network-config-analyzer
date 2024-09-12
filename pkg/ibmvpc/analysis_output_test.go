@@ -367,7 +367,7 @@ var tests = []*commonvpc.VpcGeneralTest{
 	{
 		InputConfig: "tgw_larger_example",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.DRAWIO,
+		Format:      vpcmodel.HTML,
 	},
 	{
 		InputConfig: "tgw_larger_example",
