@@ -128,7 +128,7 @@ func (d *DrawioOutputFormatter) createFilters() {
 func (d *DrawioOutputFormatter) createRouters() {
 	for vpcResourceID, vpcConfig := range d.cConfigs.Configs() {
 		for _, r := range vpcConfig.RoutingResources {
-			if r.IsMultipleVPCs() != vpcConfig.IsMultipleVPCsConfig{
+			if r.IsMultipleVPCs() != vpcConfig.IsMultipleVPCsConfig {
 				// MultipleVPCs routers might exist at a non MultipleVPCs config (and vice versa?), it should be ignored
 				continue
 			}
