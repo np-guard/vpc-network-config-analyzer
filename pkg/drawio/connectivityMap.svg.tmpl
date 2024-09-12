@@ -230,7 +230,7 @@
                         const entry = xmlDoc.querySelector("entry[src='"+src+"'][dst='"+dst+"']");
                         savedTooltip = selectedElems[1].getElementsByTagName("title")[0].textContent
                         if (entry) {
-							            explainTitle = 'Configurations affecting the connectivity between <span style="background-color: yellow;">'+src_name+'</span> and <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
+							            explainTitle = 'Explaining connectivity from <span style="background-color: yellow;">'+src_name+'</span> to <span style="background-color: #ADD8E6;">'+dst_name+'</span>:\n' 
 
                           // color the src and dst names
                           explainText = explainTitle + entry.textContent;

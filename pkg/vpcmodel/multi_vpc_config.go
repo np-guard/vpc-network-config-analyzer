@@ -20,7 +20,7 @@ type MultipleVPCConfigs struct {
 	configs          map[string]*VPCConfig // a map from the vpc resource uid to the vpc config
 	toCompareConfigs map[string]*VPCConfig // a map from the vpc resource uid to the vpc config that we want to compare
 	provider         collector_common.Provider
-	// publicNetworkNode - the EndpointElem that  entire external cidr which is in any vpc:
+	// publicNetworkNode is an EndpointElem representing all public-internet CIDRs
 	publicNetworkNode EndpointElem
 }
 

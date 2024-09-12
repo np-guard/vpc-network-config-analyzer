@@ -120,21 +120,23 @@ func (d *DrawioOutputFormatter) createNodes() {
 // in case that it has no connection, we will not show it in drawio
 // however, we always create it since it's needed for holding the explainability information of the public network square
 func (d *DrawioOutputFormatter) createPublicNetworkIcon() {
-	if d.cConfigs.publicNetworkNode != nil {
-		d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
-		// check if to show the icon, only if it is a src/dst:
-		publicIconHasConnection := false
-		for _, vpcConn := range d.gConns {
-			if slices.IndexFunc(vpcConn.GroupedLines, func(line *groupedConnLine) bool {
-				return line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode
-			}) >= 0 {
-				publicIconHasConnection = true
-				break
-			}
+	if d.cConfigs.publicNetworkNode == nil {
+		return
+	}
+	d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+	// check if to show the icon, only if it is a src/dst:
+	publicIconHasConnection := false
+	for _, vpcConn := range d.gConns {
+		hasConnFunc := func(line *groupedConnLine) bool {
+			return line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode
 		}
-		if !publicIconHasConnection {
-			d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
+		if slices.IndexFunc(vpcConn.GroupedLines, hasConnFunc) >= 0 {
+			publicIconHasConnection = true
+			break
 		}
+	}
+	if !publicIconHasConnection {
+		d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
 	}
 }
 
