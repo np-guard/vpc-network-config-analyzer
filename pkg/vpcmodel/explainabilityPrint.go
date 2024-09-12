@@ -160,7 +160,6 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 	// path in "3" above
 	missingExternalRouter := isExternal && externalRouter == nil
-	// todo 859
 	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst, ingressBlocking, egressBlocking,
 		loadBalancerBlocking, missingExternalRouter, externalRouter, crossVpcRouter,
 		crossVpcConnection, rules, privateSubnetRule) + newLine
@@ -190,8 +189,18 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 				respondsIngressDetails
 		}
 	}
+	egressIngressIntersectBlock := egressIngressIntersectBlockStr(ingressEnabled, egressEnabled, expDetails.ingressConn,
+		expDetails.egressConn)
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
-		loadBalancerBlocking, missingExternalRouter, noConnection, resourceEffectHeader, path, details)
+		loadBalancerBlocking, missingExternalRouter, egressIngressIntersectBlock, noConnection, resourceEffectHeader, path, details)
+}
+
+func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *connection.Set) string {
+	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
+		return fmt.Sprintf("\tconnection is blocked since ingress's and egress's connection do not intersect.\n\t"+
+			"egress connection: %v, ingress connection: %v", egressConn, ingressConn)
+	}
+	return ""
 }
 
 // assumption: the func is called only if the tcp component of the connection is not empty
@@ -209,7 +218,7 @@ func respondDetailsHeader(d *detailedConn) string {
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking,
-	missingExternalRouter bool, noConnection, resourceEffectHeader, path, details string) string {
+	missingExternalRouter bool, egressIngressIntersectBlock, noConnection, resourceEffectHeader, path, details string) string {
 	conn := g.CommonProperties.Conn
 	crossVpcRouter := g.CommonProperties.expDetails.crossVpcRouter
 	headerPlusPath := resourceEffectHeader + path
@@ -217,11 +226,12 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 	case crossVpcRouterRequired(src, dst) && crossVpcRouter != nil && crossVpcConnection.IsEmpty():
 		return fmt.Sprintf("%vAll connections will be blocked since transit gateway denies route from source to destination"+tripleNLVars,
 			noConnection, headerPlusPath, details)
-	// todo 859
 	case ingressBlocking || egressBlocking || missingExternalRouter || loadBalancerBlocking:
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
 			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter),
 			headerPlusPath, details)
+	case egressIngressIntersectBlock != "": // no connection since ingress and egress intersection is empty; don't print path
+		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection, egressIngressIntersectBlock, resourceEffectHeader, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
 	}
