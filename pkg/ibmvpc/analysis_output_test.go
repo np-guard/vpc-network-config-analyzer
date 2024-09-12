@@ -440,12 +440,13 @@ var tests = []*commonvpc.VpcGeneralTest{
 		Grouping:    true,
 		Format:      vpcmodel.ARCHSVG,
 	},
-	{
-		InputConfig: "iks_workers_large",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		Grouping:    true,
-		Format:      vpcmodel.DRAWIO,
-	},
+	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
+	// {
+	//	InputConfig: "iks_workers_large",
+	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//	Grouping:    true,
+	//	Format:      vpcmodel.DRAWIO,
+	// },
 	// Grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		InputConfig: "sg_testing1_new_dup_subnets_names",

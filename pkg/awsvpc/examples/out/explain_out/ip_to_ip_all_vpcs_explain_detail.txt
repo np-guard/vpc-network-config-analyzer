@@ -1,6 +1,6 @@
 Explaining connectivity from 10.240.40.217 to 10.240.20.43 within vpc0
-Interpreted source: dashboard[10.240.40.217]
-Interpreted destination: app2[10.240.20.43]
+Interpreted source(s): dashboard[10.240.40.217]
+Interpreted destination(s): app2[10.240.20.43]
 ======================================================================
 
 Connections from dashboard[10.240.40.217] to app2[10.240.20.43]: All Connections
@@ -15,24 +15,24 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group GroupId:50 allows connection with the following allow rules
-			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, conns: protocol: all
+			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, protocol: all
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			ruleNumber: 100, direction: outbound ,cidr: 0.0.0.0/0, action: allow, conn: all
+			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			ruleNumber: 100, direction: inbound ,cidr: 0.0.0.0/0, action: allow, conn: all
+			ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
 		security group GroupId:42 allows connection with the following allow rules
-			Inbound index: 0, direction: inbound, target: 10.240.40.0/24, conns: protocol: all
+			Inbound index: 0, direction: inbound, target: 10.240.40.0/24, protocol: all
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			ruleNumber: 100, direction: outbound ,cidr: 0.0.0.0/0, action: allow, conn: all
+			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL NetworkAclId:65 allows connection with the following allow rules
-			ruleNumber: 100, direction: inbound ,cidr: 0.0.0.0/0, action: allow, conn: all
+			ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

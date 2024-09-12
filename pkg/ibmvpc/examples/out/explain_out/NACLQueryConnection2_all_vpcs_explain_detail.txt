@@ -1,10 +1,10 @@
 Explaining connectivity from vsi1-ky to 161.26.0.0/16 within test-vpc1-ky using "protocol: TCP"
-Interpreted source: vsi1-ky[10.240.10.4]
-Interpreted destination: 161.26.0.0/16 (external)
+Interpreted source(s): vsi1-ky[10.240.10.4]
+Interpreted destination(s): 161.26.0.0/16 (external)
 ===============================================================================================
 
 No connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: TCP";
-connection is blocked by egress
+	connection is blocked at egress
 
 External traffic via PublicGateway: public-gw-ky
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
@@ -18,7 +18,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl1-ky has no relevant allow rules
 
 ------------------------------------------------------------------------------------------------------------------------

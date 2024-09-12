@@ -55,11 +55,12 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	var direction, src, dst, action string
 	var name, connStr string
 	rule := na.naclResource.Rules[index]
+	var protocol, portsStr string
 	switch ruleObj := rule.(type) {
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
 		name = *ruleObj.Name
 		conns = connection.All()
-		connStr = *ruleObj.Protocol
+		protocol = *ruleObj.Protocol
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
 		dst = *ruleObj.Destination
@@ -74,7 +75,8 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		)
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
-		connStr = fmt.Sprintf("protocol: %s, srcPorts: %s, dstPorts: %s", *ruleObj.Protocol, srcPorts, dstPorts)
+		protocol = *ruleObj.Protocol
+		portsStr = fmt.Sprintf(", srcPorts: %s, dstPorts: %s", srcPorts, dstPorts)
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
 		dst = *ruleObj.Destination
@@ -82,15 +84,22 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolIcmp:
 		name = *ruleObj.Name
 		conns = commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
-		connStr = fmt.Sprintf("protocol: %s", *ruleObj.Protocol)
+		protocol = *ruleObj.Protocol
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
 		dst = *ruleObj.Destination
 		action = *ruleObj.Action
+		if ruleObj.Type != nil {
+			portsStr = fmt.Sprintf(", type: %d", *ruleObj.Type)
+		}
+		if ruleObj.Code != nil {
+			portsStr += fmt.Sprintf(", code: %d", *ruleObj.Code)
+		}
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported type for rule: %s ", rule)
 		return "", nil, false, err
 	}
+	connStr = "protocol: " + protocol + portsStr
 
 	srcIP, dstIP, err := ipblock.PairCIDRsToIPBlocks(src, dst)
 	if err != nil {
@@ -99,8 +108,8 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	ruleRes = &commonvpc.NACLRule{Src: srcIP, Dst: dstIP, Connections: conns, Action: action}
 	isIngress = direction == commonvpc.Inbound
 	priority := na.getNACLRulePriority(direction, index)
-	ruleStr = fmt.Sprintf("direction: %s, name: %s, priority: %d, action: %s, source: %s , destination: %s,"+
-		" conn: %s\n", direction, name, priority, action, src, dst, connStr)
+	ruleStr = fmt.Sprintf("name: %s, priority: %d, action: %s, direction: %s, source: %s, destination: %s,"+
+		" %s\n", name, priority, action, direction, src, dst, connStr)
 	return ruleStr, ruleRes, isIngress, nil
 }
 

@@ -1,9 +1,16 @@
 Explaining connectivity from 161.26.0.0/16 to vsi1-ky within test-vpc1-ky
-Interpreted source: 161.26.0.0/16 (external)
-Interpreted destination: vsi1-ky[10.240.10.4]
+Interpreted source(s): 161.26.0.0/16 (external)
+Interpreted destination(s): vsi1-ky[10.240.10.4]
 =========================================================================
 
 No connections from Public Internet 161.26.0.0/16 to vsi1-ky[10.240.10.4];
-	There is no resource enabling inbound external connectivity
+	connection is blocked at ingress and because there is no resource for external connectivity
+
+Ingress: network ACL acl1-ky allows connection; security group sg1-ky does not allow connection
+
+Path:
+	Public Internet 161.26.0.0/16 -> 
+	| no resource for external connectivity |
+
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -1,10 +1,10 @@
 Explaining connectivity from vsi1-ky to vsi2-ky within test-vpc1-ky using "protocol: ICMP"
-Interpreted source: vsi1-ky[10.240.10.4]
-Interpreted destination: vsi2-ky[10.240.20.4]
+Interpreted source(s): vsi1-ky[10.240.10.4]
+Interpreted destination(s): vsi2-ky[10.240.20.4]
 ==========================================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4] using "protocol: ICMP";
-connection is blocked by egress
+	connection is blocked at egress
 
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 Ingress: network ACL acl2-ky allows connection; security group sg1-ky allows connection
@@ -18,15 +18,15 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
-			direction: outbound, id: id:152, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 		network ACL acl1-ky blocks connection with the following deny rules:
-			direction: outbound, name: acl1-out-1, priority: 1, action: deny, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
+			name: acl1-out-1, priority: 1, action: deny, direction: outbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			direction: inbound, name: acl2-in-4, priority: 4, action: allow, source: 10.240.10.0/24 , destination: 10.240.20.0/24, conn: all
+			name: acl2-in-4, priority: 4, action: allow, direction: inbound, source: 10.240.10.0/24, destination: 10.240.20.0/24, protocol: all
 		security group sg1-ky allows connection with the following allow rules
-			direction: inbound, id: id:154, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
+			id: id:154, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

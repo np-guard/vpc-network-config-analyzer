@@ -197,6 +197,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 			}
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
+			singleSrcDstDetails.filtersRelevant = map[string]bool{NaclLayer: true, SecurityGroupLayer: true}
 			externalRouter, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
@@ -205,7 +206,6 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 				continue // no externalRouter: no connections
 			}
 			singleSrcDstDetails.externalRouter = externalRouter
-			singleSrcDstDetails.filtersRelevant = map[string]bool{NaclLayer: true, SecurityGroupLayer: true}
 		}
 	}
 	return nil

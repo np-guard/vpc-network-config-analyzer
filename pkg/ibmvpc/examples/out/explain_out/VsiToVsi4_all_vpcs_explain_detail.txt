@@ -1,10 +1,10 @@
 Explaining connectivity from 10.240.10.4 to 10.240.20.4 within test-vpc1-ky
-Interpreted source: vsi1-ky[10.240.10.4]
-Interpreted destination: vsi2-ky[10.240.20.4]
+Interpreted source(s): vsi1-ky[10.240.10.4]
+Interpreted destination(s): vsi2-ky[10.240.20.4]
 ===========================================================================
 
 No connections from vsi1-ky[10.240.10.4] to vsi2-ky[10.240.20.4];
-connection is blocked by egress
+	connection is blocked at egress
 
 Egress: security group sg1-ky does not allow connection; network ACL acl1-ky allows connection
 Ingress: network ACL acl2-ky allows connection; security group sg2-ky allows connection
@@ -19,13 +19,13 @@ Path is disabled; The relevant rules are:
 	Egress:
 		security group sg1-ky has no relevant allow rules
 		network ACL acl1-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg2-ky allows connection with the following allow rules
-			direction: inbound, id: id:147, remote: sg1-ky (10.240.10.4/32), local: 0.0.0.0/0, conns: protocol: all
+			id: id:147, direction: inbound, local: 0.0.0.0/0, remote: sg1-ky (10.240.10.4/32), protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

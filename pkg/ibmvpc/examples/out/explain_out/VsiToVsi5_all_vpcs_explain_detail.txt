@@ -1,10 +1,10 @@
 Explaining connectivity from vsi3a-ky to vsi2-ky within test-vpc1-ky
-Interpreted source: vsi3a-ky[10.240.30.5]
-Interpreted destination: vsi2-ky[10.240.20.4]
+Interpreted source(s): vsi3a-ky[10.240.30.5]
+Interpreted destination(s): vsi2-ky[10.240.20.4]
 ====================================================================
 
 No connections from vsi3a-ky[10.240.30.5] to vsi2-ky[10.240.20.4];
-connection is blocked by ingress
+	connection is blocked at ingress
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
 Ingress: network ACL acl2-ky allows connection; security group sg2-ky does not allow connection
@@ -19,15 +19,15 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		security group sg3-ky allows connection with the following allow rules
-			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: all
-			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
-			direction: outbound, id: id:125, remote: 0.0.0.0/0, local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 100-200
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 100-200
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg2-ky has no relevant allow rules
 
 ------------------------------------------------------------------------------------------------------------------------

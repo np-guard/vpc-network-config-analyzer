@@ -1,9 +1,26 @@
 Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
-Interpreted source: vsi11-ky[10.240.11.4]
-Interpreted destination: 172.217.22.46/32 (external)
+Interpreted source(s): vsi11-ky[10.240.11.4]
+Interpreted destination(s): 172.217.22.46/32 (external)
 =============================================================================
 
 No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
-	The dst is external but there is no resource enabling external connectivity
+	connection is blocked because there is no resource for external connectivity
+
+Egress: security group sg11-ky allows connection; network ACL acl11-ky allows connection
+
+Path:
+	vsi11-ky[10.240.11.4] -> security group sg11-ky -> network ACL acl11-ky -> subnet subnet11-ky -> 
+	| no resource for external connectivity |
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
+	Egress:
+		security group sg11-ky allows connection with the following allow rules
+			id: id:419, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
+		network ACL acl11-ky allows connection with the following allow rules
+			name: acl11-out-3, priority: 3, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
 ------------------------------------------------------------------------------------------------------------------------
 

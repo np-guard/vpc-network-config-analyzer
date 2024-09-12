@@ -1,6 +1,6 @@
 Explaining connectivity from vsi2-ky to vsi3b-ky within test-vpc1-ky
-Interpreted source: vsi2-ky[10.240.20.4]
-Interpreted destination: vsi3b-ky[10.240.30.4]
+Interpreted source(s): vsi2-ky[10.240.20.4]
+Interpreted destination(s): vsi3b-ky[10.240.30.4]
 ====================================================================
 
 Connections from vsi2-ky[10.240.20.4] to vsi3b-ky[10.240.30.4]: protocol: TCP
@@ -15,25 +15,25 @@ Details:
 Path is enabled; The relevant rules are:
 	Egress:
 		security group sg2-ky allows connection with the following allow rules
-			direction: outbound, id: id:149, remote: 10.240.30.0/24, local: 0.0.0.0/0, conns: protocol: all
-			direction: outbound, id: id:151, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
+			id: id:149, direction: outbound, local: 0.0.0.0/0, remote: 10.240.30.0/24, protocol: all
+			id: id:151, direction: outbound, local: 0.0.0.0/0, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), protocol: tcp,  dstPorts: 1-65535
 		network ACL acl2-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 		security group sg2-ky allows connection with the following allow rules
-			direction: inbound, id: id:153, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), local: 0.0.0.0/0, conns: protocol: tcp,  dstPorts: 1-65535
+			id: id:153, direction: inbound, local: 0.0.0.0/0, remote: sg2-ky (10.240.20.4/32,10.240.30.4/32), protocol: tcp,  dstPorts: 1-65535
 
 TCP response is enabled; The relevant rules are:
 	Egress:
 		network ACL acl3-ky allows connection with the following allow rules
-			direction: outbound, name: outbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
-			direction: inbound, name: inbound, priority: 1, action: allow, source: 0.0.0.0/0 , destination: 0.0.0.0/0, conn: all
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 ------------------------------------------------------------------------------------------------------------------------
 

@@ -1,6 +1,6 @@
 Explaining connectivity from vsi11-ky to vsi21a-ky
-Interpreted source: test-vpc1-ky/vsi11-ky[10.240.11.4]
-Interpreted destination: test-vpc2-ky/vsi21a-ky[10.240.64.4]
+Interpreted source(s): test-vpc1-ky/vsi11-ky[10.240.11.4]
+Interpreted destination(s): test-vpc2-ky/vsi21a-ky[10.240.64.4]
 ==================================================
 
 Connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc2-ky/vsi21a-ky[10.240.64.4]: All Connections
