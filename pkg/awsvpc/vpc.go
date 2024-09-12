@@ -88,6 +88,10 @@ func (igw *InternetGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.Rul
 	return "", nil
 }
 
+func (pgw *InternetGateway) IsMultipleVPCs() bool {
+	return false
+}
+
 // ////////////////////////////////////
 // todo - these two methods are duplicated from ibm/vpc.go needs to be reunion
 func isNodesPair(src, dst vpcmodel.VPCResourceIntf) (res bool, srcNode, dstNode vpcmodel.Node) {
