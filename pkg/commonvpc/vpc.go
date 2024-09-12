@@ -239,11 +239,11 @@ func (psr *privateSubnetRule) String(detail bool) string {
 		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
 	}
 	// detail
-	prefix := "Egress"
+	prefix := "Egress to"
 	if psr.isIngress {
-		prefix = "Ingress"
+		prefix = "Ingress from"
 	}
-	prefix += " to public internet is"
+	prefix += " public internet is"
 
 	if psr.subnet.IsPrivate() {
 		return fmt.Sprintf("%s blocked since subnet %s is private\n", prefix, psr.subnet.Name())
@@ -353,18 +353,23 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	connQuery *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
 	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, nacl := range nl.NaclList {
-		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, connQuery, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
 		if !tableRelevant {
 			continue
 		}
-		appendToRulesInFilter(&allowRes, &allowRules, index, true)
-		appendToRulesInFilter(&denyRes, &denyRules, index, false)
+		conn, err2 := nacl.AllowedConnectivity(src, dst, isIngress)
+		if err2 != nil {
+			return nil, nil, err2
+		}
+		tableHasEffect := getTableEffect(connQuery, conn)
+		appendToRulesInFilter(&allowRes, &allowRules, index, tableHasEffect, true)
+		appendToRulesInFilter(&denyRes, &denyRules, index, tableHasEffect, false)
 	}
 	return allowRes, denyRes, nil
 }
@@ -373,7 +378,8 @@ func (nl *NaclLayer) Name() string {
 	return ""
 }
 
-func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int, isAllow bool) {
+func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int,
+	tableEffect vpcmodel.TableEffect, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -384,9 +390,10 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		rType = vpcmodel.OnlyDeny
 	}
 	rulesInNacl := vpcmodel.RulesInTable{
-		TableIndex:  filterIndex,
-		Rules:       *rules,
-		RulesOfType: rType,
+		TableIndex:     filterIndex,
+		Rules:          *rules,
+		RulesOfType:    rType,
+		TableHasEffect: tableEffect,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
@@ -571,13 +578,13 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 }
 
 // RulesInConnectivity return allow rules between src and dst,
-// or between src and dst of connection conn if conn specified
+// or between src and dst of connection connQuery if connQuery specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	conn *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	connQuery *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
 	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, sg := range sgl.SgList {
-		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, conn, isIngress)
+		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, connQuery, isIngress)
 		if err1 != nil {
 			return nil, nil, err1
 		}
@@ -586,10 +593,12 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
+			conn := sg.AllowedConnectivity(src, dst, isIngress)
 			rulesInSg := vpcmodel.RulesInTable{
-				TableIndex:  index,
-				Rules:       sgRules,
-				RulesOfType: rType,
+				TableIndex:     index,
+				Rules:          sgRules,
+				RulesOfType:    rType,
+				TableHasEffect: getTableEffect(connQuery, conn),
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -707,4 +716,21 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	}
 	// TODO: member is expected to be internal node (validate?) [could use member.(vpcmodel.InternalNodeIntf).Address()]
 	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
+}
+
+func getTableEffect(connQuery, conn *connection.Set) vpcmodel.TableEffect {
+	switch {
+	case connQuery == nil: // connection not part of query
+		if !conn.IsEmpty() {
+			return vpcmodel.Allow
+		} else {
+			return vpcmodel.Deny
+		}
+	case conn.Intersect(connQuery).IsEmpty():
+		return vpcmodel.Deny
+	case connQuery.ContainedIn(conn):
+		return vpcmodel.Allow
+	default:
+		return vpcmodel.PartlyAllow
+	}
 }

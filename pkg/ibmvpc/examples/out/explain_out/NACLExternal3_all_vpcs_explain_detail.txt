@@ -1,7 +1,0 @@
-Connectivity explanation between 100.128.0.0/32 and vsi1-ky[10.240.10.4]
-===================================================================================================
-
-No connection between Public Internet 100.128.0.0/32 and vsi1-ky[10.240.10.4];
-There is no resource enabling inbound external connectivity
-------------------------------------------------------------------------------------------------------------------------
-
