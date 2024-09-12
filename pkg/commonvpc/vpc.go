@@ -594,6 +594,8 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 			if len(sgRules) == 0 {
 				rType = vpcmodel.NoRules
 			}
+			conn := sg.AllowedConnectivity(src, dst, isIngress)
+			tableConn, tableHasEffect := getTableConnEffect(connQuery, conn)
 			rulesInSg := vpcmodel.RulesInTable{
 				TableIndex:     index,
 				Rules:          sgRules,
