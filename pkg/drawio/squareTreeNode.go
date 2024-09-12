@@ -104,10 +104,11 @@ func (tn *NetworkTreeNode) children() ([]SquareTreeNodeInterface, []IconTreeNode
 // ////////////////////////////////////////////////////////////////
 type PublicNetworkTreeNode struct {
 	abstractSquareTreeNode
+	PublicNetworkIcon TreeNodeInterface
 }
 
 func NewPublicNetworkTreeNode(parent *NetworkTreeNode) *PublicNetworkTreeNode {
-	pn := &PublicNetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "Public\nNetwork")}
+	pn := &PublicNetworkTreeNode{abstractSquareTreeNode: newAbstractSquareTreeNode(parent, "Public Network")}
 	parent.publicNetwork = pn
 	return pn
 }
