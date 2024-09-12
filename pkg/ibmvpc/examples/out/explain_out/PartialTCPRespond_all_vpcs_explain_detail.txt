@@ -30,11 +30,11 @@ Path is enabled; The relevant rules are:
 
 TCP response is partly enabled; The relevant rules are:
 	Egress:
-		network ACL acl1-ky allows connection with the following allow rules
+		network ACL acl1-ky partly allows connection with the following allow rules
 			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: tcp, srcPorts: 1-50, dstPorts: 100-200
 
 	Ingress:
-		network ACL acl3-ky allows connection with the following allow rules
+		network ACL acl3-ky partly allows connection with the following allow rules
 			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: tcp, srcPorts: 10-60, dstPorts: 100-220
 
 ------------------------------------------------------------------------------------------------------------------------

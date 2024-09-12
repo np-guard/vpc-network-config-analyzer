@@ -7,7 +7,7 @@ No connections from iks-clusterid:1[192.168.40.5] to iks-node[192.168.0.4] using
 	connection is blocked at egress
 
 Egress: security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 does not allow connection; network ACL ky-test-edge-acl allows connection
-Ingress: network ACL ky-test-private-2-others-acl allows connection; security group kube-clusterid:1 allows connection; security group ky-test-default-sg allows connection
+Ingress: network ACL ky-test-private-2-others-acl allows connection; security group kube-clusterid:1 partly allows connection; security group ky-test-default-sg allows connection
 
 Path:
 	iks-clusterid:1[192.168.40.5] -> | security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 |
@@ -17,14 +17,14 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 has no relevant allow rules
+		security group kube-r006-d7cfb31a-1d4b-40c8-83df-ce2e6f8f2e57 has no relevant rules
 		network ACL ky-test-edge-acl allows connection with the following allow rules
 			name: allow-outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 
 	Ingress:
 		network ACL ky-test-private-2-others-acl allows connection with the following allow rules
 			name: allow-traffic-subnet-edge-inbound, priority: 1, action: allow, direction: inbound, source: 192.168.32.0/20, destination: 0.0.0.0/0, protocol: all
-		security group kube-clusterid:1 allows connection with the following allow rules
+		security group kube-clusterid:1 partly allows connection with the following allow rules
 			id: id:300, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: ICMP icmp-type: 8
 		security group ky-test-default-sg allows connection with the following allow rules
 			id: id:322, direction: inbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all

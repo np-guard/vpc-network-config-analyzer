@@ -255,14 +255,29 @@ const (
 	BothAllowDeny        // there are relevant allow and deny rules in this filter
 )
 
+// TableEffect Type: given a queried src, dst, and potentially conn the table may:
+// deny the entire connection; allow the entire connection; partly allow the connection
+// if the query does not include connection then the effect is restricted to allow (any connection from src to dst)
+// and deny (all connections from src to dst)
+type TableEffect int
+
+const (
+	Allow = iota
+	PartlyAllow
+	Deny
+)
+
 // RulesInTable for a given layer (SGLayer/NACLLayer) or transit gateway contains
 // index of the SG/NACL/transit gateway filter and the indexes of the rules within it
+// this struct is also used for intermediate computation of only allow or only deny rules; TableHasEffect is always
+// w.r.t. the entire table
 // todo: once transformation is completed - can be un-exported and moved to rulesDetailesProvided?
 type RulesInTable struct {
 	// todo: is the assumption that the set of rules will always be kept in a list a valid one?
-	TableIndex  int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
-	Rules       []int // list of indexes of rules in the sg/nacl/transit connection
-	RulesOfType RulesType
+	TableIndex     int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
+	Rules          []int // list of indexes of rules in the sg/nacl/transit connection
+	RulesOfType    RulesType
+	TableHasEffect TableEffect // effect of the table w.r.t. queried src, dst and query
 }
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)

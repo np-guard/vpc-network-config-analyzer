@@ -46,17 +46,15 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
-	// (no external src/dst).
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
-	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
-	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules affecting connection given externalRouter; e.g. NACL is irrelevant if same subnet
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
+	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
@@ -310,6 +308,9 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		// translates []RulesInTable to a map for access efficiency
 		allowRulesMap := rulesInLayerToMap(allowForLayer)
 		denyRulesMap := rulesInLayerToMap(denyForLayer)
+		// todo: allow and deny - only nacl, and there is a single nacl associated for each subnet.
+		//       hence, allIndexes is always of size 1; the code would dump had it not been the case.
+		//      https://github.com/np-guard/vpc-network-config-analyzer/issues/871
 		for filterIndex := range allIndexes {
 			allowRules := allowRulesMap[filterIndex]
 			denyRules := denyRulesMap[filterIndex]
@@ -329,7 +330,8 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 			default: // no rules
 				rType = NoRules
 			}
-			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType}
+			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
+				TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
 			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
 		}
 		allowDenyMerged[layer] = mergedRulesInLayer

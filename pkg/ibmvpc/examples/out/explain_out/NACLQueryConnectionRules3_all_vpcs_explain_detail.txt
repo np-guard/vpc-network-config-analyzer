@@ -23,7 +23,7 @@ Path is enabled; The relevant rules are:
 
 TCP response is disabled; The relevant rules are:
 	Ingress:
-		network ACL acl1-ky has no relevant allow rules
+		network ACL acl1-ky has no relevant rules
 
 ------------------------------------------------------------------------------------------------------------------------
 
