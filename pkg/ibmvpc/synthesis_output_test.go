@@ -46,6 +46,11 @@ var synthesisTests = []*commonvpc.VpcGeneralTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		Grouping:    true,
 	},
+	{
+		InputConfig: "subnet_grouping",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		Grouping:    true,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
