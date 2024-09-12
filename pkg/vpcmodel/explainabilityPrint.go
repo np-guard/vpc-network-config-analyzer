@@ -120,6 +120,8 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in detailed mode
+//
+//nolint:gocyclo // better not split into two function
 func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, allRulesDetails *rulesDetails,
 	verbose bool) string {
 	expDetails := g.CommonProperties.expDetails
