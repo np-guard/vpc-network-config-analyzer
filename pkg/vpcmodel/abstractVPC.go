@@ -352,4 +352,6 @@ type RoutingResource interface {
 	// between src and dst; if non tgw relevant to <src, dst> returns an empty string
 	// Non-relevant for fip and pgw, returns always an empty string
 	StringOfRouterRules(listRulesInFilter []RulesInTable, verbose bool) (string, error)
+	// IsMultipleVPCs() - is the router for connections between VPCs
+	IsMultipleVPCs() bool
 }
