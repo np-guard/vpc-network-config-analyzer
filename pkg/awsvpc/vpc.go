@@ -88,7 +88,7 @@ func (igw *InternetGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.Rul
 	return "", nil
 }
 
-func (pgw *InternetGateway) IsMultipleVPCs() bool {
+func (igw *InternetGateway) IsMultipleVPCs() bool {
 	return false
 }
 
