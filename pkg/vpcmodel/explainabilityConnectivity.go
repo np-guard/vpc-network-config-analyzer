@@ -52,7 +52,7 @@ type srcDstDetails struct {
 	// for two internal nodes within same subnet, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL non-relevant same subnet
+	actualAllowRules    *rulesConnection // enabling rules affecting connection given externalRouter; e.g. NACL is irrelevant if same subnet
 	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
 	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
