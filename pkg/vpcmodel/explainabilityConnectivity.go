@@ -11,8 +11,6 @@ import (
 	"slices"
 
 	"github.com/np-guard/models/pkg/connection"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
@@ -305,68 +303,30 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		default: // no rules in this layer
 			continue
 		}
-		mergedRulesInLayer := []RulesInTable{} // both deny and allow in layer
-		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
-		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
-		// translates []RulesInTable to a map for access efficiency
-		allowRulesMap := rulesInLayerToMap(allowForLayer)
-		denyRulesMap := rulesInLayerToMap(denyForLayer)
-		// todo: allow and deny - only nacl, and there is a single nacl associated for each subnet.
-		//       hence, allIndexes is always of size 1; the code would dump had it not been the case.
-		//      https://github.com/np-guard/vpc-network-config-analyzer/issues/871
-		for filterIndex := range allIndexes {
-			allowRules := allowRulesMap[filterIndex]
-			denyRules := denyRulesMap[filterIndex]
-			mergedRules := []int{}
-			// todo: once we update to go.1.22 use slices.Concat
-			mergedRules = append(mergedRules, allowRules.Rules...)
-			mergedRules = append(mergedRules, denyRules.Rules...)
-			slices.Sort(mergedRules)
-			var rType RulesType
-			switch {
-			case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
-				rType = BothAllowDeny
-			case len(allowRules.Rules) > 0:
-				rType = OnlyAllow
-			case len(denyRules.Rules) > 0:
-				rType = OnlyDeny
-			default: // no rules
-				rType = NoRules
-			}
-			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
-				TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
-			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+		// both deny and allow rules in layer, namely, the layer is NaclLayer. There is a single nacl per subnet.
+		// Thus, if we got here the layer has a single table in it with both allow and deny rules.
+		// Namely, allowForLayer and denyForLayer each have a single element originating from the same table
+		allowRules := allowForLayer[0]
+		denyRules := denyForLayer[0]
+		mergedRules := slices.Concat(allowRules.Rules, denyRules.Rules)
+		slices.Sort(mergedRules)
+		var rType RulesType
+		switch {
+		case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+			rType = BothAllowDeny
+		case len(allowRules.Rules) > 0:
+			rType = OnlyAllow
+		case len(denyRules.Rules) > 0:
+			rType = OnlyDeny
+		default: // no rules
+			rType = NoRules
 		}
-		allowDenyMerged[layer] = mergedRulesInLayer
+		filterIndex := allowRules.TableIndex // can be taken either from allowForLayer or from denyForLayer
+		mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
+			TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
+		allowDenyMerged[layer] = []RulesInTable{mergedRulesInFilter}
 	}
 	return allowDenyMerged
-}
-
-type intSet = common.GenericSet[int]
-
-// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
-func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInTable) (indexes intSet) {
-	indexes = intSet{}
-	addIndexesOfFilters(indexes, allowForLayer)
-	addIndexesOfFilters(indexes, denyForLayer)
-	return indexes
-}
-
-// translates rulesInLayer into a map from filter's index to the rules indexes
-func rulesInLayerToMap(rulesInLayer []RulesInTable) map[int]*RulesInTable {
-	mapFilterRules := map[int]*RulesInTable{}
-	for _, rulesInFilter := range rulesInLayer {
-		thisRulesInFilter := rulesInFilter // to make lint happy
-		// do not reference an address of a loop value
-		mapFilterRules[rulesInFilter.TableIndex] = &thisRulesInFilter
-	}
-	return mapFilterRules
-}
-
-func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
-	for _, rulesInFilter := range rulesInLayer {
-		indexes[rulesInFilter.TableIndex] = true
-	}
 }
 
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
