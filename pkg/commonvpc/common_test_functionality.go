@@ -156,7 +156,6 @@ func (tt *VpcTestCommon) GetVPCConfigs(t *testing.T, inputConfig string, rc Reso
 // InitTest based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
 func (tt *VpcTestCommon) InitTest() {
-	//	tt.InputConfig2nd = InputFilePrefix + tt.InputConfig + secJSONOutSuffix //todo delete move to diff
 	tt.InputConfig = InputFilePrefix + tt.InputConfig + JSONOutSuffix
 	tt.ExpectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.ActualOutput = map[vpcmodel.OutputUseCase]string{}

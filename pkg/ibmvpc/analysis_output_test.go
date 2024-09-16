@@ -731,7 +731,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 		{
 			// here the connectivity per subnet is getting split to few parts by various local ranges within the subnet cidr,
 			// and the split is by the ACL's rules "local" part (e.g. "from" in egress rule / "to" in ingress rule)
-			commonvpc.VpcTestCommon{
+			VpcTestCommon: commonvpc.VpcTestCommon{
 				Name:        "unsupported_analysis_acl_testing3",
 				InputConfig: "acl_testing3",
 				UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
@@ -744,7 +744,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 		},
 		{
 			// here the split is by  ACL's rules "remote" part (e.g. "to" in egress rule / "from" in ingress rule)
-			commonvpc.VpcTestCommon{
+			VpcTestCommon: commonvpc.VpcTestCommon{
 				Name:        "unsupported_nacl_split_subnet",
 				InputConfig: "nacl_split_subnet",
 				UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
