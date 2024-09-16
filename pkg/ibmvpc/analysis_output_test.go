@@ -368,55 +368,6 @@ var tests = []*commonvpc.VpcAnalysisTest{
 			Format:      vpcmodel.Text,
 		},
 	},
-	// todo: diff.
-	//// diff examples:
-	//{
-	//	InputConfig: "acl_testing5",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{
-	//	InputConfig: "acl_testing5",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
-	//	Format:      vpcmodel.MD,
-	//},
-	//{
-	//	InputConfig: "acl_testing3",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{
-	//	InputConfig: "acl_testing3",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.MD,
-	//},
-	//{
-	//	InputConfig: "sg_testing1_new",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{ // example with diff with partial TCP respond
-	//	InputConfig: "sg_testing1_copy",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{ // example with diff in which the diff is in the amount of TCP respond enabled
-	//	InputConfig: "sg_testing1_new_respond_partly",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{
-	//	// diff between VPCs of different UIDs
-	//	InputConfig: "sg_testing_3",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
-	//{
-	//	// diff between identical VPCs
-	//	InputConfig: "sg_testing_default",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
-	//	Format:      vpcmodel.Text,
-	//},
 	// tgw examples
 	{
 		commonvpc.VpcTestCommon{

@@ -320,5 +320,4 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 	} else {
 		tt.Mode = mode
 	}
-
 }
