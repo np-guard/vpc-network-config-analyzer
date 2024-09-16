@@ -121,7 +121,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 				return nil, err
 			}
 			res.explanation = explanation
-			res.detailExplain = explanationArgs.detail
+			res.detailExplain = explanationArgs.Detail
 		}
 	}
 	// only Graphic formats has a multi vpc common presentation

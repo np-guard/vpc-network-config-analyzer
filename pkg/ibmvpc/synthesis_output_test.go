@@ -18,7 +18,7 @@ import (
 
 const synthesisOut = "synthesis_out"
 
-var synthesisTests = []*commonvpc.VpcGeneralTest{
+var synthesisTests = []*commonvpc.VpcTestCommon{
 	{
 		InputConfig: "acl_testing3",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
@@ -75,15 +75,15 @@ func TestAllSynthesis(t *testing.T) {
 	fmt.Println("done")
 }
 
-func runTestSynthesis(tt *commonvpc.VpcGeneralTest, t *testing.T) {
+func runTestSynthesis(tt *commonvpc.VpcTestCommon, t *testing.T) {
 	// init test - set the input/output file names according to test name
 	tt.InitTest()
 
 	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := commonvpc.GetVPCConfigs(t, tt, true, &IBMresourcesContainer{})
+	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, &IBMresourcesContainer{})
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := commonvpc.RunTestPerUseCase(t, tt, vpcConfigs, uc, tt.Mode, synthesisOut, nil)
+		err := tt.RunTestPerUseCase(t, vpcConfigs, uc, tt.Mode, synthesisOut, nil)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {

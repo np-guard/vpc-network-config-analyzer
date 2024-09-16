@@ -37,112 +37,141 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 	return vpcConfigs
 }
 
-var explainTests = []*commonvpc.VpcGeneralTest{
+var explainTests = []*commonvpc.VpcExplainTest{
 	{
-		Name:          "VsiToVsi1",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiToVsi1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi2-ky",
 		EDst:          "vsi3b-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "VsiToVsi2",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiToVsi2",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi2-ky",
 		EDst:          "10.240.10.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "VsiToVsi3",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiToVsi3",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "10.240.10.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "VsiToVsi4",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiToVsi4",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.10.4",
 		EDst:          "10.240.20.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "VsiToVsi5",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiToVsi5",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi2-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "subnetToVsiSingleVpc",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "subnetToVsiSingleVpc",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "subnet1-ky",
 		EDst:          "10.240.20.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "externalToSubnet",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "externalToSubnet",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "161.26.0.0",
 		EDst:          "subnet3-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "SimpleExternalSG1",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "SimpleExternalSG1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "SimpleExternalSG2",
-		InputConfig: "sg_testing1_new",
-		ESrc:        "161.26.0.0/16",
-		EDst:        "vsi1-ky",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "SimpleExternalSG2",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "161.26.0.0/16",
+		EDst: "vsi1-ky",
 	},
 	{
-		Name:          "SimpleExternalSG3",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "SimpleExternalSG3",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/32",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "SimpleExternalSG4",
-		InputConfig: "sg_testing1_new",
-		ESrc:        "vsi3b-ky",
-		EDst:        "161.26.0.0/32",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "SimpleExternalSG4",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "vsi3b-ky",
+		EDst: "161.26.0.0/32",
 	},
 	{
-		Name:          "GroupingExternalSG1",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "GroupingExternalSG1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.10.4",
 		EDst:          "161.26.0.0/8",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "GroupingExternalSG1",
-		InputConfig: "sg_testing1_new",
-		ESrc:        "vsi1-ky",
-		EDst:        "161.26.0.0/8",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "GroupingExternalSG1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "vsi1-ky",
+		EDst: "161.26.0.0/8",
 	},
 	{
-		// the existing connection is exactly the one required by the query
-		Name:          "QueryConnectionSGBasic1",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			// the existing connection is exactly the one required by the query
+			Name:        "QueryConnectionSGBasic1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -150,13 +179,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// the required connection is contained in the existing one per connection
 	{
-		Name:          "QueryConnectionSGBasic2",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGBasic2",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.10.4",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -164,13 +195,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   100,
 		EDstMinPort:   443,
 		EDstMaxPort:   443,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	//  the required connection is contained in the existing one per ip of src/dst
 	{
-		Name:          "QueryConnectionSGBasic3",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGBasic3",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "crn:v1:staging:public:is:us-south:a/6527::vpc:a456", // crn:v1:staging:public:is:us-south:a/6527::vpc:a456 is vsi1-ky
 		EDst:          "161.26.0.0/20",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -178,13 +211,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   100,
 		EDstMinPort:   443,
 		EDstMaxPort:   443,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// the required connection exists for part of the dst ip
 	{
-		Name:          "QueryConnectionSGBasic4",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGBasic4",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/12",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -192,13 +227,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   100,
 		EDstMinPort:   443,
 		EDstMaxPort:   443,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// a connection does not exist regardless of the query
 	{
-		Name:          "QueryConnectionSGBasic5",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGBasic5",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "vsi3a-ky",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -206,13 +243,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   100,
 		EDstMinPort:   443,
 		EDstMaxPort:   443,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// a subset of the required ports exists
 	{
-		Name:          "QueryConnectionSGSubsetPorts",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGSubsetPorts",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "147.235.219.206/32",
 		EDst:          "vsi2-ky",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -220,22 +259,26 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   10,
 		EDstMaxPort:   30,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	//  all rules are relevant (for comparison)
 	{
-		Name:          "QueryConnectionSGRules1",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGRules1",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// only a subset of the rules are relevant, protocol wise
 	{
-		Name:          "QueryConnectionSGRules2",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGRules2",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -243,13 +286,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// only a subset of the rules are relevant, port wise and protocol wise
 	{
-		Name:          "QueryConnectionSGRules3",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGRules3",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -257,13 +302,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   50,
 		EDstMaxPort:   54,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	//  all rules are relevant, with specified port wise protocol
 	{
-		Name:          "QueryConnectionSGRules4",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "QueryConnectionSGRules4",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -271,86 +318,106 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   120,
 		EDstMaxPort:   230,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// connection exists to external
 	{
-		Name:          "NACLExternal1",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLExternal1",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// connection does not exist to external, blocked by egress
 	{
-		Name:          "NACLExternal2",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLExternal2",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "100.128.0.0/32",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// connection does not exist to external, no fip router
 	{
-		Name:        "NACLExternal3",
-		InputConfig: "acl_testing3",
-		ESrc:        "100.128.0.0/32",
-		EDst:        "vsi1-ky",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLExternal3",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "100.128.0.0/32",
+		EDst: "vsi1-ky",
 	},
 	{
-		Name:          "NACLInternal1",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternal1",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "10.240.20.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "NACLInternal1",
-		InputConfig: "acl_testing3",
-		ESrc:        "10.240.10.4",
-		EDst:        "vsi2-ky",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternal1",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "10.240.10.4",
+		EDst: "vsi2-ky",
 	},
 	{
-		Name:          "NACLInternal2",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternal2",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi2-ky",
 		EDst:          "10.240.10.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "NACLInternal3",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternal3",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "vsi3a-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
 		// same subnet: no actual rules in nacl, but connection enabled
-		Name:          "NACLInternal4",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternal4",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3b-ky",
 		EDst:          "vsi3a-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "NACLGrouping",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLGrouping",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.10.4",
 		EDst:          "161.26.0.0/15",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "NACLQueryConnection1",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryConnection1",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -358,12 +425,14 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "NACLQueryConnection2",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryConnection2",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -371,41 +440,49 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// src: one of these network interfaces, dst: internal address of 4 network interfaces
 	{
-		Name:          "NACLInternalSrcTo4DstInternal",
-		InputConfig:   "acl_testing3",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLInternalSrcTo4DstInternal",
+			InputConfig: "acl_testing3",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3b-ky",
 		EDst:          "10.240.30.4/26",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// src: internal address of 5 network interfaces, dst: external address that spans rules
 	// "many to many"
 	{
-		Name:          "SGInternal3SrcToExternalGroup",
-		InputConfig:   "sg_testing1_new",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "SGInternal3SrcToExternalGroup",
+			InputConfig: "sg_testing1_new",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.30.4/24",
 		EDst:          "161.26.0.0/8",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// all rules
 	{
-		Name:          "NACLQueryConnectionRules2",
-		InputConfig:   "acl_testing3_3rd",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryConnectionRules2",
+			InputConfig: "acl_testing3_3rd",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// without the udp rule
 	{
-		Name:          "NACLQueryConnectionRules3",
-		InputConfig:   "acl_testing3_3rd",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryConnectionRules3",
+			InputConfig: "acl_testing3_3rd",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -413,13 +490,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// without the "all" rule since udp rule has higher priority
 	{
-		Name:          "NACLQueryConnectionRules4",
-		InputConfig:   "acl_testing3_3rd",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryConnectionRules4",
+			InputConfig: "acl_testing3_3rd",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.10.4/32",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -427,12 +506,14 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "NACLOnlyDenyNoConnQuery",
-		InputConfig:   "acl_testing3_3rd",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLOnlyDenyNoConnQuery",
+			InputConfig: "acl_testing3_3rd",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "vsi2-ky",
 		EProtocol:     netp.ProtocolStringICMP,
@@ -440,13 +521,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// allow connection subset of the queried one
 	{
-		Name:          "NACLQueryAllowSubset",
-		InputConfig:   "acl_testing3_4th",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "NACLQueryAllowSubset",
+			InputConfig: "acl_testing3_4th",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",
 		EDst:          "161.26.0.0/16",
 		EProtocol:     netp.ProtocolStringUDP,
@@ -454,58 +537,69 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// two SGs attached to one VSI
 	{
-		Name:          "VsiWithTwoSgs",
-		InputConfig:   "sg_testing1_new_2SGs",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiWithTwoSgs",
+			InputConfig: "sg_testing1_new_2SGs",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// two SGs attached to one VSI, only one enabling
 	{
-		Name:          "VsiWithTwoSgsOneEnabling",
-		InputConfig:   "sg_testing1_new_2SGs_one_enabling",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiWithTwoSgsOneEnabling",
+			InputConfig: "sg_testing1_new_2SGs_one_enabling",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// two SGs attached to one VSI, none enabling
 	{
-		Name:          "VsiWithTwoSgsNeitherEnabling",
-		InputConfig:   "sg_testing1_new_2SGs_none_enabling",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "VsiWithTwoSgsNeitherEnabling",
+			InputConfig: "sg_testing1_new_2SGs_none_enabling",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// respond enabled only on part of the TCP connection
 	{
-		Name:          "PartialTCPRespond",
-		InputConfig:   "sg_testing1_new_respond_partly",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "PartialTCPRespond",
+			InputConfig: "sg_testing1_new_respond_partly",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// original path as well as respond enabled only on part of the TCP connection
 	{
-		Name:          "PartialTCPAndRespond",
-		InputConfig:   "sg_testing1_new_partly_TCP_and_respond",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "PartialTCPAndRespond",
+			InputConfig: "sg_testing1_new_partly_TCP_and_respond",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// respond w.r.t. specific ports query
-	{
-		Name:          "TCPRespondPortsQuery",
-		InputConfig:   "sg_testing1_new_respond_partly",
+	{VpcTestCommon: commonvpc.VpcTestCommon{
+		Name:        "TCPRespondPortsQuery",
+		InputConfig: "sg_testing1_new_respond_partly",
+		Format:      vpcmodel.Text,
+	},
 		ESrc:          "vsi3a-ky",
 		EDst:          "vsi1-ky",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -513,148 +607,181 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   180,
 		EDstMinPort:   20,
 		EDstMaxPort:   60,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// the following three tests are within a single VPC in a multiVPC context
 	// 2 vsi connection
 	{
-		Name:          "multiVPCVsiToVsi",
-		InputConfig:   "tgw_larger_example",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCVsiToVsi",
+			InputConfig: "tgw_larger_example",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi31-ky",
 		EDst:          "vsi32-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// vsi to external connection
 	{
-		Name:          "multiVPCVsiToExternal",
-		InputConfig:   "tgw_larger_example",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCVsiToExternal",
+			InputConfig: "tgw_larger_example",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "test-vpc0-ky/vsi1-ky",
 		EDst:          "172.217.22.46/32",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// vsi to external missing router
 	{
-		Name:          "multiVPCVsiToExternalMissingRouter",
-		InputConfig:   "tgw_larger_example",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCVsiToExternalMissingRouter",
+			InputConfig: "tgw_larger_example",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi11-ky",
 		EDst:          "172.217.22.46/32",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// tests for routing between vpcs:
 	// connection enabled by specific allow prefix
 	{
-		Name:          "tgwEnabledSpecificFilter",
-		InputConfig:   "tg-prefix-filters",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwEnabledSpecificFilter",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "ky-vsi1-subnet20",
 		EDst:          "ky-vsi0-subnet2",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// connection enabled by default tgw definition (2 examples from 2 different input files, one detailed format)
 	{
-		Name:          "tgwEnableDefaultFilter",
-		InputConfig:   "tg-prefix-filters",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwEnableDefaultFilter",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "ky-vsi0-subnet5",
 		EDst:          "ky-vsi0-subnet11",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "tgwAnotherEnableDefaultDifFile",
-		InputConfig: "tgw_larger_example",
-		ESrc:        "vsi11-ky",
-		EDst:        "vsi21a-ky",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwAnotherEnableDefaultDifFile",
+			InputConfig: "tgw_larger_example",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "vsi11-ky",
+		EDst: "vsi21a-ky",
 	},
 	// connection disabled by specific deny prefix
 	{
-		Name:          "tgwDisabledDenyPrefix",
-		InputConfig:   "tg-prefix-filters",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwDisabledDenyPrefix",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "ky-vsi1-subnet20", // test-vpc2-ky
 		EDst:          "ky-vsi0-subnet0",  // test-vpc0-ky
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "tgwDisabledDenyPrefix",
-		InputConfig: "tg-prefix-filters",
-		ESrc:        "ky-vsi1-subnet20", // test-vpc2-ky
-		EDst:        "ky-vsi0-subnet0",  // test-vpc0-ky
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwDisabledDenyPrefix",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "ky-vsi1-subnet20", // test-vpc2-ky
+		EDst: "ky-vsi0-subnet0",  // test-vpc0-ky
 	},
 	{
-		Name:        "tgwAnotherExampleEnabledConn",
-		InputConfig: "tg-prefix-filters",
-		ESrc:        "ky-vsi0-subnet5",
-		EDst:        "ky-vsi0-subnet11",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwAnotherExampleEnabledConn",
+			InputConfig: "tg-prefix-filters", Format: vpcmodel.Text,
+		},
+		ESrc: "ky-vsi0-subnet5",
+		EDst: "ky-vsi0-subnet11",
 	},
 	{
-		Name:          "tgwExampleCidr",
-		InputConfig:   "tg-prefix-filters",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwExampleCidr",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "ky-vsi1-subnet20",
 		EDst:          "10.240.0.0/21",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:        "tgwSubnetToSubnet",
-		InputConfig: "tgw_larger_example",
-		ESrc:        "test-vpc1-ky/subnet11-ky",
-		EDst:        "subnet32-ky",
-		Format:      vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwSubnetToSubnet",
+			InputConfig: "tgw_larger_example",
+			Format:      vpcmodel.Text,
+		},
+		ESrc: "test-vpc1-ky/subnet11-ky",
+		EDst: "subnet32-ky",
 	},
 	// connection disabled by lack of cross-vpc router (tgw)
 	{
-		Name:          "multiVPCNoCrossVPCRouter",
-		InputConfig:   "multiVpc_larger_example_dup_names",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCNoCrossVPCRouter",
+			InputConfig: "multiVpc_larger_example_dup_names",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi1-ky",  // test-vpc0-ky
 		EDst:          "vsi31-ky", // test-vpc3-ky
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "multiVPCSameNamesCrossVPCNoTgw",
-		InputConfig:   "multiVpc_larger_example_dup_names",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCSameNamesCrossVPCNoTgw",
+			InputConfig: "multiVpc_larger_example_dup_names",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "test-vpc0-ky/vsi1-ky",
 		EDst:          "test-vpc1-ky/vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	{
-		Name:          "multiVPCSameNamesCrossVPCByAddrNoTgw",
-		InputConfig:   "multiVpc_larger_example_dup_names",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiVPCSameNamesCrossVPCByAddrNoTgw",
+			InputConfig: "multiVpc_larger_example_dup_names",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "10.240.3.5",  // vsi3a of test-vpc0-ky
 		EDst:          "10.240.12.4", // vsi2 of test-vpc1-ky
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// TCP respond disabled by the tgw
 	{
-		Name:          "tgwDisablesTCPRespond",
-		InputConfig:   "tg-prefix-filters",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "tgwDisablesTCPRespond",
+			InputConfig: "tg-prefix-filters",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "ky-vsi0-subnet0",
 		EDst:          "ky-vsi0-subnet10",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// iks-node to iks-node
 	{
-		Name:          "IksNodeToIksNode",
-		InputConfig:   "iks_config_object",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "IksNodeToIksNode",
+			InputConfig: "iks_config_object",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "192.168.8.4",
 		EDst:          "192.168.4.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// vpe to iks-node, not all rules relevant
 	{
-		Name:          "vpeToIksNodeSubsetRules",
-		InputConfig:   "iks_config_object",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "vpeToIksNodeSubsetRules",
+			InputConfig: "iks_config_object",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "192.168.40.5",
 		EDst:          "192.168.0.4",
 		EProtocol:     netp.ProtocolStringTCP,
@@ -662,13 +789,15 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// iks-node no connection (specific protocol)
 	{
-		Name:          "vpeToIksNodeNoProtocolConn",
-		InputConfig:   "iks_config_object",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "vpeToIksNodeNoProtocolConn",
+			InputConfig: "iks_config_object",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "192.168.40.5",
 		EDst:          "192.168.0.4",
 		EProtocol:     netp.ProtocolStringICMP,
@@ -676,47 +805,52 @@ var explainTests = []*commonvpc.VpcGeneralTest{
 		ESrcMaxPort:   connection.MaxPort,
 		EDstMinPort:   connection.MinPort,
 		EDstMaxPort:   connection.MaxPort,
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// load_balancer to iks-node, which is a pool member, should be allowed
 	{
-		Name:          "LBToIksNode",
-		InputConfig:   "iks_config_object",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "LBToIksNode",
+			InputConfig: "iks_config_object",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
 		EDst:          "192.168.4.4",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// load_balancer to resIP, should be blocked by LB rule
 	{
-		Name:          "LBToResIPNode",
-		InputConfig:   "iks_config_object",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "LBToResIPNode",
+			InputConfig: "iks_config_object",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "kube-clusterid:1-8fdd1d0a2ce34deba99d0f885451b1ca",
 		EDst:          "192.168.32.5",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// multiNI to single NI
 	{
-		Name:          "multiNIsToSingleNI",
-		InputConfig:   "mult_NIs_single_VSI",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "multiNIsToSingleNI",
+			InputConfig: "mult_NIs_single_VSI",
+			Format:      vpcmodel.Text,
+		},
 		ESrc:          "vsi3-ky",
 		EDst:          "vsi1-ky",
-		Format:        vpcmodel.Text,
 		DetailExplain: true,
 	},
 	// todo: add a test in which two SGs are connected to a VSI but only one of them enables the connection
 }
 
-func TestAll(t *testing.T) {
+func TestExplain(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &IBMresourcesContainer{}
-			commonvpc.RunExplainTest(tt, t, rc)
+			tt.TestSingleExplain(t, commonvpc.OutputComparison, rc, tt.Name)
 		})
 	}
 	fmt.Println("done")
@@ -724,15 +858,15 @@ func TestAll(t *testing.T) {
 
 // uncomment the function below for generating the expected output files instead of comparing
 
-/*func TestAllWithGeneration(t *testing.T) {
+/*
+func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		tt.Mode = commonvpc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &IBMresourcesContainer{}
-			commonvpc.RunExplainTest(tt, t, rc)
+			tt.TestSingleExplain(t, commonvpc.OutputGeneration, rc, tt.Name)
 		})
 	}
 	fmt.Println("done")
