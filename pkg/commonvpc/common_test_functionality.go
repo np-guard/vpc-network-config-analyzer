@@ -213,46 +213,6 @@ func (tt *VpcTestCommon) RunTestPerUseCase(t *testing.T,
 	return nil
 }
 
-//func (tt *VpcAnalysisTest) RunTest(t *testing.T, testDir string, rc ResourcesContainer) {
-//	// init test - set the input/output file names according to test name
-//	tt.InitTest()
-//
-//	// get vpcConfigs obj from parsing + analyzing input config file
-//	vpcConfigs := GetVPCConfigs(t, tt, true, rc)
-//	var vpcConfigs2nd *vpcmodel.MultipleVPCConfigs
-//	diffUseCase := false
-//	explainUseCase := false
-//	for _, useCase := range tt.UseCases {
-//		if useCase == vpcmodel.SubnetsDiff || useCase == vpcmodel.EndpointsDiff {
-//			diffUseCase = true
-//		}
-//		if useCase == vpcmodel.Explain {
-//			explainUseCase = true
-//		}
-//	}
-//	if diffUseCase {
-//		vpcConfigs2nd = GetVPCConfigs(t, tt, false, rc)
-//		vpcConfigs.SetConfigsToCompare(vpcConfigs2nd.Configs())
-//	} else { // inputConfig2nd should be ignored if not diffUseCase
-//		tt.InputConfig2nd = ""
-//	}
-//
-//	var explanationArgs *vpcmodel.ExplanationArgs
-//	if explainUseCase {
-//		explanationArgs = vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
-//			tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, tt.DetailExplain)
-//	}
-//
-//	// generate actual output for all use cases specified for this test
-//	for _, uc := range tt.UseCases {
-//		err := RunTestPerUseCase(t, tt, vpcConfigs, uc, tt.Mode, testDir, explanationArgs)
-//		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
-//	}
-//	for uc, outFile := range tt.ActualOutput {
-//		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
-//	}
-//}
-
 func getTestFileSuffix(format vpcmodel.OutFormat) (suffix string, err error) {
 	switch format {
 	case vpcmodel.Text:
