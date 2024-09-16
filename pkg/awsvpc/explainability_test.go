@@ -106,7 +106,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 }
 
-func TestExplain(t *testing.T) {
+func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]

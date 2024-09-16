@@ -82,7 +82,7 @@ var lintTests = []*commonvpc.VpcLintTest{
 	},
 }
 
-func TestAllLint(t *testing.T) {
+func TestLintWithComparsion(t *testing.T) {
 	// lintTests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
@@ -98,7 +98,7 @@ func TestAllLint(t *testing.T) {
 
 // uncomment the function below for generating the expected output files instead of comparing
 
-/*func TestAllLintWithGeneration(t *testing.T) {
+/*func TestLintWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]

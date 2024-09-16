@@ -756,7 +756,7 @@ var tests = []*commonvpc.VpcAnalysisTest{
 
 // uncomment the function below to run for updating the expected output
 /*
-func TestAllWithGeneration(t *testing.T) {
+func TestReportWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
@@ -765,7 +765,7 @@ func TestAllWithGeneration(t *testing.T) {
 	fmt.Println("done")
 }
 */
-func TestAllWithComparison(t *testing.T) {
+func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]

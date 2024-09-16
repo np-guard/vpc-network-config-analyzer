@@ -72,7 +72,7 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	fmt.Println("done")
 }*/
 
-func TestAllWithComparison(t *testing.T) {
+func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]

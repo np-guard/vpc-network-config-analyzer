@@ -843,7 +843,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	// todo: add a test in which two SGs are connected to a VSI but only one of them enables the connection
 }
 
-func TestExplain(t *testing.T) {
+func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
@@ -859,7 +859,7 @@ func TestExplain(t *testing.T) {
 // uncomment the function below for generating the expected output files instead of comparing
 
 /*
-func TestAllWithGeneration(t *testing.T) {
+func TestExplainWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
