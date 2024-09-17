@@ -137,7 +137,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	egressBlocking := !egressEnabled && needEgress
 	isExternal := src.IsExternal() || dst.IsExternal()
 	var externalRouterHeader, crossRouterFilterHeader, loadBalancerHeader, resourceEffectHeader,
-		crossRouterFilterDetails, loadBalancerDetails, details string
+		crossRouterFilterDetails, loadBalancerDetails string
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	privateSubnetRule := g.CommonProperties.expDetails.privateSubnetRule
 	if externalRouter != nil && isExternal {
@@ -168,33 +168,46 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	// details is "4" above
 	egressRulesDetails, ingressRulesDetails := rules.rulesDetailsStr(allRulesDetails, filtersRelevant, needEgress,
 		needIngress, privateSubnetRule)
-	conn := g.CommonProperties.Conn
-	if verbose {
-		enabledOrDisabledStr := "enabled"
-		if conn.allConn.IsEmpty() {
-			enabledOrDisabledStr = "disabled"
-		}
-		details = "\nDetails:\n~~~~~~~~\nPath is " + enabledOrDisabledStr + "; The relevant rules are:\n" +
-			loadBalancerDetails + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
-		if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
-			respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
-			// for respond rules needIngress and needEgress are switched
-			if filtersRelevant[statelessLayerName] {
-				respondEgressDetails, respondsIngressDetails = expDetails.respondRules.rulesDetailsStr(allRulesDetails,
-					filtersRelevant, needIngress, needEgress, privateSubnetRule)
-			}
-			if expDetails.crossVpcRouter != nil {
-				crossVpcRespondDetails, _ = crossVpcRouter.StringOfRouterRules(expDetails.crossVPCRespondRules,
-					true)
-			}
-			details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
-				respondsIngressDetails
-		}
-	}
+	details := g.explainabilityLineDetailStr(verbose, loadBalancerDetails, egressRulesDetails, crossRouterFilterDetails,
+		ingressRulesDetails, allRulesDetails, needIngress, needEgress)
 	egressIngressIntersectBlock := egressIngressIntersectBlockStr(ingressEnabled, egressEnabled, expDetails.ingressConn,
 		expDetails.egressConn)
 	return g.explainPerCaseStr(c, src, dst, connQuery, crossVpcConnection, ingressBlocking, egressBlocking,
 		loadBalancerBlocking, missingExternalRouter, egressIngressIntersectBlock, noConnection, resourceEffectHeader, path, details)
+}
+
+func (g *groupedConnLine) explainabilityLineDetailStr(verbose bool, loadBalancerDetails, egressRulesDetails,
+	crossRouterFilterDetails, ingressRulesDetails string, allRulesDetails *rulesDetails,
+	needIngress, needEgress bool) (details string) {
+	if !verbose {
+		return ""
+	}
+	conn := g.CommonProperties.Conn
+	enabledOrDisabledStr := "enabled"
+	if conn.allConn.IsEmpty() {
+		enabledOrDisabledStr = "disabled"
+	}
+	details = "\nDetails:\n~~~~~~~~\nPath is " + enabledOrDisabledStr + "; The relevant rules are:\n" +
+		loadBalancerDetails + egressRulesDetails + crossRouterFilterDetails + ingressRulesDetails
+	expDetails := g.CommonProperties.expDetails
+	filtersRelevant := expDetails.filtersRelevant
+	crossVpcRouter := expDetails.crossVpcRouter
+	privateSubnetRule := expDetails.privateSubnetRule
+	if respondRulesRelevant(conn, filtersRelevant, crossVpcRouter) {
+		respondEgressDetails, respondsIngressDetails, crossVpcRespondDetails := "", "", ""
+		// for respond rules needIngress and needEgress are switched
+		if filtersRelevant[statelessLayerName] {
+			respondEgressDetails, respondsIngressDetails = expDetails.respondRules.rulesDetailsStr(allRulesDetails,
+				filtersRelevant, needIngress, needEgress, privateSubnetRule)
+		}
+		if crossVpcRouter != nil {
+			crossVpcRespondDetails, _ = crossVpcRouter.StringOfRouterRules(expDetails.crossVPCRespondRules,
+				true)
+		}
+		details += respondDetailsHeader(conn) + respondEgressDetails + crossVpcRespondDetails +
+			respondsIngressDetails
+	}
+	return details
 }
 
 func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *connection.Set) string {
