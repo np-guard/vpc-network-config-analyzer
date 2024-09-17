@@ -147,8 +147,8 @@ func getTestFileName(testName string,
 	return expectedFileName, actualFileName, nil
 }
 
-// GetVPCConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
-func (tt *VpcTestCommon) GetVPCConfigs(t *testing.T, inputConfig string, rc ResourcesContainer) *vpcmodel.MultipleVPCConfigs {
+// getVPCConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
+func (tt *VpcTestCommon) getVPCConfigs(t *testing.T, inputConfig string, rc ResourcesContainer) *vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(GetTestsDirInput(), inputConfig)
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
@@ -161,9 +161,9 @@ func (tt *VpcTestCommon) GetVPCConfigs(t *testing.T, inputConfig string, rc Reso
 	return vpcConfigs
 }
 
-// InitTest based on the test name, set the input config file name, and the output
+// initTest based on the test name, set the input config file name, and the output
 // files names (actual and expected), per use case
-func (tt *VpcTestCommon) InitTest() {
+func (tt *VpcTestCommon) initTest() {
 	tt.InputConfig = InputFilePrefix + tt.InputConfig + JSONOutSuffix
 	tt.ExpectedOutput = map[vpcmodel.OutputUseCase]string{}
 	tt.ActualOutput = map[vpcmodel.OutputUseCase]string{}
@@ -190,8 +190,8 @@ func (tt *VpcTestCommon) initTestFileNames(uc vpcmodel.OutputUseCase,
 	return nil
 }
 
-// RunTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
-func (tt *VpcTestCommon) RunTestPerUseCase(t *testing.T,
+// runTestPerUseCase runs the connectivity analysis for the required use case and compares/generates the output
+func (tt *VpcTestCommon) runTestPerUseCase(t *testing.T,
 	cConfigs *vpcmodel.MultipleVPCConfigs,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
@@ -332,14 +332,14 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc ResourcesContainer,
 	explanationArgs *vpcmodel.ExplanationArgs) {
 	// init test - set the input/output file names according to test name
-	tt.InitTest()
+	tt.initTest()
 
 	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, rc)
+	vpcConfigs := tt.getVPCConfigs(t, tt.InputConfig, rc)
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.RunTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, explanationArgs)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, explanationArgs)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {

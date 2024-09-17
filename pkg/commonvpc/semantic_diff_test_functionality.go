@@ -31,16 +31,16 @@ func (tt *VpcDiffTest) TestDiffSingle(t *testing.T, mode testMode, rc ResourcesC
 func (tt *VpcDiffTest) runDiffSingleTest(t *testing.T, testDir string, rc ResourcesContainer) {
 	// init test - set the input/output file names according to test name
 	tt.InputConfig2nd = InputFilePrefix + tt.InputConfig + secJSONOutSuffix
-	tt.InitTest()
+	tt.initTest()
 
 	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, rc)
-	vpcConfigs2nd := tt.GetVPCConfigs(t, tt.InputConfig2nd, rc)
+	vpcConfigs := tt.getVPCConfigs(t, tt.InputConfig, rc)
+	vpcConfigs2nd := tt.getVPCConfigs(t, tt.InputConfig2nd, rc)
 	vpcConfigs.SetConfigsToCompare(vpcConfigs2nd.Configs())
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.RunTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, nil)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, nil)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing diff's actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {

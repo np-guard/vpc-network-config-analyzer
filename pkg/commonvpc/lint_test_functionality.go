@@ -36,10 +36,10 @@ func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc ResourcesContainer) {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints}
 	// init test - set the input/output file names according to test name
-	tt.InitTest()
+	tt.initTest()
 
 	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, rc)
+	vpcConfigs := tt.getVPCConfigs(t, tt.InputConfig, rc)
 
 	// generate actual output for all use cases specified for this test
 	err := tt.runLintTestPerUseCase(t, vpcConfigs.Configs(), lintOut)
