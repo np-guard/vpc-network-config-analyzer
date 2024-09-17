@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -43,50 +41,22 @@ var synthesisTests = []*commonvpc.VpcTestCommon{
 }
 
 // uncomment the function below to run for updating the expected output
-/*
-func TestAllWithGeneration(t *testing.T) {
+
+/*func TestAllWithGeneration(t *testing.T) {
+	for testIdx := range synthesisTests {
+		tt := synthesisTests[testIdx]
+		tt.Format = vpcmodel.Synthesis
+		tt.TestReportSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+	}
+	fmt.Println("done")
+}*/
+
+func TestSynthesisWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
-		tt.Mode = commonvpc.OutputGeneration
-		tt.Name = tt.InputConfig
 		tt.Format = vpcmodel.Synthesis
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			runTestSynthesis(tt, t)
-		})
+		tt.TestReportSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
-}
-*/
-
-func TestAllSynthesis(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range synthesisTests {
-		tt := synthesisTests[testIdx]
-		tt.Mode = commonvpc.OutputComparison
-		tt.Name = tt.InputConfig
-		tt.Format = vpcmodel.Synthesis
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			runTestSynthesis(tt, t)
-		})
-	}
-	fmt.Println("done")
-}
-
-func runTestSynthesis(tt *commonvpc.VpcTestCommon, t *testing.T) {
-	// init test - set the input/output file names according to test name
-	tt.InitTest()
-
-	// get vpcConfigs obj from parsing + analyzing input config file
-	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, &IBMresourcesContainer{})
-	// generate actual output for all use cases specified for this test
-	for _, uc := range tt.UseCases {
-		err := tt.RunTestPerUseCase(t, vpcConfigs, uc, tt.Mode, synthesisOut, nil)
-		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
-	}
-	for uc, outFile := range tt.ActualOutput {
-		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
-	}
 }

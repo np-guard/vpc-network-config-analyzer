@@ -345,3 +345,12 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc Re
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
+
+func (tt *VpcTestCommon) TestReportSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
+	tt.Name = testName
+	tt.setMode(mode)
+	t.Run(tt.Name, func(t *testing.T) {
+		t.Parallel()
+		tt.runSingleCommonTest(t, testDir, rc, nil)
+	})
+}
