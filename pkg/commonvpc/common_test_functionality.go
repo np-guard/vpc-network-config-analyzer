@@ -183,8 +183,8 @@ func (tt *VpcTestCommon) initTestFileNames(uc vpcmodel.OutputUseCase,
 	if err != nil {
 		return err
 	}
-	tt.ActualOutput[uc] = filepath.Join(GetTestsDirOut(testDirOut), actualFileName)
-	tt.ExpectedOutput[uc] = filepath.Join(GetTestsDirOut(testDirOut), expectedFileName)
+	tt.ActualOutput[uc] = filepath.Join(getTestsDirOut(testDirOut), actualFileName)
+	tt.ExpectedOutput[uc] = filepath.Join(getTestsDirOut(testDirOut), expectedFileName)
 	return nil
 }
 
@@ -212,7 +212,7 @@ func (tt *VpcTestCommon) RunTestPerUseCase(t *testing.T,
 	if err != nil {
 		return err
 	}
-	if err := CompareOrRegenerateOutputPerTest(t, mode, actualOutput, outDir, tt.Name, tt.ExpectedOutput, uc); err != nil {
+	if err := compareOrRegenerateOutputPerTest(t, mode, actualOutput, outDir, tt.Name, tt.ExpectedOutput, uc); err != nil {
 		return err
 	}
 	return nil
@@ -253,8 +253,8 @@ func cleanStr(str string) string {
 // compareTextualResult is called in case of output mismatch, to provide more details on the difference
 func compareTextualResult(expected, actual, testDir string) {
 	var err1, err2 error
-	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(GetTestsDirOut(testDir), "expected.txt"))
-	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(GetTestsDirOut(testDir), "actual.txt"))
+	_, err1 = vpcmodel.WriteToFile(expected, filepath.Join(getTestsDirOut(testDir), "expected.txt"))
+	_, err2 = vpcmodel.WriteToFile(actual, filepath.Join(getTestsDirOut(testDir), "actual.txt"))
 	if err1 != nil || err2 != nil {
 		fmt.Printf("compareTextualResult: error writing actual/expected output to files: %s, %s \n", err1, err2)
 	}
@@ -275,8 +275,8 @@ func compareTextualResult(expected, actual, testDir string) {
 	}
 }
 
-// GetTestsDirOut returns the path to the dir where test output files are located
-func GetTestsDirOut(testDir string) string {
+// getTestsDirOut returns the path to the dir where test output files are located
+func getTestsDirOut(testDir string) string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, examplesDir+outDir+testDir)
 }
@@ -287,7 +287,7 @@ func GetTestsDirInput() string {
 	return filepath.Join(currentDir, examplesDir+inputDir)
 }
 
-func CompareOrRegenerateOutputPerTest(t *testing.T, mode testMode, actualOutput, testDir, name string,
+func compareOrRegenerateOutputPerTest(t *testing.T, mode testMode, actualOutput, testDir, name string,
 	expectedOutput map[vpcmodel.OutputUseCase]string, uc vpcmodel.OutputUseCase) error {
 	if mode == OutputComparison {
 		expectedOutput, err := os.ReadFile(expectedOutput[uc])
