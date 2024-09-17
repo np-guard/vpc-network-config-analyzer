@@ -201,7 +201,7 @@ func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressCon
 	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
 		return fmt.Sprintf("\tconnectivity is blocked since traffic patterns allowed at ingress are disjoint "+
 			"from the traffic patterns allowed at egress.\n\t"+
-			"allowed egress traffic:: %v, allowed ingress traffic: %v", egressConn, ingressConn)
+			"allowed egress traffic: %v, allowed ingress traffic: %v", egressConn, ingressConn)
 	}
 	return ""
 }

@@ -38,7 +38,7 @@ TCP response is enabled; The relevant rules are:
 
 No connectivity from r1[10.240.48.198] to q1[10.240.32.91];
 	connectivity is blocked since traffic patterns allowed at ingress are disjoint from the traffic patterns allowed at egress.
-	allowed egress traffic:: protocol: TCP dst-ports: 9080, allowed ingress traffic: protocol: UDP
+	allowed egress traffic: protocol: TCP dst-ports: 9080, allowed ingress traffic: protocol: UDP
 
 Egress: security group GroupId:22 allows connection; network ACL acl1 allows connection
 Ingress: network ACL acl1 allows connection; security group GroupId:15 allows connection
