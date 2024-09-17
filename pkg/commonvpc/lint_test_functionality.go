@@ -1,13 +1,21 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package commonvpc
 
 import (
 	"fmt"
 	"testing"
 
+	"path/filepath"
+
+	"github.com/stretchr/testify/require"
+
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/linter"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
-	"github.com/stretchr/testify/require"
-	"path/filepath"
 )
 
 type VpcLintTest struct {

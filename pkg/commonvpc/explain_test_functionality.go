@@ -1,12 +1,19 @@
+/*
+Copyright 2023- IBM Inc. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 package commonvpc
 
 import (
 	"fmt"
-	"github.com/np-guard/models/pkg/netp"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type VpcExplainTest struct {
