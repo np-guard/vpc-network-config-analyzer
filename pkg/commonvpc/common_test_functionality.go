@@ -9,10 +9,11 @@ package commonvpc
 import (
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"path/filepath"
 
