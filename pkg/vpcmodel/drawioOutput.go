@@ -113,6 +113,31 @@ func (d *DrawioOutputFormatter) createNodes() {
 			}
 		}
 	}
+	d.createPublicNetworkIcon()
+}
+
+// createPublicNetworkIcon() - will always create the the iconTreeNode that represent the Public Network
+// in case that it has no connection, we will not show it in drawio
+// however, we always create it since it's needed for holding the explainability information of the public network square
+func (d *DrawioOutputFormatter) createPublicNetworkIcon() {
+	if d.cConfigs.publicNetworkNode == nil {
+		return
+	}
+	d.gen.publicNetwork.PublicNetworkIcon = d.gen.TreeNode(d.cConfigs.publicNetworkNode)
+	// check if to show the icon, only if it is a src/dst:
+	publicIconHasConnection := false
+	for _, vpcConn := range d.gConns {
+		hasConnFunc := func(line *groupedConnLine) bool {
+			return line.Src == d.cConfigs.publicNetworkNode || line.Dst == d.cConfigs.publicNetworkNode
+		}
+		if slices.IndexFunc(vpcConn.GroupedLines, hasConnFunc) >= 0 {
+			publicIconHasConnection = true
+			break
+		}
+	}
+	if !publicIconHasConnection {
+		d.gen.publicNetwork.PublicNetworkIcon.SetNotShownInDrawio()
+	}
 }
 
 func (d *DrawioOutputFormatter) createFilters() {
@@ -128,6 +153,10 @@ func (d *DrawioOutputFormatter) createFilters() {
 func (d *DrawioOutputFormatter) createRouters() {
 	for vpcResourceID, vpcConfig := range d.cConfigs.Configs() {
 		for _, r := range vpcConfig.RoutingResources {
+			if r.IsMultipleVPCs() != vpcConfig.IsMultipleVPCsConfig {
+				// MultipleVPCs routers might exist at a non MultipleVPCs config (and vice versa?), it should be ignored
+				continue
+			}
 			if rTn := d.gen.TreeNode(r); rTn != nil {
 				if vpcConfig.IsMultipleVPCsConfig {
 					d.multiVpcRouters[vpcResourceID] = rTn.(drawio.IconTreeNodeInterface)

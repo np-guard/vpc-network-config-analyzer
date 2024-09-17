@@ -17,7 +17,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		security group sg1-ky has no relevant allow rules
+		security group sg1-ky has no relevant rules
 		network ACL acl1-ky allows connection with the following allow rules
 			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 

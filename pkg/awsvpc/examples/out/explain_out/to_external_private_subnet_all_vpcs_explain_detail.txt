@@ -18,7 +18,7 @@ Details:
 Path is disabled; The relevant rules are:
 	Egress:
 		Egress to public internet is blocked since subnet application is private
-		security group GroupId:42 has no relevant allow rules
+		security group GroupId:42 has no relevant rules
 		network ACL NetworkAclId:65 allows connection with the following allow rules
 			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 

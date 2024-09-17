@@ -11,8 +11,6 @@ import (
 	"slices"
 
 	"github.com/np-guard/models/pkg/connection"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
@@ -46,17 +44,15 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
-	// (no external src/dst).
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
-	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
-	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules affecting connection given externalRouter; e.g. NACL is irrelevant if same subnet
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
+	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
@@ -304,64 +300,30 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		default: // no rules in this layer
 			continue
 		}
-		mergedRulesInLayer := []RulesInTable{} // both deny and allow in layer
-		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
-		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
-		// translates []RulesInTable to a map for access efficiency
-		allowRulesMap := rulesInLayerToMap(allowForLayer)
-		denyRulesMap := rulesInLayerToMap(denyForLayer)
-		for filterIndex := range allIndexes {
-			allowRules := allowRulesMap[filterIndex]
-			denyRules := denyRulesMap[filterIndex]
-			mergedRules := []int{}
-			// todo: once we update to go.1.22 use slices.Concat
-			mergedRules = append(mergedRules, allowRules.Rules...)
-			mergedRules = append(mergedRules, denyRules.Rules...)
-			slices.Sort(mergedRules)
-			var rType RulesType
-			switch {
-			case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
-				rType = BothAllowDeny
-			case len(allowRules.Rules) > 0:
-				rType = OnlyAllow
-			case len(denyRules.Rules) > 0:
-				rType = OnlyDeny
-			default: // no rules
-				rType = NoRules
-			}
-			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType}
-			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+		// both deny and allow rules in layer, namely, the layer is NaclLayer. There is a single nacl per subnet.
+		// Thus, if we got here the layer has a single table in it with both allow and deny rules.
+		// Namely, allowForLayer and denyForLayer each have a single element originating from the same table
+		allowRules := allowForLayer[0]
+		denyRules := denyForLayer[0]
+		mergedRules := slices.Concat(allowRules.Rules, denyRules.Rules)
+		slices.Sort(mergedRules)
+		var rType RulesType
+		switch {
+		case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+			rType = BothAllowDeny
+		case len(allowRules.Rules) > 0:
+			rType = OnlyAllow
+		case len(denyRules.Rules) > 0:
+			rType = OnlyDeny
+		default: // no rules
+			rType = NoRules
 		}
-		allowDenyMerged[layer] = mergedRulesInLayer
+		filterIndex := allowRules.TableIndex // can be taken either from allowForLayer or from denyForLayer
+		mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
+			TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
+		allowDenyMerged[layer] = []RulesInTable{mergedRulesInFilter}
 	}
 	return allowDenyMerged
-}
-
-type intSet = common.GenericSet[int]
-
-// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
-func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInTable) (indexes intSet) {
-	indexes = intSet{}
-	addIndexesOfFilters(indexes, allowForLayer)
-	addIndexesOfFilters(indexes, denyForLayer)
-	return indexes
-}
-
-// translates rulesInLayer into a map from filter's index to the rules indexes
-func rulesInLayerToMap(rulesInLayer []RulesInTable) map[int]*RulesInTable {
-	mapFilterRules := map[int]*RulesInTable{}
-	for _, rulesInFilter := range rulesInLayer {
-		thisRulesInFilter := rulesInFilter // to make lint happy
-		// do not reference an address of a loop value
-		mapFilterRules[rulesInFilter.TableIndex] = &thisRulesInFilter
-	}
-	return mapFilterRules
-}
-
-func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
-	for _, rulesInFilter := range rulesInLayer {
-		indexes[rulesInFilter.TableIndex] = true
-	}
 }
 
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(

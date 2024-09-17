@@ -56,7 +56,7 @@ func (rules *rulesDetails) stringDetailsOfLayer(filterLayer string, listRulesInF
 	rulesOfLayer := (*rules)[filterLayer]
 	for i, rulesInFilter := range listRulesInFilter {
 		filterName := rulesOfLayer[rulesInFilter.TableIndex].tableName
-		header := getHeaderRulesType(filterLayerName+" "+filterName, rulesInFilter.RulesOfType)
+		header := getHeaderRulesType(filterLayerName+" "+filterName, rulesInFilter.TableHasEffect, rulesInFilter.RulesOfType)
 		details := rules.stringRulesDetails(filterLayer, rulesInFilter.TableIndex, rulesInFilter.Rules)
 		listRulesInFilterSlice[i] += doubleTab + header + details
 	}
@@ -75,41 +75,21 @@ func (rules *rulesDetails) stringRulesDetails(filterLayer string, filterIndex in
 	return strings.Join(strRulesSlice, "")
 }
 
-func getHeaderRulesType(filter string, rType RulesType) string {
+func getHeaderRulesType(filter string, tableEffect TableEffect, rType RulesType) string {
+	partly := ""
+	if tableEffect == PartlyAllow {
+		partly = " partly"
+	}
 	switch rType {
 	case NoRules:
-		return filter + " has no relevant allow rules\n"
+		return filter + " has no relevant rules\n"
 	case OnlyDeny:
 		return filter + " blocks connection with the following deny rules:\n"
 	case BothAllowDeny:
-		return filter + " allows connection with the following allow and deny rules\n"
+		return filter + partly + " allows connection with the following allow and deny rules\n"
 	case OnlyAllow:
-		return filter + " allows connection with the following allow rules\n"
+		return filter + partly + " allows connection with the following allow rules\n"
 	default:
 		return ""
-	}
-}
-
-// listFilterWithAction return, given a layer, map from each of the filter's names in the layer whose index is in
-// listRulesInFilter to true if it allows traffic, false otherwise.
-// To be used by explainability printing functions
-func (rules *rulesDetails) listFilterWithAction(filterLayer string,
-	listRulesInFilter []RulesInTable) map[string]bool {
-	tablesToAction := map[string]bool{}
-	rulesOfLayer := (*rules)[filterLayer]
-	for _, rulesInFilter := range listRulesInFilter {
-		tableName := rulesOfLayer[rulesInFilter.TableIndex].tableName
-		tablesToAction[tableName] = getFilterAction(rulesInFilter.RulesOfType)
-	}
-	return tablesToAction
-}
-
-// returns true of the filter allows traffic, false if it blocks traffic
-func getFilterAction(rType RulesType) bool {
-	switch rType {
-	case BothAllowDeny, OnlyAllow:
-		return true
-	default:
-		return false
 	}
 }

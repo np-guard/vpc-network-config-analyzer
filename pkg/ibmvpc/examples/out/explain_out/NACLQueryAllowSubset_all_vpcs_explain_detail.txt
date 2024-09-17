@@ -18,7 +18,7 @@ Path is enabled; The relevant rules are:
 	Egress:
 		security group sg1-ky allows connection with the following allow rules
 			id: id:152, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
-		network ACL acl1-ky allows connection with the following allow rules
+		network ACL acl1-ky partly allows connection with the following allow rules
 			name: acl1-out-2, priority: 2, action: allow, direction: outbound, source: 10.240.10.0/24, destination: 161.26.0.0/16, protocol: udp, srcPorts: 1-600, dstPorts: 1-50
 
 ------------------------------------------------------------------------------------------------------------------------
