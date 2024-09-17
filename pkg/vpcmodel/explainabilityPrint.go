@@ -101,7 +101,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //  1. Header describing the query and whether there is a connection. E.g.:
 //     * Connections from ky-vsi0-subnet5[10.240.9.4] to ky-vsi0-subnet11[10.240.80.4]: All Connections
 //     The TCP sub-connection is responsive
-//     * No connections from from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
+//     * No connectivity from from ky-vsi1-subnet20[10.240.128.5] to ky-vsi0-subnet0[10.240.0.5];
 //  2. List of all the different resources effecting the connection and the effect of each. E.g.:
 //
 // cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local-tg-ky denys connection
@@ -110,7 +110,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 //  3. Connection path description. E.g.:
 //     ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> subnet20 -> network ACL acl21-ky ->
 //     test-vpc2-ky -> TGW local-tg-ky -> |
-//     Note: if there is no connection since ingress connection and egress connection intersection is empty, path is not printed
+//     Note: if there is no connectivity since ingress connection and egress connection intersection is empty, path is not printed
 //     since the path is not blocked in a well defined spot
 //
 // 4. Details of enabling and disabling rules/prefixes, including details of each rule
@@ -150,7 +150,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	var crossVpcConnection *connection.Set
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
 		crossVpcRules, src, dst)
-	// noConnection is the 1 above when no connection
+	// noConnection is the 1 above when no connectivity
 	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
 
 	// resourceEffectHeader is "2" above
@@ -199,8 +199,9 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 
 func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *connection.Set) string {
 	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
-		return fmt.Sprintf("\tconnection is blocked since ingress's and egress's connections do not intersect.\n\t"+
-			"egress connection: %v, ingress connection: %v", egressConn, ingressConn)
+		return fmt.Sprintf("\tconnectivity is blocked since traffic patterns allowed at ingress are disjoint "+
+			"from the traffic patterns allowed at egress.\n\t"+
+			"allowed egress traffic:: %v, allowed ingress traffic: %v", egressConn, ingressConn)
 	}
 	return ""
 }
@@ -232,7 +233,7 @@ func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection,
 			blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter),
 			headerPlusPath, details)
-	case egressIngressIntersectBlock != "": // no connection since ingress and egress intersection is empty; don't print path
+	case egressIngressIntersectBlock != "": // no connectivity since ingress and egress intersection is empty; don't print path
 		return fmt.Sprintf("%v%s"+tripleNLVars, noConnection, egressIngressIntersectBlock, resourceEffectHeader, details)
 	default: // there is a connection
 		return existingConnectionStr(c, connQuery, src, dst, conn, path, details)
@@ -289,7 +290,7 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 
 // returns string of header in case a connection fails to exist
 func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
-	return fmt.Sprintf("No connections from %s to %s%s;", src, dst, connHeader(connQuery))
+	return fmt.Sprintf("No connectivity from %s to %s%s;", src, dst, connHeader(connQuery))
 }
 
 // printing when connection exists.

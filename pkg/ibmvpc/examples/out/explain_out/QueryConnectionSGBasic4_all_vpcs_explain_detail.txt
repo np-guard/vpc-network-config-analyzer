@@ -22,7 +22,7 @@ Path is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections from vsi1-ky[10.240.10.4] to Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255 using "protocol: UDP src-ports: 10-100 dst-ports: 443";
+No connectivity from vsi1-ky[10.240.10.4] to Public Internet 161.16.0.0-161.25.255.255,161.27.0.0-161.31.255.255 using "protocol: UDP src-ports: 10-100 dst-ports: 443";
 	connection is blocked at egress
 
 External traffic via PublicGateway: public-gw-ky

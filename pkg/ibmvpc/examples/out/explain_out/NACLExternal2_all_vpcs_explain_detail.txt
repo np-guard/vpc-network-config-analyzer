@@ -3,7 +3,7 @@ Interpreted source(s): vsi1-ky[10.240.10.4]
 Interpreted destination(s): 100.128.0.0/32 (external)
 ==========================================================================
 
-No connections from vsi1-ky[10.240.10.4] to Public Internet 100.128.0.0/32;
+No connectivity from vsi1-ky[10.240.10.4] to Public Internet 100.128.0.0/32;
 	connection is blocked at egress
 
 External traffic via PublicGateway: public-gw-ky
