@@ -61,6 +61,21 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.64.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:22",
+                    "id": "id:23",
+                    "is_default": true,
+                    "name": "cannot-panoramic-defective-upside",
+                    "zone": {
+                        "href": "href:6",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -124,6 +139,34 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.31.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:18",
+                    "id": "id:19",
+                    "is_default": true,
+                    "name": "partake-litter-open-spider",
+                    "zone": {
+                        "href": "href:7",
+                        "name": "us-south-2"
+                    }
+                },
+                {
+                    "cidr": "10.240.128.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:187",
+                    "id": "id:198",
+                    "is_default": true,
+                    "name": "partake-litter-open-spider",
+                    "zone": {
+                        "href": "href:7",
+                        "name": "us-south-3"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -187,6 +230,34 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.12.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-1"
+                    }
+                },
+                {
+                    "cidr": "10.240.11.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -250,6 +321,47 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.2.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-1"
+                    }
+                },
+                {
+                    "cidr": "10.240.1.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-2"
+                    }
+                },
+                {
+                    "cidr": "10.240.3.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-3"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -313,6 +425,21 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.64.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:22",
+                    "id": "id:23",
+                    "is_default": true,
+                    "name": "cannot-panoramic-defective-upside",
+                    "zone": {
+                        "href": "href:6",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -376,6 +503,21 @@
             },
             "resource_type": "vpc",
             "status": "available",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.0.0/24",
+                    "created_at": "2024-03-14T11:29:14.000Z",
+                    "has_subnets": true,
+                    "href": "href:20",
+                    "id": "id:21",
+                    "is_default": true,
+                    "name": "uniquely-dropkick-unnatural-omicrons",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-south-1"
+                    }
+                }
+            ],
             "tags": []
         },
         {
