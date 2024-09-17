@@ -16,48 +16,36 @@ import (
 
 const analysisOut = "analysis_out"
 
-var tests = []*commonvpc.VpcAnalysisTest{
+var tests = []*commonvpc.VpcTestCommon{
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "basic_config_with_sg",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Format:      vpcmodel.Text,
-		},
+		InputConfig: "basic_config_with_sg",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "aws_sg_1",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Format:      vpcmodel.Text,
-		},
+		InputConfig: "aws_sg_1",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "aws_sg_1",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:      vpcmodel.HTML,
-		},
+		InputConfig: "aws_sg_1",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.HTML,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "aws_acl_1",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Format:      vpcmodel.Text,
-		},
+		InputConfig: "aws_acl_1",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "aws_mixed",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Format:      vpcmodel.Text,
-		},
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+		Format:      vpcmodel.Text,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
-			InputConfig: "aws_mixed",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:      vpcmodel.HTML,
-		},
+		InputConfig: "aws_mixed",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.HTML,
 	},
 }
 
