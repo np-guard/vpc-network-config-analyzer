@@ -253,8 +253,8 @@ func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[s
 	// connection of direction: intersection between connections of layers;
 	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
-		potentialRules := rulesLayers[layer]
 		if filterIsRelevant {
+			potentialRules := rulesLayers[layer]
 			conn = conn.Intersect(connOfLayer(potentialRules))
 			actualRules[layer] = potentialRules
 		}
