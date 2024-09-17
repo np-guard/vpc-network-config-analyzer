@@ -309,7 +309,7 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		for _, o := range outputList {
 			// always true
 			if structObj, ok := o.jsonStruct.(*spec.Spec); ok {
-				connLines = append(connLines, renameExternalsSegments(structObj.RequiredConnections, externalsMap, segmentsMap)...)
+				connLines = append(connLines, renameExternalsAndSegments(structObj.RequiredConnections, externalsMap, segmentsMap)...)
 				for k, v := range structObj.Externals {
 					externals[externalsMap[k]] = v
 				}
@@ -322,34 +322,6 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		res, err = writeJSON(spec.Spec{Externals: externals, Segments: segments, RequiredConnections: connLines}, outFile)
 	}
 	return res, err
-}
-
-func getNewExternalSegmentName(externalSegmentName, prefixString string, namesMap map[string]string) string {
-	if val, ok := namesMap[externalSegmentName]; ok {
-		return val
-	}
-	name := fmt.Sprintf("%s%d", prefixString, len(namesMap))
-	namesMap[externalSegmentName] = name
-	return name
-}
-
-func renameExternalsSegments(requiredConnections []spec.SpecRequiredConnectionsElem,
-	externalsMap map[string]string, segmentsMap map[string]string) []spec.SpecRequiredConnectionsElem {
-	connLines := []spec.SpecRequiredConnectionsElem{}
-	for _, conn := range requiredConnections {
-		if conn.Src.Type == spec.ResourceTypeExternal {
-			conn.Src.Name = getNewExternalSegmentName(conn.Src.Name, externalString, externalsMap)
-		} else if conn.Src.Type == spec.ResourceTypeSegment {
-			conn.Src.Name = getNewExternalSegmentName(conn.Src.Name, segmentString, segmentsMap)
-		}
-		if conn.Dst.Type == spec.ResourceTypeExternal {
-			conn.Dst.Name = getNewExternalSegmentName(conn.Dst.Name, externalString, externalsMap)
-		} else if conn.Dst.Type == spec.ResourceTypeSegment {
-			conn.Dst.Name = getNewExternalSegmentName(conn.Dst.Name, segmentString, segmentsMap)
-		}
-		connLines = append(connLines, conn)
-	}
-	return connLines
 }
 
 // WriteDiffOrExplainOutput actual writing the output into file, with required format adjustments
