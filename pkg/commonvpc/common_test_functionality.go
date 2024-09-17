@@ -9,6 +9,7 @@ package commonvpc
 import (
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
@@ -324,5 +325,23 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 		tt.Mode = OutputIgnore
 	} else {
 		tt.Mode = mode
+	}
+}
+
+func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc ResourcesContainer,
+	explanationArgs *vpcmodel.ExplanationArgs) {
+	// init test - set the input/output file names according to test name
+	tt.InitTest()
+
+	// get vpcConfigs obj from parsing + analyzing input config file
+	vpcConfigs := tt.GetVPCConfigs(t, tt.InputConfig, rc)
+
+	// generate actual output for all use cases specified for this test
+	for _, uc := range tt.UseCases {
+		err := tt.RunTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, explanationArgs)
+		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
+	}
+	for uc, outFile := range tt.ActualOutput {
+		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
