@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -29,9 +30,12 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	var all interface{}
 	switch uc {
 	case AllEndpoints:
-		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines)
+		if grouping {
+			return nil, errors.New("report endpoints in synthesis format with grouping is not supported")
+		}
+		all = getSynthesisSpec(conn.GroupedConnectivity.GroupedLines, grouping)
 	case AllSubnets:
-		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines)
+		all = getSynthesisSpec(subnetsConn.GroupedConnectivity.GroupedLines, grouping)
 	}
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
@@ -41,35 +45,45 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
-func handleNameAndType(resource EndpointElem, externals spec.SpecExternals) (
-	resourceName string,
-	resourceType spec.ResourceType) {
+func handleNameAndType(resource EndpointElem, externals spec.SpecExternals, segments spec.SpecSegments, grouping bool) (
+	resourceName string, resourceType spec.ResourceType) {
 	resourceName = resource.SynthesisResourceName()
+	resourceType = resource.SynthesisKind()
 	if resource.IsExternal() {
-		if structObj, ok := resource.(*groupedExternalNodes); ok {
+		if groupObj, ok := resource.(*groupedExternalNodes); ok {
 			// should be always true if src is external"
 			// later in aggregate we change the name with other vpc configs
-			externals[resourceName] = structObj.CidrOrAddress()
+			externals[resourceName] = groupObj.CidrOrAddress()
 		}
 	}
-	resourceType = resource.SynthesisKind()
+	if grouping && !resource.IsExternal() {
+		if groupObj, ok := resource.(*groupedEndpointsElems); ok {
+			// should be always true if src is internal"
+			// later in aggregate we change the name with other vpc configs
+			if len(*groupObj) > 1 {
+				segments[resourceName] = spec.Segment{Items: groupObj.AsNamesList(), Type: spec.SegmentTypeSubnet}
+			} else {
+				// grouping in synthesis only allowed with subnets
+				resourceType = spec.ResourceTypeSubnet
+			}
+		}
+	}
 	return
 }
 
-func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
+func getSynthesisSpec(groupedLines []*groupedConnLine, grouping bool) *spec.Spec {
 	s := spec.Spec{}
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	externals := spec.SpecExternals{}
+	segments := spec.SpecSegments{}
 	sortGroupedLines(groupedLines)
-
 	bidirectionalMap := makeBidirectionalMap(groupedLines)
-
 	for _, groupedLine := range groupedLines {
 		if groupedLine.CommonProperties.Conn.isEmpty() {
 			continue
 		}
-		srcName, srcType := handleNameAndType(groupedLine.Src, externals)
-		dstName, dstType := handleNameAndType(groupedLine.Dst, externals)
+		srcName, srcType := handleNameAndType(groupedLine.Src, externals, segments, grouping)
+		dstName, dstType := handleNameAndType(groupedLine.Dst, externals, segments, grouping)
 		bidirectional, ok := bidirectionalMap[getBidirectionalMapKeyByConnLine(groupedLine, false)]
 
 		if !ok {
@@ -85,6 +99,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine) *spec.Spec {
 	}
 	s.Externals = externals
 	s.RequiredConnections = connLines
+	s.Segments = segments
 	return &s
 }
 
@@ -116,6 +131,34 @@ func makeBidirectionalMap(groupedLines []*groupedConnLine) map[string]bool {
 		}
 	}
 	return bidirectionalMap
+}
+
+func getNewExternalOrSegmentName(externalSegmentName, prefixString string, namesMap map[string]string) string {
+	if val, ok := namesMap[externalSegmentName]; ok {
+		return val
+	}
+	name := fmt.Sprintf("%s%d", prefixString, len(namesMap))
+	namesMap[externalSegmentName] = name
+	return name
+}
+
+func renameExternalsAndSegments(requiredConnections []spec.SpecRequiredConnectionsElem,
+	externalsMap map[string]string, segmentsMap map[string]string) []spec.SpecRequiredConnectionsElem {
+	connLines := []spec.SpecRequiredConnectionsElem{}
+	for _, conn := range requiredConnections {
+		if conn.Src.Type == spec.ResourceTypeExternal {
+			conn.Src.Name = getNewExternalOrSegmentName(conn.Src.Name, externalString, externalsMap)
+		} else if conn.Src.Type == spec.ResourceTypeSegment {
+			conn.Src.Name = getNewExternalOrSegmentName(conn.Src.Name, segmentString, segmentsMap)
+		}
+		if conn.Dst.Type == spec.ResourceTypeExternal {
+			conn.Dst.Name = getNewExternalOrSegmentName(conn.Dst.Name, externalString, externalsMap)
+		} else if conn.Dst.Type == spec.ResourceTypeSegment {
+			conn.Dst.Name = getNewExternalOrSegmentName(conn.Dst.Name, segmentString, segmentsMap)
+		}
+		connLines = append(connLines, conn)
+	}
+	return connLines
 }
 
 func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {

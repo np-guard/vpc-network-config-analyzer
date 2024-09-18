@@ -40,6 +40,17 @@ var synthesisTests = []*commonvpc.VpcGeneralTest{
 		InputConfig: "experiments_env",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 	},
+	// grouping
+	{
+		InputConfig: "acl_testing5",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		Grouping:    true,
+	},
+	{
+		InputConfig: "subnet_grouping",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		Grouping:    true,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
