@@ -283,7 +283,7 @@ func getTestsDirOut(testDir string) string {
 	return filepath.Join(currentDir, examplesDir+outDir+testDir)
 }
 
-// getTestsDir returns the path to the dir where test input files are located
+// GetTestsDirInput returns the path to the dir where test input files are located
 func GetTestsDirInput() string {
 	currentDir, _ := os.Getwd()
 	return filepath.Join(currentDir, examplesDir+inputDir)

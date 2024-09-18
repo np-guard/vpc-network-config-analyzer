@@ -42,7 +42,7 @@ var synthesisTests = []*commonvpc.VpcTestCommon{
 
 // uncomment the function below to run for updating the expected output
 
-/*func TestAllWithGeneration(t *testing.T) {
+/*func TestSynthesisWithGeneration(t *testing.T) {
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
