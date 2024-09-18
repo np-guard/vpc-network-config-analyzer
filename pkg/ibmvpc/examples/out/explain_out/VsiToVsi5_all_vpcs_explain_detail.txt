@@ -3,7 +3,7 @@ Interpreted source(s): vsi3a-ky[10.240.30.5]
 Interpreted destination(s): vsi2-ky[10.240.20.4]
 ====================================================================
 
-No connections from vsi3a-ky[10.240.30.5] to vsi2-ky[10.240.20.4];
+No connectivity from vsi3a-ky[10.240.30.5] to vsi2-ky[10.240.20.4];
 	connection is blocked at ingress
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection

@@ -330,6 +330,12 @@ var tests = []*commonvpc.VpcGeneralTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		Format:      vpcmodel.Text,
 	},
+	{
+		// ports manipulation
+		InputConfig: "sg_testing1_diff_ports",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		Format:      vpcmodel.Text,
+	},
 	// tgw examples
 	{
 		InputConfig: "tgw_basic_example",
