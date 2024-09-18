@@ -1,5 +1,5 @@
 Explaining connectivity from test-vpc0-ky/vsi1-ky to test-vpc1-ky/vsi1-ky
 =========================================================================
 
-No connections from test-vpc0-ky/vsi1-ky to test-vpc1-ky/vsi1-ky;
+No connectivity from test-vpc0-ky/vsi1-ky to test-vpc1-ky/vsi1-ky;
 All connections will be blocked since source and destination are in different VPCs with no transit gateway to connect them
