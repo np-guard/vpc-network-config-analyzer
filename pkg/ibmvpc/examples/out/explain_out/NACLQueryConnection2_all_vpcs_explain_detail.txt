@@ -3,7 +3,7 @@ Interpreted source(s): vsi1-ky[10.240.10.4]
 Interpreted destination(s): 161.26.0.0/16 (external)
 ===============================================================================================
 
-No connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: TCP";
+No connectivity from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: TCP";
 	connection is blocked at egress
 
 External traffic via PublicGateway: public-gw-ky

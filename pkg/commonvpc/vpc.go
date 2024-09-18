@@ -367,9 +367,9 @@ func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 		if err2 != nil {
 			return nil, nil, err2
 		}
-		tableHasEffect := getTableEffect(connQuery, conn)
-		appendToRulesInFilter(&allowRes, &allowRules, index, tableHasEffect, true)
-		appendToRulesInFilter(&denyRes, &denyRules, index, tableHasEffect, false)
+		tableConn, tableHasEffect := getTableConnEffect(connQuery, conn)
+		appendToRulesInFilter(&allowRes, &allowRules, index, tableConn, tableHasEffect, true)
+		appendToRulesInFilter(&denyRes, &denyRules, index, tableConn, tableHasEffect, false)
 	}
 	return allowRes, denyRes, nil
 }
@@ -379,7 +379,7 @@ func (nl *NaclLayer) Name() string {
 }
 
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int,
-	tableEffect vpcmodel.TableEffect, isAllow bool) {
+	tableConn *connection.Set, tableEffect vpcmodel.TableEffect, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -393,6 +393,7 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 		TableIndex:     filterIndex,
 		Rules:          *rules,
 		RulesOfType:    rType,
+		TableConn:      tableConn,
 		TableHasEffect: tableEffect,
 	}
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
@@ -594,11 +595,13 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 				rType = vpcmodel.NoRules
 			}
 			conn := sg.AllowedConnectivity(src, dst, isIngress)
+			tableConn, tableHasEffect := getTableConnEffect(connQuery, conn)
 			rulesInSg := vpcmodel.RulesInTable{
 				TableIndex:     index,
 				Rules:          sgRules,
 				RulesOfType:    rType,
-				TableHasEffect: getTableEffect(connQuery, conn),
+				TableConn:      tableConn,
+				TableHasEffect: tableHasEffect,
 			}
 			allowRes = append(allowRes, rulesInSg)
 		}
@@ -718,19 +721,19 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
-func getTableEffect(connQuery, conn *connection.Set) vpcmodel.TableEffect {
+func getTableConnEffect(connQuery, conn *connection.Set) (*connection.Set, vpcmodel.TableEffect) {
 	switch {
 	case connQuery == nil: // connection not part of query
 		if !conn.IsEmpty() {
-			return vpcmodel.Allow
+			return conn, vpcmodel.Allow
 		} else {
-			return vpcmodel.Deny
+			return conn, vpcmodel.Deny
 		}
 	case conn.Intersect(connQuery).IsEmpty():
-		return vpcmodel.Deny
+		return connection.None(), vpcmodel.Deny
 	case connQuery.ContainedIn(conn):
-		return vpcmodel.Allow
+		return connQuery, vpcmodel.Allow
 	default:
-		return vpcmodel.PartlyAllow
+		return conn.Intersect(connQuery), vpcmodel.PartlyAllow
 	}
 }
