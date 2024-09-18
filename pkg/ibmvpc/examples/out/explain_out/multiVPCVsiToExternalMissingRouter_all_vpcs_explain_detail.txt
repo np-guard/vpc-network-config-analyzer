@@ -3,7 +3,7 @@ Interpreted source(s): vsi11-ky[10.240.11.4]
 Interpreted destination(s): 172.217.22.46/32 (external)
 =============================================================================
 
-No connections from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
+No connectivity from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
 	connection is blocked because there is no resource for external connectivity
 
 Egress: security group sg11-ky allows connection; network ACL acl11-ky allows connection

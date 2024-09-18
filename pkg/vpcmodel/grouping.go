@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
 )
@@ -38,8 +39,8 @@ type explainDetails struct {
 	privateSubnetRule    PrivateSubnetRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
-	ingressEnabled       bool
-	egressEnabled        bool
+	ingressConn          *connection.Set
+	egressConn           *connection.Set
 }
 
 type groupedCommonProperties struct {
@@ -401,8 +402,9 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails
 			crossVPCRespondRules: details.crossVpcRespondRules,
 			loadBalancerRule:     details.loadBalancerRule, privateSubnetRule: details.privateSubnetRule,
 			filtersRelevant: details.filtersRelevant,
-			connEnabled:     details.connEnabled, ingressEnabled: details.ingressEnabled,
-			egressEnabled: details.egressEnabled}
+			connEnabled:     details.connEnabled,
+			ingressConn:     details.ingressConn,
+			egressConn:      details.egressConn}
 		err := g.addLineToExternalGrouping(&res, details.src, details.dst,
 			&groupedCommonProperties{Conn: details.conn, expDetails: expDetails,
 				groupingStrKey: groupingStrKey})

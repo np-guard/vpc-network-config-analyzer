@@ -36,7 +36,7 @@ TCP response is enabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections from vsi3-ky[10.240.10.4] to vsi1-ky[10.240.10.5];
+No connectivity from vsi3-ky[10.240.10.4] to vsi1-ky[10.240.10.5];
 	connection is blocked at egress
 
 Egress: security group sg1-ky does not allow connection

@@ -3,7 +3,7 @@ Interpreted source(s): app1[10.240.20.245]
 Interpreted destination(s): 161.26.0.0 (external)
 ====================================================================
 
-No connections from app1[10.240.20.245] to Public Internet 161.26.0.0/32;
+No connectivity from app1[10.240.20.245] to Public Internet 161.26.0.0/32;
 	connection is blocked at egress
 
 External traffic via InternetGateway: internet_gw
