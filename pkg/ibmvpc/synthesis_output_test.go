@@ -46,7 +46,7 @@ var synthesisTests = []*commonvpc.VpcTestCommon{
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestReportSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -56,7 +56,7 @@ func TestSynthesisWithComparison(t *testing.T) {
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestReportSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

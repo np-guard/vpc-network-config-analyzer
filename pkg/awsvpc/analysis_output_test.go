@@ -55,7 +55,7 @@ var tests = []*commonvpc.VpcTestCommon{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestReportSingleTest(t, commonvpc.OutputGeneration, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputGeneration, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -64,7 +64,7 @@ func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestReportSingleTest(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

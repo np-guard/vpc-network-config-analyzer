@@ -551,7 +551,7 @@ func TestReportWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestReportSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -561,7 +561,7 @@ func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestReportSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -596,7 +596,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestReportSingleTest(t, tt.Mode, &IBMresourcesContainer{}, analysisOut, tt.Name)
+		tt.TestCommonSingleTest(t, tt.Mode, &IBMresourcesContainer{}, analysisOut, tt.Name)
 	}
 	fmt.Println("done")
 }

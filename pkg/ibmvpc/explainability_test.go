@@ -847,11 +847,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &IBMresourcesContainer{}
-			tt.TestSingleExplain(t, commonvpc.OutputComparison, rc, tt.Name)
-		})
+		tt.TestSingleExplain(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }
@@ -863,11 +859,7 @@ func TestExplainWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &IBMresourcesContainer{}
-			tt.TestSingleExplain(t, commonvpc.OutputGeneration, rc, tt.Name)
-		})
+		tt.TestSingleExplain(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }*/

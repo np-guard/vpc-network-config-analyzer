@@ -110,11 +110,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &AWSresourcesContainer{}
-			tt.TestSingleExplain(t, commonvpc.OutputComparison, rc, tt.Name)
-		})
+		tt.TestSingleExplain(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }
@@ -125,11 +121,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		t.Run(tt.Name, func(t *testing.T) {
-			t.Parallel()
-			rc := &AWSresourcesContainer{}
-			tt.TestSingleExplain(t, commonvpc.OutputGeneration, rc, tt.Name)
-		})
+		tt.TestSingleExplain(t, commonvpc.OutputGeneration, &AWSresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }*/

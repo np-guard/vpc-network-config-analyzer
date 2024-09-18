@@ -347,7 +347,7 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc Re
 	}
 }
 
-func (tt *VpcTestCommon) TestReportSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
+func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
 	tt.Name = testName
 	tt.setMode(mode)
 	t.Run(tt.Name, func(t *testing.T) {
