@@ -82,6 +82,14 @@ var diffTests = []*commonvpc.VpcDiffTest{
 			Format:      vpcmodel.Text,
 		},
 	},
+	{
+		// ports manipulation
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "sg_testing1_diff_ports",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+			Format:      vpcmodel.Text,
+		},
+	},
 }
 
 // uncomment the function below to run for updating the expected output
