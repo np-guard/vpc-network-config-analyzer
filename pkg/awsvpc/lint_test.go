@@ -50,7 +50,7 @@ func TestAllLint(t *testing.T) {
 
 // uncomment the function below for generating the expected output files instead of comparing
 
-func TestAllLintWithGeneration(t *testing.T) {
+/*func TestAllLintWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
@@ -62,4 +62,4 @@ func TestAllLintWithGeneration(t *testing.T) {
 		})
 	}
 	fmt.Println("done")
-}
+}*/
