@@ -24,6 +24,14 @@ var lintTests = []*commonvpc.VpcGeneralTest{
 		InputConfig: "aws_mixed",
 		Enable:      []string{"sg-split-subnet"},
 	},
+	{
+		Name:        "aws_sg_1",
+		InputConfig: "aws_sg_1",
+		Enable:      []string{"sg-split-subnet"},
+		Disable: []string{"nacl-split-subnet", "subnet-cidr-overlap", "nacl-unattached",
+			"sg-unattached", "sg-rule-cidr-out-of-range", "nacl-rule-cidr-out-of-range",
+			"tcp-response-blocked", "sg-rule-implied", "nacl-rule-shadowed"},
+	},
 }
 
 func TestAllLint(t *testing.T) {
