@@ -15,7 +15,7 @@ import (
 
 var lintTests = []*commonvpc.VpcGeneralTest{
 	{
-		Name:        "basic_acl1",
+		Name:        "aws_acl1",
 		InputConfig: "aws_acl_1",
 		Enable:      []string{"sg-split-subnet"},
 	},
