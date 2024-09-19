@@ -19,6 +19,11 @@ var lintTests = []*commonvpc.VpcGeneralTest{
 		InputConfig: "aws_acl_1",
 		Enable:      []string{"sg-split-subnet"},
 	},
+	{
+		Name:        "aws_mixed",
+		InputConfig: "aws_mixed",
+		Enable:      []string{"sg-split-subnet"},
+	},
 }
 
 func TestAllLint(t *testing.T) {
