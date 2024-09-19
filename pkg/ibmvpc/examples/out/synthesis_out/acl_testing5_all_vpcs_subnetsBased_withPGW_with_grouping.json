@@ -1,0 +1,146 @@
+{
+    "externals": {
+        "external-0": "8.8.8.8/32"
+    },
+    "required-connections": [
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 443,
+                    "min_destination_port": 443,
+                    "protocol": "TCP"
+                },
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "sub2-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "sub3-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "segment-0",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-0",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_source_port": 443,
+                    "min_source_port": 443,
+                    "protocol": "TCP"
+                },
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "sub3-1-ky",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "sub2-1-ky",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "segment-1",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-1",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 53,
+                    "min_destination_port": 53,
+                    "protocol": "UDP"
+                }
+            ],
+            "dst": {
+                "name": "external-0",
+                "type": "external"
+            },
+            "src": {
+                "name": "segment-2",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "segment-3",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-3",
+                "type": "segment"
+            }
+        }
+    ],
+    "segments": {
+        "segment-0": {
+            "items": [
+                "sub2-1-ky",
+                "sub2-2-ky"
+            ],
+            "type": "subnet"
+        },
+        "segment-1": {
+            "items": [
+                "sub1-1-ky",
+                "sub3-1-ky"
+            ],
+            "type": "subnet"
+        },
+        "segment-2": {
+            "items": [
+                "sub1-1-ky",
+                "sub2-1-ky"
+            ],
+            "type": "subnet"
+        },
+        "segment-3": {
+            "items": [
+                "sub1-1-ky",
+                "sub1-2-ky",
+                "sub1-3-ky"
+            ],
+            "type": "subnet"
+        }
+    }
+}
