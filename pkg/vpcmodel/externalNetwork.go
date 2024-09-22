@@ -84,10 +84,6 @@ func (exn *ExternalNetwork) ExtendedName(c *VPCConfig) string {
 	return exn.Name()
 }
 
-func (exn *ExternalNetwork) ExtendedPrefix(c *VPCConfig) string {
-	return ""
-}
-
 func (exn *ExternalNetwork) IsInternal() bool {
 	return false
 }

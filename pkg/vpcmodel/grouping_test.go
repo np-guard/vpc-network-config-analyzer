@@ -82,9 +82,6 @@ func (m *mockNetIntf) SynthesisKind() spec.ResourceType {
 func (m *mockNetIntf) ExtendedName(c *VPCConfig) string {
 	return m.name
 }
-func (m *mockNetIntf) ExtendedPrefix(c *VPCConfig) string {
-	return ""
-}
 func (m *mockNetIntf) ZoneName() string {
 	return ""
 }
@@ -128,10 +125,7 @@ func (m *mockSubnet) SynthesisKind() spec.ResourceType {
 	return ""
 }
 func (m *mockSubnet) ExtendedName(c *VPCConfig) string {
-	return m.ExtendedPrefix(c) + m.name
-}
-func (m *mockSubnet) ExtendedPrefix(c *VPCConfig) string {
-	return ""
+	return m.name
 }
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes

@@ -95,7 +95,11 @@ func (ni *NetworkInterface) NameForAnalyzerOut() string {
 }
 
 func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return ni.ExtendedPrefix(c) + ni.NameForAnalyzerOut()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = ni.VPC().Name() + vpcmodel.Deliminator
+	}
+	return prefix + ni.NameForAnalyzerOut()
 }
 
 func nameWithBracketsInfo(name, inBrackets string) string {

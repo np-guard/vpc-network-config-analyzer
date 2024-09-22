@@ -42,7 +42,11 @@ func (r *ReservedIP) NameForAnalyzerOut() string {
 }
 
 func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return r.ExtendedPrefix(c) + r.NameForAnalyzerOut()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = r.VPC().Name() + vpcmodel.Deliminator
+	}
+	return prefix + r.NameForAnalyzerOut()
 }
 
 // used for synthesis output
@@ -79,7 +83,11 @@ func (pip *PrivateIP) NameForAnalyzerOut() string {
 }
 
 func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return pip.ExtendedPrefix(c) + pip.NameForAnalyzerOut()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = pip.VPC().Name() + vpcmodel.Deliminator
+	}
+	return prefix + pip.NameForAnalyzerOut()
 }
 
 // AbstractedToNodeSet returns the pip load balancer if it was abstracted
@@ -108,7 +116,11 @@ func (n *IKSNode) NameForAnalyzerOut() string {
 }
 
 func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return n.ExtendedPrefix(c) + n.NameForAnalyzerOut()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = n.VPC().Name() + vpcmodel.Deliminator
+	}
+	return prefix + n.NameForAnalyzerOut()
 }
 
 // vpe can be in multiple zones - depending on the zones of its network interfaces..
@@ -162,7 +174,11 @@ func (lb *LoadBalancer) nameWithKind() string {
 	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
 }
 func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
-	return lb.ExtendedPrefix(c) + lb.nameWithKind()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = lb.VPC().Name() + vpcmodel.Deliminator
+	}
+	return prefix + lb.nameWithKind()
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {

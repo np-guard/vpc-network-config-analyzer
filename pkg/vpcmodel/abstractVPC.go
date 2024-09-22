@@ -27,8 +27,6 @@ type VPCResourceIntf interface {
 	// note this method is relevant only for Node and Subnet objects.
 	// note it adds the prefix only for input config that has multiple VPCs context.
 	ExtendedName(*VPCConfig) string
-	// ExtendedPrefix returns the prefix to be added for ExtendedName, given the input config
-	ExtendedPrefix(config *VPCConfig) string
 	ZoneName() string
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
@@ -49,13 +47,6 @@ type VPCResource struct {
 	VPCRef VPCResourceIntf `json:"-"`
 }
 
-func (n *VPCResource) ExtendedPrefix(c *VPCConfig) string {
-	if c.IsMultipleVPCsConfig {
-		return n.VPC().NameForAnalyzerOut() + Deliminator
-	}
-	return ""
-}
-
 func (n *VPCResource) Name() string {
 	return n.ResourceName
 }
@@ -73,7 +64,11 @@ func (n *VPCResource) SynthesisKind() spec.ResourceType {
 }
 
 func (n *VPCResource) ExtendedName(c *VPCConfig) string {
-	return n.ExtendedPrefix(c) + n.NameForAnalyzerOut()
+	prefix := ""
+	if c.IsMultipleVPCsConfig {
+		prefix = n.VPC().Name() + Deliminator
+	}
+	return prefix + n.NameForAnalyzerOut()
 }
 
 func (n *VPCResource) UID() string {
