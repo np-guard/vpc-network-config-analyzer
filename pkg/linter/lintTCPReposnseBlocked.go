@@ -84,7 +84,7 @@ func (finding *blockedTCPResponseConn) string() string {
 
 func (finding *blockedTCPResponseConn) getVpcName(i int) string {
 	if finding.vpc()[i] != nil { // nil if external address
-		return finding.vpc()[i].NameForAnalyzerOut() + deliminator
+		return finding.vpc()[i].Name() + deliminator
 	}
 	return ""
 }
@@ -97,8 +97,8 @@ type blockedTCPResponseConnJSON struct {
 }
 
 func (finding *blockedTCPResponseConn) toJSON() any {
-	vpcSrcName := finding.vpc()[0].NameForAnalyzerOut()
-	vpcDstName := finding.vpc()[1].NameForAnalyzerOut()
+	vpcSrcName := finding.vpc()[0].Name()
+	vpcDstName := finding.vpc()[1].Name()
 	res := blockedTCPResponseConnJSON{Src: vpcSrcName + deliminator + finding.src.NameForAnalyzerOut(),
 		Dst: vpcDstName + deliminator + finding.dst.NameForAnalyzerOut(), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
 	return res

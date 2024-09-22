@@ -249,7 +249,7 @@ func (rc *IBMresourcesContainer) getRoutingTables(
 			// skipping this rt
 			continue
 		}
-		logging.Debugf("add rt %s for vpc %s\n", rtObj.NameForAnalyzerOut(), vpcUID)
+		logging.Debugf("add rt %s for vpc %s\n", rtObj.Name(), vpcUID)
 
 		vpcConfig.AddRoutingTable(rtObj)
 		res.SetConfig(vpcUID, vpcConfig)
@@ -1060,7 +1060,7 @@ func getSubnetFromObject(subnetObj vpc1.SubnetReference, vpcConfig *vpcmodel.VPC
 	if subnetRes, ok = vpcConfig.UIDToResource[*subnetObj.CRN]; !ok {
 		return nil, fmt.Errorf("subnet %s is missing from config of vpc %s",
 			*subnetObj.Name,
-			vpcConfig.VPC.NameForAnalyzerOut(),
+			vpcConfig.VPC.Name(),
 		)
 	}
 	if subnet, ok = subnetRes.(*commonvpc.Subnet); !ok {
@@ -1414,7 +1414,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 				continue
 			default:
 				// subnet does not have a private IP, we create unique ip info
-				name = "pip-name-of-" + subnet.NameForAnalyzerOut() + "-" + *loadBalancerObj.Name
+				name = "pip-name-of-" + subnet.Name() + "-" + *loadBalancerObj.Name
 				id = "pip-uid-of-" + subnet.UID() + *loadBalancerObj.ID
 				var err error
 				address, err = subnetsBlocks.allocSubnetFreeAddress(*subnetObj.CRN, blockIndex)
@@ -1478,7 +1478,7 @@ func createPrivateIP(name, id, address, publicAddress string,
 	if publicAddress != "" {
 		routerFip := &FloatingIP{
 			VPCResource: vpcmodel.VPCResource{
-				ResourceName: "fip-name-of-" + privateIP.NameForAnalyzerOut(),
+				ResourceName: "fip-name-of-" + privateIP.Name(),
 				ResourceUID:  "fip-uid-of-" + privateIP.UID(),
 				Zone:         privateIP.ZoneName(),
 				ResourceType: commonvpc.ResourceTypeFloatingIP,
@@ -1499,11 +1499,11 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	}
 	fmt.Println("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.NameForAnalyzerOut())
+		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
 	commonvpc.PrintLineSection()
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.NameForAnalyzerOut())
+		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
 		printConfig(config)
 	}
 	commonvpc.PrintLineSection()

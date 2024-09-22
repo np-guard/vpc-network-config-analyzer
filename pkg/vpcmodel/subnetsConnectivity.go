@@ -300,7 +300,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 		for peerNode, conns := range connsRes.EgressAllowedConns {
 			src := subnetNodeSet
 			dst := peerNode
-			if src.NameForAnalyzerOut() == dst.NameForAnalyzerOut() {
+			if src.Name() == dst.Name() {
 				continue
 			}
 			combinedConns := conns

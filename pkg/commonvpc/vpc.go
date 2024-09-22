@@ -72,9 +72,9 @@ type NetworkInterface struct {
 // used for synthesis output, if number of nifs is > 1 we use just vsi name
 func (ni *NetworkInterface) SynthesisResourceName() string {
 	if ni.numberOfNifsInVsi == 1 {
-		return ni.VPC().NameForAnalyzerOut() + vpcmodel.Deliminator + ni.VsiName()
+		return ni.VPC().Name() + vpcmodel.Deliminator + ni.VsiName()
 	}
-	return ni.VPC().NameForAnalyzerOut() + vpcmodel.Deliminator + ni.VsiName() + vpcmodel.Deliminator + ni.ResourceName
+	return ni.VPC().Name() + vpcmodel.Deliminator + ni.VsiName() + vpcmodel.Deliminator + ni.ResourceName
 }
 
 func (ni *NetworkInterface) SynthesisKind() spec.ResourceType {
@@ -132,7 +132,7 @@ func (v *VPC) GetZoneByIPBlock(ipb *ipblock.IPBlock) (string, error) {
 			return z.Name, nil
 		}
 	}
-	return "", fmt.Errorf("on vpc %s, could not fine zone for ipblock %s", v.NameForAnalyzerOut(), ipb.ToCidrListString())
+	return "", fmt.Errorf("on vpc %s, could not fine zone for ipblock %s", v.Name(), ipb.ToCidrListString())
 }
 
 func (v *VPC) GetZoneByName(name string) (*Zone, error) {
@@ -238,9 +238,9 @@ func (psr *privateSubnetRule) IsIngress() bool {
 func (psr *privateSubnetRule) String(detail bool) string {
 	if !detail {
 		if psr.subnet.IsPrivate() {
-			return fmt.Sprintf("private subnet %s denies connection", psr.subnet.NameForAnalyzerOut())
+			return fmt.Sprintf("private subnet %s denies connection", psr.subnet.Name())
 		}
-		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.NameForAnalyzerOut())
+		return fmt.Sprintf("public subnet %s enables connection", psr.subnet.Name())
 	}
 	// detail
 	prefix := "Egress to"
@@ -250,9 +250,9 @@ func (psr *privateSubnetRule) String(detail bool) string {
 	prefix += " public internet is"
 
 	if psr.subnet.IsPrivate() {
-		return fmt.Sprintf("%s blocked since subnet %s is private\n", prefix, psr.subnet.NameForAnalyzerOut())
+		return fmt.Sprintf("%s blocked since subnet %s is private\n", prefix, psr.subnet.Name())
 	}
-	return fmt.Sprintf("%s allowed since subnet %s is public\n", prefix, psr.subnet.NameForAnalyzerOut())
+	return fmt.Sprintf("%s allowed since subnet %s is public\n", prefix, psr.subnet.Name())
 }
 
 func (s *Subnet) GetPrivateSubnetRule(src, dst vpcmodel.Node) vpcmodel.PrivateSubnetRule {

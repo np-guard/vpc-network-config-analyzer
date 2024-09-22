@@ -209,7 +209,7 @@ func (c *MultipleVPCConfigs) listNamesCfg(configsWithSrcDstNode map[string]srcAn
 	matchConfigs := make([]string, len(configsWithSrcDstNode))
 	for vpcUID := range configsWithSrcDstNode {
 		// the endpoints are in more than one config; lists all the configs it is in for the error msg
-		matchConfigs[i] = c.Config(vpcUID).VPC.NameForAnalyzerOut()
+		matchConfigs[i] = c.Config(vpcUID).VPC.Name()
 		i++
 	}
 	sort.Strings(matchConfigs)
@@ -226,9 +226,9 @@ func (c *MultipleVPCConfigs) listNamesCrossVpcRouters(
 		routingResources := c.Config(vpcUID).RoutingResources
 		if len(routingResources) != 1 {
 			return "", fmt.Errorf("np-guard error: multi-vpc config %s should have a single routing resource, "+
-				"but has %v routing resources", c.Config(vpcUID).VPC.NameForAnalyzerOut(), len(routingResources))
+				"but has %v routing resources", c.Config(vpcUID).VPC.Name(), len(routingResources))
 		}
-		crossVpcRouters[i] = routingResources[0].NameForAnalyzerOut()
+		crossVpcRouters[i] = routingResources[0].Name()
 		i++
 	}
 	sort.Strings(crossVpcRouters)
@@ -339,8 +339,8 @@ func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	inputSubnet, inputVpc := getResourceAndVpcNames(name)
 	var foundSubnet Subnet
 	for _, subnet := range c.Subnets {
-		if (inputVpc == "" || subnet.VPC().NameForAnalyzerOut() == inputVpc) &&
-			(inputSubnet == subnet.UID() || inputSubnet == subnet.NameForAnalyzerOut()) {
+		if (inputVpc == "" || subnet.VPC().Name() == inputVpc) &&
+			(inputSubnet == subnet.UID() || inputSubnet == subnet.Name()) {
 			foundSubnet = subnet
 		}
 	}
@@ -349,7 +349,7 @@ func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	}
 	subnetNodes := c.getNodesWithinInternalAddressFilterNonRelevant(foundSubnet.AddressRange())
 	if len(subnetNodes) == 0 {
-		return nil, fmt.Errorf("subnet %s [%s] contains no endpoints", foundSubnet.NameForAnalyzerOut(), foundSubnet.AddressRange())
+		return nil, fmt.Errorf("subnet %s [%s] contains no endpoints", foundSubnet.Name(), foundSubnet.AddressRange())
 	}
 	return subnetNodes, nil
 }
@@ -362,8 +362,8 @@ func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 	// endpoint name may be prefixed by vpc name
 	endpoint, vpc := getResourceAndVpcNames(name)
 	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
-		if (vpc == "" || nodeSet.VPC().NameForAnalyzerOut() == vpc) &&
-			nodeSet.NameForAnalyzerOut() == endpoint || // if vpc of endpoint specified, equality must hold
+		if (vpc == "" || nodeSet.VPC().Name() == vpc) &&
+			nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
 			if nodeSetOfEndpoint != nil {
 				return nil, fatalErr, fmt.Errorf("ambiguity - the configuration contains multiple resources named %s, "+

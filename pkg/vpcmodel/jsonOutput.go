@@ -39,9 +39,9 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
 	if c2 != nil {
-		v2Name = c2.VPC.NameForAnalyzerOut()
+		v2Name = c2.VPC.Name()
 	}
-	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.NameForAnalyzerOut(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: JSON, jsonStruct: all}, err
 }
 
 type connLine struct {

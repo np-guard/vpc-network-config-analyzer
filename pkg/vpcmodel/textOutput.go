@@ -58,10 +58,10 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	explanation *Explanation, detailExplain bool) (*SingleAnalysisOutput, error) {
 	vpc2Name := ""
 	if c2 != nil {
-		vpc2Name = c2.VPC.NameForAnalyzerOut()
+		vpc2Name = c2.VPC.Name()
 	}
 	// header line - specify the VPC analyzed
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.NameForAnalyzerOut(), vpc2Name, c1, explanation)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), vpc2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +92,6 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	}
 	// write output to file and return the output string
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.NameForAnalyzerOut(),
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(),
 		VPC2Name: vpc2Name, format: Text, hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }

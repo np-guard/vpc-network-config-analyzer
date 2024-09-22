@@ -31,7 +31,7 @@ func explainHeader(explanation *Explanation) string {
 	singleVpcContext := ""
 	// communication within a single vpc
 	if explanation.c != nil && !explanation.c.IsMultipleVPCsConfig {
-		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.NameForAnalyzerOut())
+		singleVpcContext = fmt.Sprintf(" within %v", explanation.c.VPC.Name())
 	}
 	title := fmt.Sprintf("Explaining connectivity from %s to %s%s%s",
 		explanation.src, explanation.dst, singleVpcContext, connHeader(explanation.connQuery))
@@ -448,13 +448,13 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		}
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
-		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().NameForAnalyzerOut(),
+		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
 			crossVpcRouter.Kind()+space+crossVpcRouter.NameForAnalyzerOut())
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
 		}
-		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().NameForAnalyzerOut())
+		pathSlice = append(pathSlice, dst.(InternalNodeIntf).Subnet().VPC().Name())
 	}
 	ingressPath := pathOfSingleDirectionStr(allRulesDetails, dst, filtersRelevant, rules, true, privateSubnetRule)
 	pathSlice = append(pathSlice, ingressPath...)
@@ -524,7 +524,7 @@ func returnPathSlice(isIngress bool, pathSlice []string) []string {
 
 func getSubnetStr(node EndpointElem) string {
 	subnet := node.(InternalNodeIntf).Subnet()
-	return strings.ToLower(subnet.Kind()) + space + subnet.NameForAnalyzerOut()
+	return strings.ToLower(subnet.Kind()) + space + subnet.Name()
 }
 
 // FilterKindName returns the name of a filter kind within filter layers - e.g. "security group".

@@ -517,7 +517,7 @@ func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
 	}
 	if len(tc.PrefixFilters) < prefixIndx+1 {
 		return "", "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",
-			prefixIndx, *tc.Name, tgw.NameForAnalyzerOut())
+			prefixIndx, *tc.Name, tgw.Name())
 	}
 	prefixFilter := tc.PrefixFilters[prefixIndx]
 	actionName, err = actionNameStr(prefixFilter.Action)
@@ -603,7 +603,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 			action = "blocks"
 		}
 		thisPrefixStr = fmt.Sprintf("\ttransit gateway %s %s connection via transit connection %s "+
-			"with the following prefix filter\n%s%s\n", tgw.NameForAnalyzerOut(), action, *transitConn.Name,
+			"with the following prefix filter\n%s%s\n", tgw.Name(), action, *transitConn.Name,
 			doubleTab, tgwRouterFilterDetails)
 		strRes = append(strRes, thisPrefixStr)
 	}
@@ -615,7 +615,7 @@ func (tgw *TransitGateway) stringPrefixFiltersVerbose(transitConn *datamodel.Tra
 func (tgw *TransitGateway) stringPrefixFiltersNoVerbose(transitConn *datamodel.TransitConnection,
 	rulesType vpcmodel.RulesType) string {
 	noVerboseStr := fmt.Sprintf("cross-vpc-connection: transit-connection %s of transit-gateway %s ",
-		*transitConn.Name, tgw.NameForAnalyzerOut())
+		*transitConn.Name, tgw.Name())
 	switch rulesType {
 	case vpcmodel.OnlyAllow:
 		return noVerboseStr + "allows connection"

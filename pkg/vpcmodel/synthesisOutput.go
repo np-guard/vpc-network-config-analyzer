@@ -40,9 +40,9 @@ func (j *SynthesisOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	outStr, err := writeJSON(all, outFile)
 	v2Name := ""
 	if c2 != nil {
-		v2Name = c2.VPC.NameForAnalyzerOut()
+		v2Name = c2.VPC.Name()
 	}
-	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.NameForAnalyzerOut(),
+	return &SingleAnalysisOutput{Output: outStr, VPC1Name: c1.VPC.Name(),
 		VPC2Name: v2Name, format: Synthesis, jsonStruct: all}, err
 }
 
@@ -173,10 +173,10 @@ func sortProtocolList(g spec.ProtocolList) spec.ProtocolList {
 
 func sortGroupedLines(g []*groupedConnLine) {
 	sort.Slice(g, func(i, j int) bool {
-		if g[i].Src.NameForAnalyzerOut() != g[j].Src.NameForAnalyzerOut() {
-			return g[i].Src.NameForAnalyzerOut() > g[j].Src.NameForAnalyzerOut()
-		} else if g[i].Dst.NameForAnalyzerOut() != g[j].Dst.NameForAnalyzerOut() {
-			return g[i].Dst.NameForAnalyzerOut() > g[j].Dst.NameForAnalyzerOut()
+		if g[i].Src.Name() != g[j].Src.Name() {
+			return g[i].Src.Name() > g[j].Src.Name()
+		} else if g[i].Dst.Name() != g[j].Dst.Name() {
+			return g[i].Dst.Name() > g[j].Dst.Name()
 		}
 		return g[i].CommonProperties.Conn.string() > g[j].CommonProperties.Conn.string()
 	})

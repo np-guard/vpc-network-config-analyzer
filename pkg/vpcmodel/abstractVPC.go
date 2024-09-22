@@ -56,7 +56,7 @@ func (n *VPCResource) NameForAnalyzerOut() string {
 }
 
 func (n *VPCResource) SynthesisResourceName() string {
-	return n.VPC().NameForAnalyzerOut() + Deliminator + n.ResourceName
+	return n.VPC().Name() + Deliminator + n.ResourceName
 }
 
 func (n *VPCResource) SynthesisKind() spec.ResourceType {
@@ -95,7 +95,7 @@ func (n *VPCResource) RegionName() string {
 }
 
 func (n *VPCResource) NameAndUID() string {
-	return n.NameForAnalyzerOut() + leftParentheses + n.UID() + rightParentheses
+	return n.Name() + leftParentheses + n.UID() + rightParentheses
 }
 
 // todo: define enum for filters

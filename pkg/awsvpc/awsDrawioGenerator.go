@@ -14,5 +14,5 @@ import (
 func (igw *InternetGateway) ShowOnSubnetMode() bool { return true }
 
 func (igw *InternetGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewInternetGatewayTreeNode(gen.TreeNode(igw.VPC()).(*drawio.VpcTreeNode), igw.NameForAnalyzerOut())
+	return drawio.NewInternetGatewayTreeNode(gen.TreeNode(igw.VPC()).(*drawio.VpcTreeNode), igw.Name())
 }

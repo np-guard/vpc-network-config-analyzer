@@ -37,9 +37,9 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	// get output by analysis type
 	v2Name := ""
 	if c2 != nil {
-		v2Name = c2.VPC.NameForAnalyzerOut()
+		v2Name = c2.VPC.Name()
 	}
-	out, err := headerOfAnalyzedVPC(uc, c1.VPC.NameForAnalyzerOut(), v2Name, c1, explanation)
+	out, err := headerOfAnalyzedVPC(uc, c1.VPC.Name(), v2Name, c1, explanation)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (m *MDoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 	out += linesToOutput(connLines, lines)
 
 	_, err = WriteToFile(out, outFile)
-	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.NameForAnalyzerOut(), VPC2Name: v2Name, format: MD,
+	return &SingleAnalysisOutput{Output: out, VPC1Name: c1.VPC.Name(), VPC2Name: v2Name, format: MD,
 		hasStatelessConn: hasStatelessConns, hasOverApproximatedConn: hasOverApproximatedConn}, err
 }
 

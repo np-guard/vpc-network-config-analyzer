@@ -605,7 +605,7 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 		if !routeObj.advertise {
 			continue
 		}
-		logging.Debugf("rt %s - try to advertise route with dest %s", irt.NameForAnalyzerOut(), routeObj.destination)
+		logging.Debugf("rt %s - try to advertise route with dest %s", irt.Name(), routeObj.destination)
 
 		routeCidr := routeObj.destIPBlock
 		tgws := getTGWs(vpcConfig)
@@ -618,13 +618,13 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 		var tgwAB *TransitGateway
 		for _, tgw := range tgws {
 			for _, vpc := range tgw.vpcs {
-				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.NameForAnalyzerOut(),
-					vpc.NameForAnalyzerOut(), vpc.AddressPrefixesIPBlock.ToCidrListString())
+				logging.Debugf("check tgw %s with vpc %s, AP %s", tgw.Name(),
+					vpc.Name(), vpc.AddressPrefixesIPBlock.ToCidrListString())
 				// TODO: shouldn't be containment rather than intersection?? (works with intersection on hub-n-spoke config object)
 				if vpc.UID() != irt.vpc.UID() && routeCidr.Overlap(vpc.AddressPrefixesIPBlock) {
 					vpcB = vpc
 					tgwAB = tgw
-					logging.Debugf("found tgwAB: %s,  vpcB: %s ", tgwAB.NameForAnalyzerOut(), vpcB.NameForAnalyzerOut())
+					logging.Debugf("found tgwAB: %s,  vpcB: %s ", tgwAB.Name(), vpcB.Name())
 					break
 				}
 			}
@@ -650,7 +650,7 @@ func (irt *ingressRoutingTable) advertiseRoutes(vpcConfig *vpcmodel.VPCConfig) {
 			}
 			tgwAC = tgw // the tgw A-C to which should propagate Y (routeCidr) as available "from" vpcA
 			updateTGWWithAdvertisedRoute(tgwAC, irt.vpc, routeCidr)
-			logging.Debugf("call updateTGWWithAdvertisedRoute for tgw %s, new cidr %s, from vpc %s", tgwAC.NameForAnalyzerOut(),
+			logging.Debugf("call updateTGWWithAdvertisedRoute for tgw %s, new cidr %s, from vpc %s", tgwAC.Name(),
 				routeCidr.ToCidrListString(), irt.vpc.ResourceName)
 		}
 	}

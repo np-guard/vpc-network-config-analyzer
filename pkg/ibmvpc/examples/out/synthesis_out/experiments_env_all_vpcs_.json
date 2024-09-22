@@ -11,11 +11,27 @@
             ],
             "bidirectional": true,
             "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
+                "name": "test-vpc1-ky/vsi2-ky",
                 "type": "instance"
             },
             "src": {
-                "name": "test-vpc1-ky/vsi2-ky",
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi0-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             }
         },
@@ -48,22 +64,6 @@
             },
             "src": {
                 "name": "test-vpc1-ky/vsi2-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/vsi0-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
             }
         },

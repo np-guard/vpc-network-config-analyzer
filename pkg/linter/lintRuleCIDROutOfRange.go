@@ -91,7 +91,7 @@ func (finding *ruleNonRelevantCIDR) vpc() []vpcmodel.VPCResourceIntf {
 
 func (finding *ruleNonRelevantCIDR) string() string {
 	rule := finding.rule
-	strPrefix := fmt.Sprintf("In VPC %q, %s %q ", finding.vpcResource.NameForAnalyzerOut(), finding.rule.Filter.LayerName,
+	strPrefix := fmt.Sprintf("In VPC %q, %s %q ", finding.vpcResource.Name(), finding.rule.Filter.LayerName,
 		rule.Filter.FilterName)
 	if rule.IsIngress {
 		strPrefix += fmt.Sprintf("ingress rule with destination %s ", finding.rule.DstCidr.String())
@@ -114,7 +114,7 @@ func (finding *ruleNonRelevantCIDR) toJSON() any {
 	rule := finding.rule
 	table := vpcmodel.Filter{LayerName: rule.Filter.LayerName,
 		FilterName: rule.Filter.FilterName}
-	res := rulesNonRelevantCIDRJSON{VpcName: finding.vpc()[0].NameForAnalyzerOut(), Rule: vpcmodel.RuleOfFilter{Filter: table,
+	res := rulesNonRelevantCIDRJSON{VpcName: finding.vpc()[0].Name(), Rule: vpcmodel.RuleOfFilter{Filter: table,
 		RuleIndex: rule.RuleIndex, RuleDesc: rule.RuleDesc},
 		VpcAddressRange: finding.vpcResource.AddressRange().String()}
 	return res

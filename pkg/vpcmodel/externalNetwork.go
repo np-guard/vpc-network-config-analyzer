@@ -51,7 +51,7 @@ type ExternalNetwork struct {
 	ipblock          *ipblock.IPBlock
 }
 
-func (exn *ExternalNetwork) UID() string        { return exn.NameForAnalyzerOut() }
+func (exn *ExternalNetwork) UID() string        { return exn.Name() }
 func (exn *ExternalNetwork) ZoneName() string   { return "" }
 func (exn *ExternalNetwork) RegionName() string { return "" }
 func (exn *ExternalNetwork) IsExternal() bool   { return true }

@@ -429,11 +429,11 @@ func printVPCConfigs(c *vpcmodel.MultipleVPCConfigs) {
 	}
 	logging.Debug("VPCs to analyze:")
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.NameForAnalyzerOut())
+		logging.Debugf("VPC UID: %s, Name: %s\n", vpcUID, config.VPC.Name())
 	}
 	commonvpc.PrintLineSection()
 	for vpcUID, config := range c.Configs() {
-		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.NameForAnalyzerOut())
+		logging.Debugf("config for vpc %s (vpc name: %s)\n", vpcUID, config.VPC.Name())
 		printConfig(config)
 	}
 	commonvpc.PrintLineSection()
