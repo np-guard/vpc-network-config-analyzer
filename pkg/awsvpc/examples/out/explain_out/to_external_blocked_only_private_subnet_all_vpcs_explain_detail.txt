@@ -3,7 +3,7 @@ Interpreted source(s): app1[10.240.20.245]
 Interpreted destination(s): 161.26.0.0 (external)
 ====================================================================
 
-No connections from app1[10.240.20.245] to Public Internet 161.26.0.0/32;
+No connectivity from app1[10.240.20.245] to Public Internet 161.26.0.0/32;
 	connection is blocked at egress
 
 External traffic via InternetGateway: internet_gw
@@ -20,7 +20,7 @@ Path is disabled; The relevant rules are:
 		Egress to public internet is blocked since subnet application is private
 		security group GroupId:35 allows connection with the following allow rules
 			Outbound index: 0, direction: outbound, target: 0.0.0.0/0, protocol: all
-		security group GroupId:42 has no relevant allow rules
+		security group GroupId:42 has no relevant rules
 		network ACL NetworkAclId:65 allows connection with the following allow rules
 			ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
 

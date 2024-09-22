@@ -4,10 +4,10 @@ go 1.22.4
 
 require (
 	github.com/IBM/networking-go-sdk v0.49.0
-	github.com/IBM/vpc-go-sdk v0.56.0
+	github.com/IBM/vpc-go-sdk v0.57.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.163.0
 	github.com/np-guard/cloud-resource-collector v0.15.0
-	github.com/np-guard/models v0.3.4
+	github.com/np-guard/models v0.4.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 )

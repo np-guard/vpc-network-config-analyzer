@@ -1,0 +1,155 @@
+{
+    "required-connections": [
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 9080,
+                    "min_destination_port": 9080,
+                    "min_source_port": 9080,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "segment-1",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-0",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 9080,
+                    "min_destination_port": 9080,
+                    "min_source_port": 9080,
+                    "protocol": "TCP"
+                },
+                {
+                    "code": 0,
+                    "protocol": "ICMP",
+                    "type": 0
+                }
+            ],
+            "dst": {
+                "name": "sub2",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "segment-2",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 9079,
+                    "min_destination_port": 9080,
+                    "min_source_port": 1,
+                    "protocol": "TCP"
+                },
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 65535,
+                    "min_destination_port": 9080,
+                    "min_source_port": 9081,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "segment-3",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-3",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 9080,
+                    "min_destination_port": 9080,
+                    "min_source_port": 9080,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "sub3",
+                "type": "subnet"
+            },
+            "src": {
+                "name": "segment-4",
+                "type": "segment"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                },
+                {
+                    "max_destination_port": 9080,
+                    "max_source_port": 9080,
+                    "min_destination_port": 9080,
+                    "min_source_port": 9080,
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "segment-1",
+                "type": "segment"
+            },
+            "src": {
+                "name": "segment-1",
+                "type": "segment"
+            }
+        }
+    ],
+    "segments": {
+        "segment-0": {
+            "items": [
+                "sub2",
+                "sub3"
+            ],
+            "type": "subnet"
+        },
+        "segment-1": {
+            "items": [
+                "sub0",
+                "sub1"
+            ],
+            "type": "subnet"
+        },
+        "segment-2": {
+            "items": [
+                "sub0",
+                "sub1",
+                "sub3"
+            ],
+            "type": "subnet"
+        },
+        "segment-3": {
+            "items": [
+                "sub0",
+                "sub1",
+                "sub2",
+                "sub3"
+            ],
+            "type": "subnet"
+        },
+        "segment-4": {
+            "items": [
+                "sub0",
+                "sub1",
+                "sub2"
+            ],
+            "type": "subnet"
+        }
+    }
+}

@@ -330,6 +330,12 @@ var tests = []*commonvpc.VpcGeneralTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 		Format:      vpcmodel.Text,
 	},
+	{
+		// ports manipulation
+		InputConfig: "sg_testing1_diff_ports",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
+		Format:      vpcmodel.Text,
+	},
 	// tgw examples
 	{
 		InputConfig: "tgw_basic_example",
@@ -367,7 +373,7 @@ var tests = []*commonvpc.VpcGeneralTest{
 	{
 		InputConfig: "tgw_larger_example",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.DRAWIO,
+		Format:      vpcmodel.HTML,
 	},
 	{
 		InputConfig: "tgw_larger_example",

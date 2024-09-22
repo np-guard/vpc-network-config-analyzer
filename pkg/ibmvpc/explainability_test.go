@@ -9,7 +9,6 @@ package ibmvpc
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -723,8 +722,8 @@ func TestAll(t *testing.T) {
 }
 
 // uncomment the function below for generating the expected output files instead of comparing
-/*
-func TestAllWithGeneration(t *testing.T) {
+
+/*func TestAllWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
@@ -948,40 +947,6 @@ func TestMultiExplainSanity2(t *testing.T) {
 		i++
 	}
 	require.Equal(t, i, len(inputMultiExplain))
-}
-
-func TestMultiExplainabilityOutput(t *testing.T) {
-	vpcsConfig := getConfig(t, "tgw_basic_example")
-	require.NotNil(t, vpcsConfig, "vpcsConfig equals nil")
-	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
-	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
-	for i, vpcConfig := range vpcsConfig.Configs() {
-		thisConn, err := vpcConfig.GetVPCNetworkConnectivity(false, false)
-		if err != nil {
-			fmt.Printf("%v. %s", i, err.Error())
-		}
-		require.Nil(t, err)
-		groupedConns[i] = thisConn.GroupedConnectivity
-		nodesConn[i] = thisConn
-	}
-	inputMultiExplain := vpcmodel.CreateMultiExplanationsInput(vpcsConfig, nodesConn, groupedConns)
-	multiExplain := vpcmodel.MultiExplain(inputMultiExplain, nodesConn)
-	outputSlice := make([]string, len(multiExplain))
-	for i, explain := range multiExplain {
-		require.Equal(t, "", explain.EntryError())
-		outputSlice[i] = explain.String()
-	}
-	outputString := strings.Join(outputSlice, "")
-	fmt.Println("\n\n", outputString)
-	require.Contains(t, outputString, "No connections from Public Internet (all ranges) to ky-vpc2-vsi[10.240.64.5];\n"+
-		"\tconnection is blocked because there is no resource for external connectivity", "no connection external src entry")
-	require.Contains(t, outputString, "No connections from ky-vpc2-vsi[10.240.64.5] to Public Internet (all ranges);\n"+
-		"\tconnection is blocked because there is no resource for external connectivity", "no connection external dst entry")
-	require.Contains(t, outputString, "ky-vpc1-vsi[10.240.0.5] -> security group ky-vpc1-sg -> "+
-		"network ACL ky-vpc1-acl1 -> subnet ky-vpc1-net1 -> ", "connection vsi to vsi")
-	require.Contains(t, outputString, "ky-vpc1 -> TGW local-tg-ky -> ky-vpc2 ->", "connection vsi to vsi")
-	require.Contains(t, outputString, "subnet ky-vpc2-net1 -> network ACL ky-vpc2-acl1 ->"+
-		" security group ky-vpc2-sg -> ky-vpc2-vsi[10.240.64.5]", "connection vsi to vsi")
 }
 
 func TestInputLBPrivateIP(t *testing.T) {

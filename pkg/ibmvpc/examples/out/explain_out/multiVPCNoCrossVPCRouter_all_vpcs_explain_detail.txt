@@ -1,5 +1,5 @@
 Explaining connectivity from vsi1-ky to vsi31-ky
 ================================================
 
-No connections from vsi1-ky to vsi31-ky;
+No connectivity from vsi1-ky to vsi31-ky;
 All connections will be blocked since source and destination are in different VPCs with no transit gateway to connect them

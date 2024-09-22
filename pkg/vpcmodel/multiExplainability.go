@@ -170,6 +170,9 @@ func collectNodesForExplanation(cConfigs *MultipleVPCConfigs, conns map[string]*
 			}
 		}
 	}
+	if cConfigs.publicNetworkNode != nil {
+		externalNodes[cConfigs.publicNetworkNode] = true
+	}
 	return internalNodes, externalNodes
 }
 

@@ -3,7 +3,7 @@ Interpreted source(s): 100.128.0.0/32 (external)
 Interpreted destination(s): vsi1-ky[10.240.10.4]
 ==========================================================================
 
-No connections from Public Internet 100.128.0.0/32 to vsi1-ky[10.240.10.4];
+No connectivity from Public Internet 100.128.0.0/32 to vsi1-ky[10.240.10.4];
 	connection is blocked at ingress and because there is no resource for external connectivity
 
 Ingress: network ACL acl1-ky blocks connection; security group sg1-ky allows connection

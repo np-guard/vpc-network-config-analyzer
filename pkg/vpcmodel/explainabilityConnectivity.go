@@ -11,8 +11,6 @@ import (
 	"slices"
 
 	"github.com/np-guard/models/pkg/connection"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
@@ -33,11 +31,14 @@ type srcDstDetails struct {
 	src         Node
 	dst         Node
 	connEnabled bool
-	// note that if dst/src is external then egressEnabled/ingressEnabled may be false and yet connEnabled true
-	ingressEnabled bool
-	egressEnabled  bool
 	// the connection between src to dst, in case the connection was not part of the query;
 	// the part of the connection relevant to the query otherwise.
+	// the ingress, egress and whole connection between src to dst, in case the connection was not part of the query;
+	// the part of the connection relevant to the query otherwise.
+	// used to detect ingress and egress block and to
+	// detect cases in which there is no connection due to empty intersection between ingress and egress
+	ingressConn    *connection.Set
+	egressConn     *connection.Set
 	conn           *detailedConn
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
@@ -46,17 +47,15 @@ type srcDstDetails struct {
 
 	// loadBalancerRule - the lb rule affecting this connection, nil if irrelevant (no LB).
 	loadBalancerRule LoadBalancerRule
-	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant
-	// (no external src/dst).
+	// privateSubnetRule - rule of the private subnet affecting this connection, nil if irrelevant (no external src/dst).
 	privateSubnetRule PrivateSubnetRule
 	// filters relevant for this src, dst pair; map keys are the filters kind (NaclLayer/SecurityGroupLayer)
 	// for two internal nodes within same subnet, only SG layer is relevant
-	// for external connectivity (src/dst is external) with FIP, only SG layer is relevant
 	filtersRelevant     map[string]bool
 	potentialAllowRules *rulesConnection // potentially enabling connection - potential given the filter is relevant
-	actualAllowRules    *rulesConnection // enabling rules effecting connection given externalRouter; e.g. NACL is not relevant for fip
-	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for ACL
-	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for ACL
+	actualAllowRules    *rulesConnection // enabling rules affecting connection given externalRouter; e.g. NACL is irrelevant if same subnet
+	potentialDenyRules  *rulesConnection // deny rules potentially (w.r.t. externalRouter) effecting the connection, relevant for NACL
+	actualDenyRules     *rulesConnection // deny rules effecting the connection, relevant for NACL
 	actualMergedRules   *rulesConnection // rules actually effecting the connection (both allow and deny)
 	// enabling rules implies whether ingress/egress is enabled
 	// potential rules are saved for further debugging and explanation provided to the user
@@ -221,55 +220,55 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 func (details *rulesAndConnDetails) computeActualRules() {
 	for _, singleSrcDstDetails := range *details {
 		filterRelevant := singleSrcDstDetails.filtersRelevant
-		actualAllowIngress, ingressEnabled :=
+		actualAllowIngress, ingressConn :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.ingressRules, filterRelevant)
 		// ingress disabled due to private subnet?
 		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
-		ingressEnabled = ingressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(true))
-		actualAllowEgress, egressEnabled :=
+		if privateSubnetRule != nil && privateSubnetRule.Deny(true) {
+			ingressConn = connection.None()
+		}
+		actualAllowEgress, egressConn :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
-		egressEnabled = egressEnabled && (privateSubnetRule == nil || !privateSubnetRule.Deny(false))
+		if privateSubnetRule != nil && privateSubnetRule.Deny(false) {
+			egressConn = connection.None()
+		}
 		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
 		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
 		actualAllow := &rulesConnection{*actualAllowIngress, *actualAllowEgress}
 		actualDeny := &rulesConnection{*actualDenyIngress, *actualDenyEgress}
 		singleSrcDstDetails.actualAllowRules = actualAllow
-		singleSrcDstDetails.ingressEnabled = ingressEnabled
-		singleSrcDstDetails.egressEnabled = egressEnabled
 		singleSrcDstDetails.actualDenyRules = actualDeny
+		singleSrcDstDetails.ingressConn = ingressConn
+		singleSrcDstDetails.egressConn = egressConn
 	}
 }
 
-// given rulesInLayers and the relevant filters, computes actual rules and whether the direction is enabled,
-// given that rulesInLayers are allow rules; for deny rules this computation is meaningless and is ignored.
-// this is called separately for each direction (ingress/egress) and allow/deny
-func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers, bool) {
+// given rulesInLayers and the relevant filters, computes actual rules and the connection implied by the filter (which
+// could be different than the connection implied by the rules, in case there are both deny and allow rules).
+// this is called separately for each direction (ingress/egress) and allow/deny (for nacl, sg has only allow)
+func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers,
+	*connection.Set) {
 	actualRules := rulesInLayers{}
-	directionEnabled := true
+	conn := connection.All()
+	// connection of direction: intersection between connections of layers;
 	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
-		potentialRules := rulesLayers[layer]
-		// The filter is blocking if it is relevant and has no allow rules
-		// this computation is meaningful only when rulesLayers are allow rules and is ignored otherwise
-		if filterIsRelevant && !filterHasRelevantRules(potentialRules) {
-			directionEnabled = false
-		}
 		if filterIsRelevant {
+			potentialRules := rulesLayers[layer]
+			conn = conn.Intersect(connOfLayer(potentialRules))
 			actualRules[layer] = potentialRules
 		}
 	}
-	// the direction is enabled if none of the filters is blocking it
-	return &actualRules, directionEnabled
+	return &actualRules, conn
 }
 
-// returns true if filter contains rules
-func filterHasRelevantRules(rulesInFilter []RulesInTable) bool {
-	for _, rulesFilter := range rulesInFilter {
-		if len(rulesFilter.Rules) > 0 {
-			return true
-		}
+// connection of each layer is the union of the connection's of tables in the layer; (nacl single table; relevant for sg)
+func connOfLayer(layerTables []RulesInTable) *connection.Set {
+	conn := connection.None()
+	for _, table := range layerTables {
+		conn = conn.Union(table.TableConn)
 	}
-	return false
+	return conn
 }
 
 // computes combined list of rules, both deny and allow
@@ -304,64 +303,30 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 		default: // no rules in this layer
 			continue
 		}
-		mergedRulesInLayer := []RulesInTable{} // both deny and allow in layer
-		// gets all indexes, both allow and deny, of a layer (e.g. indexes of nacls)
-		allIndexes := getAllIndexesForFilter(allowForLayer, denyForLayer)
-		// translates []RulesInTable to a map for access efficiency
-		allowRulesMap := rulesInLayerToMap(allowForLayer)
-		denyRulesMap := rulesInLayerToMap(denyForLayer)
-		for filterIndex := range allIndexes {
-			allowRules := allowRulesMap[filterIndex]
-			denyRules := denyRulesMap[filterIndex]
-			mergedRules := []int{}
-			// todo: once we update to go.1.22 use slices.Concat
-			mergedRules = append(mergedRules, allowRules.Rules...)
-			mergedRules = append(mergedRules, denyRules.Rules...)
-			slices.Sort(mergedRules)
-			var rType RulesType
-			switch {
-			case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
-				rType = BothAllowDeny
-			case len(allowRules.Rules) > 0:
-				rType = OnlyAllow
-			case len(denyRules.Rules) > 0:
-				rType = OnlyDeny
-			default: // no rules
-				rType = NoRules
-			}
-			mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType}
-			mergedRulesInLayer = append(mergedRulesInLayer, mergedRulesInFilter)
+		// both deny and allow rules in layer, namely, the layer is NaclLayer. There is a single nacl per subnet.
+		// Thus, if we got here the layer has a single table in it with both allow and deny rules.
+		// Namely, allowForLayer and denyForLayer each have a single element originating from the same table
+		allowRules := allowForLayer[0]
+		denyRules := denyForLayer[0]
+		mergedRules := slices.Concat(allowRules.Rules, denyRules.Rules)
+		slices.Sort(mergedRules)
+		var rType RulesType
+		switch {
+		case len(allowRules.Rules) > 0 && len(denyRules.Rules) > 0:
+			rType = BothAllowDeny
+		case len(allowRules.Rules) > 0:
+			rType = OnlyAllow
+		case len(denyRules.Rules) > 0:
+			rType = OnlyDeny
+		default: // no rules
+			rType = NoRules
 		}
-		allowDenyMerged[layer] = mergedRulesInLayer
+		filterIndex := allowRules.TableIndex // can be taken either from allowForLayer or from denyForLayer
+		mergedRulesInFilter := RulesInTable{TableIndex: filterIndex, Rules: mergedRules, RulesOfType: rType,
+			TableHasEffect: allowRules.TableHasEffect} // TableHasEffect can be taken from either allow or deny
+		allowDenyMerged[layer] = []RulesInTable{mergedRulesInFilter}
 	}
 	return allowDenyMerged
-}
-
-type intSet = common.GenericSet[int]
-
-// allow and deny in layer: gets all indexes of a layer (e.g. indexes of nacls)
-func getAllIndexesForFilter(allowForLayer, denyForLayer []RulesInTable) (indexes intSet) {
-	indexes = intSet{}
-	addIndexesOfFilters(indexes, allowForLayer)
-	addIndexesOfFilters(indexes, denyForLayer)
-	return indexes
-}
-
-// translates rulesInLayer into a map from filter's index to the rules indexes
-func rulesInLayerToMap(rulesInLayer []RulesInTable) map[int]*RulesInTable {
-	mapFilterRules := map[int]*RulesInTable{}
-	for _, rulesInFilter := range rulesInLayer {
-		thisRulesInFilter := rulesInFilter // to make lint happy
-		// do not reference an address of a loop value
-		mapFilterRules[rulesInFilter.TableIndex] = &thisRulesInFilter
-	}
-	return mapFilterRules
-}
-
-func addIndexesOfFilters(indexes intSet, rulesInLayer []RulesInTable) {
-	for _, rulesInFilter := range rulesInLayer {
-		indexes[rulesInFilter.TableIndex] = true
-	}
 }
 
 func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
@@ -440,9 +405,6 @@ func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
 			return configNode, nil
 		}
 	}
-	// todo: at the moment gets here for certain internal addresses not connected to vsi.
-	//       should be handled as part of the https://github.com/np-guard/vpc-network-config-analyzer/issues/305
-	//       verify internal addresses gets her - open a issue if this is the case
 	return nil, nil
 }
 

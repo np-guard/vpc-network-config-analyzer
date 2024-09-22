@@ -3,7 +3,7 @@ Interpreted source(s): vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint
 Interpreted destination(s): 161.26.0.0/8 (external)
 ===============================================================================
 
-No connections from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;
+No connectivity from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;
 	connection is blocked because there is no resource for external connectivity
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
@@ -26,7 +26,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0/8;
+No connectivity from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0/8;
 	connection is blocked because there is no resource for external connectivity
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
@@ -49,7 +49,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connections from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0/8;
+No connectivity from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0/8;
 	connection is blocked at egress and because there is no resource for external connectivity
 
 Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
@@ -62,7 +62,7 @@ Details:
 ~~~~~~~~
 Path is disabled; The relevant rules are:
 	Egress:
-		security group sg2-ky has no relevant allow rules
+		security group sg2-ky has no relevant rules
 		network ACL acl3-ky allows connection with the following allow rules
 			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
 

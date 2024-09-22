@@ -292,6 +292,10 @@ func (fip *FloatingIP) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInT
 	return "", nil
 }
 
+func (fip *FloatingIP) IsMultipleVPCs() bool {
+	return false
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -361,6 +365,10 @@ func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel
 func (pgw *PublicGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
 	verbose bool) (string, error) {
 	return "", nil
+}
+
+func (pgw *PublicGateway) IsMultipleVPCs() bool {
+	return false
 }
 
 type TransitGateway struct {
@@ -620,4 +628,7 @@ func hasSubnet(listSubnets []*commonvpc.Subnet, subnet *commonvpc.Subnet) bool {
 		}
 	}
 	return false
+}
+func (tgw *TransitGateway) IsMultipleVPCs() bool {
+	return true
 }

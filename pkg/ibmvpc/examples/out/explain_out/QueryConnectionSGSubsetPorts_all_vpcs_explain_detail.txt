@@ -18,7 +18,7 @@ Path is enabled; The relevant rules are:
 	Ingress:
 		network ACL acl2-ky allows connection with the following allow rules
 			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
-		security group sg2-ky allows connection with the following allow rules
+		security group sg2-ky partly allows connection with the following allow rules
 			id: id:143, direction: inbound, local: 0.0.0.0/0, remote: 147.235.219.206/32, protocol: tcp,  dstPorts: 22-22
 
 TCP response is enabled; The relevant rules are:

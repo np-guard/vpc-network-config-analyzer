@@ -24,6 +24,7 @@ const statefulMessage = "\nTCP connections for which response is not permitted a
 const overApproximationMessage = "\nconnections marked with " + overApproximationSign +
 	" are an over-approximation, not all private IPs have the same connectivity\n"
 const externalString = "external-"
+const segmentString = "segment-"
 
 const (
 	JSON OutFormat = iota
@@ -303,42 +304,24 @@ func (of *serialOutputFormatter) AggregateVPCsOutput(outputList []*SingleAnalysi
 		connLines := []spec.SpecRequiredConnectionsElem{}
 		externals := spec.SpecExternals{}
 		externalsMap := make(map[string]string)
+		segments := spec.SpecSegments{}
+		segmentsMap := make(map[string]string)
 		for _, o := range outputList {
 			// always true
 			if structObj, ok := o.jsonStruct.(*spec.Spec); ok {
-				connLines = append(connLines, renameExternals(structObj.RequiredConnections, externalsMap)...)
+				connLines = append(connLines, renameExternalsAndSegments(structObj.RequiredConnections, externalsMap, segmentsMap)...)
 				for k, v := range structObj.Externals {
 					externals[externalsMap[k]] = v
+				}
+				for k, v := range structObj.Segments {
+					segments[segmentsMap[k]] = v
 				}
 			}
 		}
 		// in synthesis format we need to follow json spec schema
-		res, err = writeJSON(spec.Spec{RequiredConnections: connLines, Externals: externals}, outFile)
+		res, err = writeJSON(spec.Spec{Externals: externals, Segments: segments, RequiredConnections: connLines}, outFile)
 	}
 	return res, err
-}
-
-func getNewExternalName(externalName string, externalsMap map[string]string) string {
-	if val, ok := externalsMap[externalName]; ok {
-		return val
-	}
-	name := fmt.Sprintf("%s%d", externalString, len(externalsMap))
-	externalsMap[externalName] = name
-	return name
-}
-
-func renameExternals(requiredConnections []spec.SpecRequiredConnectionsElem,
-	externalsMap map[string]string) []spec.SpecRequiredConnectionsElem {
-	connLines := []spec.SpecRequiredConnectionsElem{}
-	for _, conn := range requiredConnections {
-		if conn.Src.Type == spec.ResourceTypeExternal {
-			conn.Src.Name = getNewExternalName(conn.Src.Name, externalsMap)
-		} else if conn.Dst.Type == spec.ResourceTypeExternal {
-			conn.Dst.Name = getNewExternalName(conn.Dst.Name, externalsMap)
-		}
-		connLines = append(connLines, conn)
-	}
-	return connLines
 }
 
 // WriteDiffOrExplainOutput actual writing the output into file, with required format adjustments
