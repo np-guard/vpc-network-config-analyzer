@@ -1,0 +1,27 @@
+"Blocked TCP response" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the connection from "prod_vpc/proxy1[10.240.0.9]" to "prod_vpc/proxy2[10.240.2.24]" TCP src-ports: 1-9079,9081-65535 response is blocked
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"Network ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "VpcId:42", network ACL "NetworkAclId:45" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+
+In VPC "VpcId:42", network ACL "NetworkAclId:45" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: outbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
+
+In VPC "prod_vpc", network ACL "NetworkAclId:54" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+
+... (1 more)
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "VpcId:42", security group "GroupId:58" has no resources attached to it
+In VPC "prod_vpc", security group "GroupId:61" has no resources attached to it
