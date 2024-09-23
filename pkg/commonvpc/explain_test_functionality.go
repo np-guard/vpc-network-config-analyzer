@@ -37,6 +37,7 @@ func (tt *VpcExplainTest) TestSingleExplain(t *testing.T, mode testMode, rc Reso
 	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),
 		tt.ESrcMinPort, tt.ESrcMaxPort, tt.EDstMinPort, tt.EDstMaxPort, tt.DetailExplain)
 	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.Explain}
+	tt.Format = vpcmodel.Text
 	t.Run(tt.Name, func(t *testing.T) {
 		t.Parallel()
 		tt.runSingleCommonTest(t, explainOut, rc, explanationArgs)
