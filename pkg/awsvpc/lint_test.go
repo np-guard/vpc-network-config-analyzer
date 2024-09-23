@@ -64,7 +64,7 @@ func TestLintWithComparsion(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &AWSresourcesContainer{}
-			commonvpc.TestSingleLint(tt, t, rc)
+			tt.TestSingleLint(t, rc)
 		})
 	}
 	fmt.Println("done")
