@@ -45,16 +45,6 @@ func isSubnetTGWDestination(tg *TransitGateway, subnet *commonvpc.Subnet) bool {
 	return false
 }
 
-// TODO: remove this functions when all relevant TGW tests contain input address prefixes that do not overlap
-func validateAddressPrefixesExist(vpc *commonvpc.VPC) {
-	if len(vpc.AddressPrefixesList) == 0 {
-		// temp work around -- adding subnets as the vpc's address prefixes, for current tests missing address prefixes
-		for _, subnet := range vpc.SubnetsList {
-			vpc.AddressPrefixesList = append(vpc.AddressPrefixesList, subnet.Cidr)
-		}
-	}
-}
-
 // getVPCAdvertisedRoutes returns a list of IPBlock objects for vpc address prefixes matched by prefix filters (with permit action),
 // thus advertised to a TGW.
 // It also returns map from IPBlock objects to RulesInTable with index of the transit connection
@@ -64,7 +54,6 @@ func validateAddressPrefixesExist(vpc *commonvpc.VPC) {
 // prefix filter rules do not include protocol or ports (unlike nacls and sgs)
 func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *commonvpc.VPC) (advertisedRoutesRes []*ipblock.IPBlock,
 	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
-	validateAddressPrefixesExist(vpc)
 	vpcAPToPrefixRules = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
 	for _, ap := range vpc.AddressPrefixesList {
 		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
