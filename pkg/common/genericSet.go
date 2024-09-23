@@ -42,7 +42,7 @@ func (s GenericSet[T]) AsKey() SetAsKey {
 }
 
 func (s GenericSet[T]) AsList() []T {
-	return MapKeys(s)
+	return slices.Collect(maps.Keys(s))
 }
 
 func FromList[T comparable](l []T) GenericSet[T] {
@@ -75,11 +75,4 @@ func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
 		break
 	}
 	return k, v
-}
-
-func MapValues[K comparable, V any](m map[K]V) []V {
-	return slices.Collect(maps.Values(m))
-}
-func MapKeys[K comparable, V any](m map[K]V) []K {
-	return slices.Collect(maps.Keys(m))
 }
