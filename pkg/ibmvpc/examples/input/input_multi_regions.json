@@ -62,6 +62,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-east",
+            "address_prefixes": [
+                {
+                    "cidr": "10.241.0.0/22",
+                    "created_at": "2024-02-11T14:22:09.000Z",
+                    "has_subnets": true,
+                    "href": "href:18",
+                    "id": "id:19",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-east-1"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -126,6 +141,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-south",
+            "address_prefixes": [
+                {
+                    "cidr": "10.241.0.0/22",
+                    "created_at": "2024-02-11T14:22:09.000Z",
+                    "has_subnets": true,
+                    "href": "href:18",
+                    "id": "id:19",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:5",
+                        "name": "us-east-1"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -322,6 +352,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-east",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.64.0/22",
+                    "created_at": "2024-02-11T13:18:25.000Z",
+                    "has_subnets": true,
+                    "href": "href:34",
+                    "id": "id:35",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:24",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -386,6 +431,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-east",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.0.0/22",
+                    "created_at": "2024-02-11T13:18:25.000Z",
+                    "has_subnets": true,
+                    "href": "href:47",
+                    "id": "id:48",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:23",
+                        "name": "us-south-1"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -450,6 +510,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-south",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.64.0/22",
+                    "created_at": "2024-02-11T13:18:25.000Z",
+                    "has_subnets": true,
+                    "href": "href:34",
+                    "id": "id:35",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:24",
+                        "name": "us-south-2"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -514,6 +589,21 @@
             "resource_type": "vpc",
             "status": "available",
             "region": "us-south",
+            "address_prefixes": [
+                {
+                    "cidr": "10.240.0.0/22",
+                    "created_at": "2024-02-11T13:18:25.000Z",
+                    "has_subnets": true,
+                    "href": "href:47",
+                    "id": "id:48",
+                    "is_default": false,
+                    "name": "address-prefix-vpc-0",
+                    "zone": {
+                        "href": "href:23",
+                        "name": "us-south-1"
+                    }
+                }
+            ],
             "tags": []
         },
         {
@@ -715,7 +805,7 @@
             },
             "resource_group": {
                 "href": "href:15",
-                "id": "ola",
+                "id": "id:16",
                 "name": "anonymous"
             },
             "resource_type": "subnet",
