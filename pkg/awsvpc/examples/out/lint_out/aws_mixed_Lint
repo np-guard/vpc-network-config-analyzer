@@ -1,0 +1,36 @@
+"Blocked TCP response" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In the connection from "Public Internet 147.235.0.0/16" to "mixed/p1[10.240.3.70]" TCP src-ports: 1-1024,5001-65535 dst-ports: 9080 response is blocked
+In the connection from "Public Internet 147.235.0.0/16" to "mixed/p3[10.240.0.96]" TCP src-ports: 1-1024,5001-65535 dst-ports: 9080 response is blocked
+In the connection from "mixed/p1[10.240.3.70]" to "Public Internet 147.235.0.0/16" TCP src-ports: 1-9079,9081-65535 dst-ports: 1025-5000 response is blocked
+... (1 more)
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"Network ACL not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "mixed", network ACL "NetworkAclId:45" has no resources attached to it
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"Network ACL rules shadowed by higher priority rules" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "VpcId:44", network ACL "NetworkAclId:46" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+
+In VPC "VpcId:44", network ACL "NetworkAclId:46" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: outbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: outbound, cidr: 0.0.0.0/0, protocol: all
+
+In VPC "mixed", network ACL "NetworkAclId:45" rule is shadowed by a higher priority rule
+	Rule details: ruleNumber: 32767, action: deny, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+		Shadowing rule: ruleNumber: 100, action: allow, direction: inbound, cidr: 0.0.0.0/0, protocol: all
+
+... (1 more)
+
+________________________________________________________________________________________________________________________________________________________________________________________________________
+
+"SG not applied to any resources" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "VpcId:44", security group "GroupId:60" has no resources attached to it
+In VPC "mixed", security group "GroupId:57" has no resources attached to it
