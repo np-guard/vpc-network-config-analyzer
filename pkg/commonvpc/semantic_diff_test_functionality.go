@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const secJSONOutSuffix = "_2nd.json"
+
 type VpcDiffTest struct {
 	VpcTestCommon
 	InputConfig2nd string // 2nd input file for diff

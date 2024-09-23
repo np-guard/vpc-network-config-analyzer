@@ -29,13 +29,33 @@ const (
 )
 
 const (
-	examplesDir = "examples/"
-	inputDir    = "input/"
-	outDir      = "out/"
-)
+	examplesDir    = "examples/"
+	inputDir       = "input/"
+	outDir         = "out/"
+	errString      = "err: %s"
+	carriageReturn = "\r"
 
-const errString = "err: %s"
-const carriageReturn = "\r"
+	ActualOutFilePrefix               = "out_"
+	InputFilePrefix                   = "input_"
+	suffixOutFileWithGrouping         = "_with_grouping"
+	suffixOutFileWithoutLbAbstraction = "_no_lbAbstract"
+	suffixOutFileDebugSubnet          = "_analysisPerSubnetSeparately"
+	suffixOutFileSubnetsLevel         = "subnetsBased_withPGW"
+	suffixOutFileSubnetsLevelNoPGW    = "subnetsBased_withoutPGW"
+	suffixOutFileDiffSubnets          = "subnetsDiff"
+	suffixOutFileDiffEndpoints        = "endpointsDiff"
+	suffixOutFileExplain              = "explain"
+	suffixOutFileDetail               = "_detail"
+	txtOutSuffix                      = ".txt"
+	mdOutSuffix                       = ".md"
+	JSONOutSuffix                     = ".json"
+	drawioOutSuffix                   = ".drawio"
+	archDrawioOutSuffix               = "_arch.drawio"
+	svgOutSuffix                      = ".svg"
+	archSvgOutSuffix                  = "_arch.svg"
+	htmlOutSuffix                     = ".html"
+	archHTMLOutSuffix                 = "_arch.html"
+)
 
 /*
 tests for the entire flow:
@@ -60,30 +80,6 @@ type VpcTestCommon struct {
 	Format         vpcmodel.OutFormat
 	VpcList        []string
 }
-
-const (
-	ActualOutFilePrefix               = "out_"
-	InputFilePrefix                   = "input_"
-	suffixOutFileWithGrouping         = "_with_grouping"
-	suffixOutFileWithoutLbAbstraction = "_no_lbAbstract"
-	suffixOutFileDebugSubnet          = "_analysisPerSubnetSeparately"
-	suffixOutFileSubnetsLevel         = "subnetsBased_withPGW"
-	suffixOutFileSubnetsLevelNoPGW    = "subnetsBased_withoutPGW"
-	suffixOutFileDiffSubnets          = "subnetsDiff"
-	suffixOutFileDiffEndpoints        = "endpointsDiff"
-	suffixOutFileExplain              = "explain"
-	suffixOutFileDetail               = "_detail"
-	txtOutSuffix                      = ".txt"
-	mdOutSuffix                       = ".md"
-	JSONOutSuffix                     = ".json"
-	secJSONOutSuffix                  = "_2nd.json"
-	drawioOutSuffix                   = ".drawio"
-	archDrawioOutSuffix               = "_arch.drawio"
-	svgOutSuffix                      = ".svg"
-	archSvgOutSuffix                  = "_arch.svg"
-	htmlOutSuffix                     = ".html"
-	archHTMLOutSuffix                 = "_arch.html"
-)
 
 // getTestFileName returns expected file name and actual file name, for the relevant use case
 func getTestFileName(testName string,
