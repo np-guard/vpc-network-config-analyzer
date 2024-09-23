@@ -1,0 +1,8 @@
+"SGs implying different connectivity for endpoints inside a subnet" issues:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In VPC "vpc0", security group "GroupId:27" rule splits subnet "application" (10.240.20.0/24).
+	Rule details: Inbound index: 0, direction: inbound, target: 10.240.20.43/32, 10.240.20.245/32, 10.240.40.0/24, protocol: all
+In VPC "vpc0", security group "GroupId:42" rule splits subnet "db" (10.240.30.0/24).
+	Rule details: Outbound index: 0, direction: outbound, target: 10.240.30.33, protocol: tcp, dstPorts: 0-65535
+In VPC "vpc0", security group "GroupId:42" rule splits subnet "edge" (10.240.10.0/24).
+	Rule details: Inbound index: 1, direction: inbound, target: 10.240.10.42, protocol: tcp, dstPorts: 9080-9080
