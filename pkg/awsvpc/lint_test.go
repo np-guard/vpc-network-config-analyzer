@@ -13,28 +13,34 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-var lintTests = []*commonvpc.VpcGeneralTest{
+var lintTests = []*commonvpc.VpcLintTest{
 	{
-		Name:        "aws_acl1",
-		InputConfig: "aws_acl_1",
-		Enable:      []string{"sg-split-subnet"},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "aws_acl1",
+			InputConfig: "aws_acl_1",
+		},
+		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		Name:        "aws_mixed",
-		InputConfig: "aws_mixed",
-		Enable:      []string{"sg-split-subnet"},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "aws_mixed",
+			InputConfig: "aws_mixed",
+		},
+		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		Name:        "aws_sg_1",
-		InputConfig: "aws_sg_1",
-		Enable:      []string{"sg-split-subnet"},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			Name:        "aws_sg_1",
+			InputConfig: "aws_sg_1",
+		},
+		Enable: []string{"sg-split-subnet"},
 		Disable: []string{"nacl-split-subnet", "subnet-cidr-overlap", "nacl-unattached",
 			"sg-unattached", "sg-rule-cidr-out-of-range", "nacl-rule-cidr-out-of-range",
 			"tcp-response-blocked", "sg-rule-implied", "nacl-rule-shadowed"},
 	},
 }
 
-func TestAllLint(t *testing.T) {
+func TestLintWithComparsion(t *testing.T) {
 	// lintTests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
@@ -42,7 +48,7 @@ func TestAllLint(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &AWSresourcesContainer{}
-			commonvpc.RunLintTest(tt, t, rc)
+			tt.TestSingleLint(t, rc)
 		})
 	}
 	fmt.Println("done")
@@ -58,7 +64,7 @@ func TestAllLint(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &AWSresourcesContainer{}
-			commonvpc.RunLintTest(tt, t, rc)
+			commonvpc.TestSingleLint(tt, t, rc)
 		})
 	}
 	fmt.Println("done")
