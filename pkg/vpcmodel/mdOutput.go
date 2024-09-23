@@ -102,8 +102,8 @@ func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string
 		diffType, endpointsDiff := diffAndEndpointsDescription(line.CommonProperties.connDiff.diff,
 			line.Src, line.Dst, line.CommonProperties.connDiff.thisMinusOther)
 		conn1Str, conn2Str := conn1And2Str(line.CommonProperties.connDiff)
-		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.NameForAnalyzerOut(),
-			line.Dst.NameForAnalyzerOut(), conn1Str, conn2Str, endpointsDiff)
+		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.NameForAnalyzerOut(nil),
+			line.Dst.NameForAnalyzerOut(nil), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
 }
@@ -114,5 +114,5 @@ func connectivityLineMD(src, dst, conn string) string {
 }
 
 func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.Src.NameForAnalyzerOut(), line.Dst.NameForAnalyzerOut(), line.CommonProperties.groupingStrKey)
+	return connectivityLineMD(line.Src.NameForAnalyzerOut(nil), line.Dst.NameForAnalyzerOut(nil), line.CommonProperties.groupingStrKey)
 }

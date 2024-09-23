@@ -21,12 +21,12 @@ const (
 type VPCResourceIntf interface {
 	UID() string
 	Name() string
-	NameForAnalyzerOut() string
-	// ExtendedName returns a resource name that includes its VPC as prefix when necessary.
+	// NameForAnalyzerOut returns a string to be printed for output
+	// when config file is passed to the method it returns a resource name that
+	// includes its VPC as prefix when necessary.
 	// for example, a subnet with name "s1" within VPC "v1" will have extended name: "v1/s1"
-	// note this method is relevant only for Node and Subnet objects.
 	// note it adds the prefix only for input config that has multiple VPCs context.
-	ExtendedName(*VPCConfig) string
+	NameForAnalyzerOut(*VPCConfig) string
 	ZoneName() string
 	Kind() string
 	VPC() VPCResourceIntf // the VPC to which this resource belongs to
@@ -51,10 +51,6 @@ func (n *VPCResource) Name() string {
 	return n.ResourceName
 }
 
-func (n *VPCResource) NameForAnalyzerOut() string {
-	return n.ResourceName
-}
-
 func (n *VPCResource) SynthesisResourceName() string {
 	return n.VPC().Name() + Deliminator + n.ResourceName
 }
@@ -63,12 +59,12 @@ func (n *VPCResource) SynthesisKind() spec.ResourceType {
 	return ""
 }
 
-func (n *VPCResource) ExtendedName(c *VPCConfig) string {
+func (n *VPCResource) NameForAnalyzerOut(c *VPCConfig) string {
 	prefix := ""
-	if c.IsMultipleVPCsConfig {
+	if c != nil && c.IsMultipleVPCsConfig {
 		prefix = n.VPC().Name() + Deliminator
 	}
-	return prefix + n.NameForAnalyzerOut()
+	return prefix + n.ResourceName
 }
 
 func (n *VPCResource) UID() string {

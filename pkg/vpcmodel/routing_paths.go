@@ -102,7 +102,7 @@ func (p Path) Equal(otherPath Path) bool {
 func (e *Endpoint) string() string {
 	switch {
 	case e.VpcResource != nil:
-		return fmt.Sprintf("%s - %s", e.VpcResource.Kind(), e.VpcResource.NameForAnalyzerOut())
+		return fmt.Sprintf("%s - %s", e.VpcResource.Kind(), e.VpcResource.NameForAnalyzerOut(nil))
 	case e.IPBlock != nil:
 		return e.IPBlock.String()
 	case e.NextHop != nil:

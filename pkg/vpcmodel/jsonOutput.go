@@ -64,10 +64,10 @@ type diffLine struct {
 
 func sortConnLines(connLines []connLine) {
 	sort.Slice(connLines, func(i, j int) bool {
-		if connLines[i].Src.NameForAnalyzerOut() != connLines[j].Src.NameForAnalyzerOut() {
-			return connLines[i].Src.NameForAnalyzerOut() < connLines[j].Src.NameForAnalyzerOut()
+		if connLines[i].Src.NameForAnalyzerOut(nil) != connLines[j].Src.NameForAnalyzerOut(nil) {
+			return connLines[i].Src.NameForAnalyzerOut(nil) < connLines[j].Src.NameForAnalyzerOut(nil)
 		}
-		return connLines[i].Dst.NameForAnalyzerOut() < connLines[j].Dst.NameForAnalyzerOut()
+		return connLines[i].Dst.NameForAnalyzerOut(nil) < connLines[j].Dst.NameForAnalyzerOut(nil)
 	})
 }
 
@@ -150,10 +150,10 @@ func sortDiffLines(diffLines []diffLine) {
 		if diffLines[i].DstChange != diffLines[j].DstChange {
 			return diffLines[i].DstChange < diffLines[j].DstChange
 		}
-		if diffLines[i].Src.NameForAnalyzerOut() != diffLines[j].Src.NameForAnalyzerOut() {
-			return diffLines[i].Src.NameForAnalyzerOut() < diffLines[j].Src.NameForAnalyzerOut()
+		if diffLines[i].Src.NameForAnalyzerOut(nil) != diffLines[j].Src.NameForAnalyzerOut(nil) {
+			return diffLines[i].Src.NameForAnalyzerOut(nil) < diffLines[j].Src.NameForAnalyzerOut(nil)
 		}
-		return diffLines[i].Dst.NameForAnalyzerOut() < diffLines[j].Dst.NameForAnalyzerOut()
+		return diffLines[i].Dst.NameForAnalyzerOut(nil) < diffLines[j].Dst.NameForAnalyzerOut(nil)
 	})
 }
 

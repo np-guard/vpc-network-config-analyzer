@@ -142,8 +142,7 @@ type GroupConnLines struct {
 // EndpointElem can be Node(networkInterface) / groupedExternalNodes / groupedEndpointsElems / NodeSet(subnet or LB)
 type EndpointElem interface {
 	Name() string
-	NameForAnalyzerOut() string
-	ExtendedName(*VPCConfig) string
+	NameForAnalyzerOut(*VPCConfig) string
 	UID() string
 	IsExternal() bool
 	FormattableResource
@@ -156,7 +155,7 @@ type groupedConnLine struct {
 }
 
 func (g *groupedConnLine) String(c *VPCConfig) string {
-	return g.Src.ExtendedName(c) + " => " + g.Dst.ExtendedName(c) + " : " + g.ConnLabel(true)
+	return g.Src.NameForAnalyzerOut(c) + " => " + g.Dst.NameForAnalyzerOut(c) + " : " + g.ConnLabel(true)
 }
 
 func (g *groupedConnLine) ConnLabel(full bool) string {
@@ -216,11 +215,7 @@ func endpointElemResources(e EndpointElem) []VPCResourceIntf {
 type groupedEndpointsElems []EndpointElem
 
 func (g *groupedEndpointsElems) Name() string {
-	return listEndpointElemStr(*g, EndpointElem.NameForAnalyzerOut)
-}
-
-func (g *groupedEndpointsElems) NameForAnalyzerOut() string {
-	return g.Name()
+	return listEndpointElemStrWithConfig(*g, EndpointElem.NameForAnalyzerOut)
 }
 
 func (g *groupedEndpointsElems) SynthesisResourceName() string {
@@ -240,9 +235,9 @@ func (g *groupedEndpointsElems) SynthesisKind() spec.ResourceType {
 	return spec.ResourceTypeSegment
 }
 
-func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
-	if !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
-		return g.NameForAnalyzerOut()
+func (g *groupedEndpointsElems) NameForAnalyzerOut(c *VPCConfig) string {
+	if c == nil || !c.IsMultipleVPCsConfig { // this if is so that in relevant unittest we can avoid creating a vpc
+		return g.Name()
 	}
 	prefix := ""
 	if vpcResource, ok := (*g)[0].(VPCResourceIntf); ok {
@@ -253,9 +248,9 @@ func (g *groupedEndpointsElems) ExtendedName(c *VPCConfig) string {
 	}
 	// add the vpc prefix only once for grouped elements which are always of the same VPC
 	if prefix != "" && len(*g) > 1 {
-		return prefix + "[" + g.NameForAnalyzerOut() + "]"
+		return prefix + "[" + g.Name() + "]"
 	}
-	return prefix + g.NameForAnalyzerOut()
+	return prefix + g.Name()
 }
 
 func (g *groupedEndpointsElems) UID() string {
@@ -282,7 +277,7 @@ func (g *groupedExternalNodes) Name() string {
 	return prefix + g.String()
 }
 
-func (g *groupedExternalNodes) NameForAnalyzerOut() string {
+func (g *groupedExternalNodes) NameForAnalyzerOut(c *VPCConfig) string {
 	return g.Name()
 }
 
@@ -302,10 +297,6 @@ func (g *groupedExternalNodes) CidrOrAddress() string {
 		return ipblock.CidrAll
 	}
 	return g.String()
-}
-
-func (g *groupedExternalNodes) ExtendedName(c *VPCConfig) string {
-	return g.Name()
 }
 
 // UID of externalNetwork returns Name, so uses here the same functionality.
@@ -433,7 +424,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
 		src.IsExternal() && !srcIsNode {
-		return fmt.Errorf("%s or %s is External but not a node", src.NameForAnalyzerOut(), dst.NameForAnalyzerOut())
+		return fmt.Errorf("%s or %s is External but not a node", src.NameForAnalyzerOut(nil), dst.NameForAnalyzerOut(nil))
 	}
 	if dst.IsExternal() && src.IsExternal() {
 		return fmt.Errorf("unexpected grouping - both src and dst external")
@@ -637,6 +628,15 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 	endpointsStrings := make([]string, len(eps))
 	for i, ep := range eps {
 		endpointsStrings[i] = fn(ep)
+	}
+	sort.Strings(endpointsStrings)
+	return strings.Join(endpointsStrings, commaSeparator)
+}
+
+func listEndpointElemStrWithConfig(eps []EndpointElem, fn func(ep EndpointElem, c *VPCConfig) string) string {
+	endpointsStrings := make([]string, len(eps))
+	for i, ep := range eps {
+		endpointsStrings[i] = fn(ep, nil)
 	}
 	sort.Strings(endpointsStrings)
 	return strings.Join(endpointsStrings, commaSeparator)

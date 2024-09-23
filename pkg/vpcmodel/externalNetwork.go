@@ -68,7 +68,7 @@ func (exn *ExternalNetwork) Name() string {
 	return exn.ResourceType + " [" + exn.CidrStr + "]"
 }
 
-func (exn *ExternalNetwork) NameForAnalyzerOut() string {
+func (exn *ExternalNetwork) NameForAnalyzerOut(c *VPCConfig) string {
 	return exn.Name()
 }
 
@@ -78,10 +78,6 @@ func (exn *ExternalNetwork) SynthesisResourceName() string {
 
 func (exn *ExternalNetwork) SynthesisKind() spec.ResourceType {
 	return spec.ResourceTypeExternal
-}
-
-func (exn *ExternalNetwork) ExtendedName(c *VPCConfig) string {
-	return exn.Name()
 }
 
 func (exn *ExternalNetwork) IsInternal() bool {

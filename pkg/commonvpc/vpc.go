@@ -90,16 +90,12 @@ func (ni *NetworkInterface) VsiName() string {
 	return ni.Vsi
 }
 
-func (ni *NetworkInterface) NameForAnalyzerOut() string {
-	return nameWithBracketsInfo(ni.Vsi, ni.Address())
-}
-
-func (ni *NetworkInterface) ExtendedName(c *vpcmodel.VPCConfig) string {
+func (ni *NetworkInterface) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c.IsMultipleVPCsConfig {
+	if c != nil && c.IsMultipleVPCsConfig {
 		prefix = ni.VPC().Name() + vpcmodel.Deliminator
 	}
-	return prefix + ni.NameForAnalyzerOut()
+	return prefix + nameWithBracketsInfo(ni.Vsi, ni.Address())
 }
 
 func nameWithBracketsInfo(name, inBrackets string) string {

@@ -37,21 +37,17 @@ type ReservedIP struct {
 	vpe string
 }
 
-func (r *ReservedIP) NameForAnalyzerOut() string {
-	return nameWithBracketsInfo(r.vpe, r.Address())
-}
-
-func (r *ReservedIP) ExtendedName(c *vpcmodel.VPCConfig) string {
+func (r *ReservedIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c.IsMultipleVPCsConfig {
+	if c != nil && c.IsMultipleVPCsConfig {
 		prefix = r.VPC().Name() + vpcmodel.Deliminator
 	}
-	return prefix + r.NameForAnalyzerOut()
+	return prefix + nameWithBracketsInfo(r.vpe, r.Address())
 }
 
 // used for synthesis output
 func (r *ReservedIP) SynthesisResourceName() string {
-	return r.VPC().NameForAnalyzerOut() + vpcmodel.Deliminator + r.vpe
+	return r.VPC().Name() + vpcmodel.Deliminator + r.vpe
 }
 
 func (r *ReservedIP) SynthesisKind() spec.ResourceType {
@@ -70,7 +66,12 @@ type PrivateIP struct {
 	block *ipblock.IPBlock
 }
 
-func (pip *PrivateIP) NameForAnalyzerOut() string {
+func (pip *PrivateIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
+	prefix := ""
+	if c != nil && c.IsMultipleVPCsConfig {
+		prefix = pip.VPC().Name() + vpcmodel.Deliminator
+	}
+
 	kind := "LB private IP"
 	address := pip.Address()
 	if !pip.original {
@@ -78,16 +79,8 @@ func (pip *PrivateIP) NameForAnalyzerOut() string {
 		// todo - use ToRangesListString() instead of ListToPrint()
 		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
-	name := nameWithBracketsInfo(pip.loadBalancer.NameForAnalyzerOut(), kind)
-	return nameWithBracketsInfo(name, address)
-}
-
-func (pip *PrivateIP) ExtendedName(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c.IsMultipleVPCsConfig {
-		prefix = pip.VPC().Name() + vpcmodel.Deliminator
-	}
-	return prefix + pip.NameForAnalyzerOut()
+	name := nameWithBracketsInfo(pip.loadBalancer.Name(), kind)
+	return prefix + nameWithBracketsInfo(name, address)
 }
 
 // AbstractedToNodeSet returns the pip load balancer if it was abstracted
@@ -111,16 +104,12 @@ func (n *IKSNode) VsiName() string {
 	return ""
 }
 
-func (n *IKSNode) NameForAnalyzerOut() string {
-	return nameWithBracketsInfo(n.Name(), n.Address())
-}
-
-func (n *IKSNode) ExtendedName(c *vpcmodel.VPCConfig) string {
+func (n *IKSNode) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c.IsMultipleVPCsConfig {
+	if c != nil && c.IsMultipleVPCsConfig {
 		prefix = n.VPC().Name() + vpcmodel.Deliminator
 	}
-	return prefix + n.NameForAnalyzerOut()
+	return prefix + nameWithBracketsInfo(n.Name(), n.Address())
 }
 
 // vpe can be in multiple zones - depending on the zones of its network interfaces..
@@ -173,9 +162,9 @@ type LoadBalancer struct {
 func (lb *LoadBalancer) nameWithKind() string {
 	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
 }
-func (lb *LoadBalancer) ExtendedName(c *vpcmodel.VPCConfig) string {
+func (lb *LoadBalancer) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c.IsMultipleVPCsConfig {
+	if c != nil && c.IsMultipleVPCsConfig {
 		prefix = lb.VPC().Name() + vpcmodel.Deliminator
 	}
 	return prefix + lb.nameWithKind()
@@ -248,10 +237,10 @@ func (lbr *LoadBalancerRule) IsIngress() bool {
 func (lbr *LoadBalancerRule) String(detail bool) string {
 	if lbr.Deny(false) {
 		return fmt.Sprintf("%s will not connect to %s, since it is not its pool member\n",
-			lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut())
+			lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut(nil))
 	}
 	return fmt.Sprintf("%s may initiate a connection to %s, which is one of its pool members\n",
-		lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut())
+		lbr.lb.nameWithKind(), lbr.dst.NameForAnalyzerOut(nil))
 }
 
 // routing resource elements

@@ -409,7 +409,7 @@ func (connDiff *connectivityDiff) string(diffAnalysis diffAnalysisType, thisMinu
 			diffType, diffInfoBody := diffAndEndpointsDescription(connDiff.diff, src, dst, thisMinusOther)
 			diffInfo := getDiffInfo(diffAnalysis, diffInfoBody)
 			printDiff := fmt.Sprintf("%v %s, source: %s, destination: %s, ", diffTypeStr, diffType,
-				src.NameForAnalyzerOut(), dst.NameForAnalyzerOut())
+				src.NameForAnalyzerOut(nil), dst.NameForAnalyzerOut(nil))
 			printDiff += fmt.Sprintf(configsStr, conn1Str, conn2Str, diffInfo) + "\n"
 			strList = append(strList, printDiff)
 		}
