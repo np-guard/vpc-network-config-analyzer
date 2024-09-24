@@ -27,52 +27,52 @@ const analysisOut = "analysis_out"
 
 var tests = []*commonvpc.VpcAnalysisTest{
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing5_old",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing5_old",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	// batch1: cover all use-cases, with text output Format , no Grouping
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			// TODO: currently skipping uc3 since it is not supported with partial subnet connectivity
 			UseCases: []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet},
@@ -80,51 +80,51 @@ var tests = []*commonvpc.VpcAnalysisTest{
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tg-prefix-filters",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.SingleSubnet, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing_3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing_3_with_empty_remote",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -133,119 +133,119 @@ var tests = []*commonvpc.VpcAnalysisTest{
 
 	// batch2: only vsi-level use-case, with Grouping , text Format
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	// respond enabled only on part of the TCP connection
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new_respond_partly",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 
 	// batch2.5: only vsi-level use-case, with Grouping , drawio Format
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_config_object",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "mult_NIs_single_VSI",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 
 	//batch3: only vsi-level use-case, no Grouping, with md output formats
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
@@ -253,33 +253,33 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.ARCHDRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.ARCHDRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.ARCHDRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new_grouping",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	// iks-nodes example
 	// iks_config_object example has three SG, one of them two targets - a pgw and a LB.
@@ -290,32 +290,32 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	// 4. inbound, udp, ports 1-65535
 
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_config_object",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "iks_config_object",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:     true,
-			NoLbAbstract: true,
-			Format:       vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	// json examples
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.JSON,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.JSON,
@@ -323,7 +323,7 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 	// multi-vpc config example
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "acl_testing3_with_two_vpcs",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -332,7 +332,7 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 	// vpe example
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "demo_with_instances_vpes",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -340,14 +340,14 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 	// multi-vpc config examples
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "experiments_env",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "experiments_env",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -355,14 +355,14 @@ var tests = []*commonvpc.VpcAnalysisTest{
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "experiments_env",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.JSON,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "multiple_vpcs",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
@@ -370,44 +370,44 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 	// tgw examples
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_basic_example",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_basic_example_multiple_regions",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_basic_example_with_some_default_deny",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_larger_example",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_larger_example",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
-			Grouping:    true,
 		},
+		Grouping: true,
 	},
 
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tg-prefix-filters",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
@@ -415,56 +415,56 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	},
 	// tgw examples with drawio
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_larger_example",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.HTML,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "tgw_larger_example",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
-			Grouping:    true,
 		},
+		Grouping: true,
 	},
 	// multivpc drawio:
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "multiple_vpcs",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "multiple_vpcs",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "experiments_env",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.ARCHDRAWIO,
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "experiments_env",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: true,
 	},
 	// resource group filtering example
 	// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
 	// global-tg-ky and local-tg-ky tgws expected to be filtered out
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig:   "multi_resource_groups",
 			UseCases:      []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:        vpcmodel.Text,
@@ -475,7 +475,7 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	// zn-vpc1, zn-vpc2, zn-vpc3 expected to be filtered out
 	// global-tg-zn and local-tg-zn tgws expected to be filtered out
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "multi_regions",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -483,36 +483,36 @@ var tests = []*commonvpc.VpcAnalysisTest{
 		},
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_workers_large",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_workers_large",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Grouping:    false,
 			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping: false,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_workers_large",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_workers_large",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.ARCHSVG,
 		},
+		Grouping: true,
 	},
 	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
 	// {
@@ -523,91 +523,91 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	// },
 	// Grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "sg_testing1_new_dup_subnets_names",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "iks_workers_large",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:     true,
-			NoLbAbstract: true,
-			Format:       vpcmodel.HTML,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "iks_workers_large",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "iks_workers_large",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:     true,
-			NoLbAbstract: true,
-			Format:       vpcmodel.DRAWIO,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "iks_workers_large",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.DRAWIO,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	// LB examples:
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig: "lb_bad_practice",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
-			Format:      vpcmodel.Text,
-		},
-	},
-	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "lb_bad_practice",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "lb_bad_practice",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+	},
+	{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "iks_w_lb",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "lb_policies",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "load_balancer",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-			Grouping:     true,
-			NoLbAbstract: true,
-			Format:       vpcmodel.HTML,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "load_balancer",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+			Format:      vpcmodel.HTML,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "load_balancer",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "load_balancer",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:     true,
-			NoLbAbstract: true,
-			Format:       vpcmodel.Text,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "load_balancer",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "nacl_split_subnet",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
@@ -637,71 +637,71 @@ var tests = []*commonvpc.VpcAnalysisTest{
 	// is over approximated to:
 	//	   vsi1-sub3[10.240.128.5] => alb[LoadBalancer] : All Connections **
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "filters_split_lb_subnet",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:       vpcmodel.Text,
-			Grouping:     false,
-			NoLbAbstract: true,
-		},
-	},
-	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "filters_split_lb_subnet",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
-			Grouping:    false,
 		},
+		Grouping:     false,
+		NoLbAbstract: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "filters_split_lb_subnet",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:       vpcmodel.HTML,
-			Grouping:     true,
-			NoLbAbstract: true,
-		},
-	},
-	{
-		commonvpc.VpcTestCommon{
-			InputConfig: "hub_n_spoke_1",
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "filters_split_lb_subnet",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: false,
 	},
 	{
-		commonvpc.VpcTestCommon{
-			InputConfig:  "hub_n_spoke_1",
-			UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:       vpcmodel.HTML,
-			Grouping:     true,
-			NoLbAbstract: true,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "filters_split_lb_subnet",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
 		},
+		Grouping:     true,
+		NoLbAbstract: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "hub_n_spoke_1",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		Grouping: true,
+	},
+	{
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "hub_n_spoke_1",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		Grouping:     true,
+		NoLbAbstract: true,
+	},
+	{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "fabricated",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.HTML,
-			Grouping:    true,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "vni_basic",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.Text,
 		},
+		Grouping: true,
 	},
 	{
-		commonvpc.VpcTestCommon{
+		VpcTestCommon: commonvpc.VpcTestCommon{
 			InputConfig: "vni_basic",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Grouping:    true,
 			Format:      vpcmodel.HTML,
 		},
+		Grouping: true,
 	},
 }
 
@@ -732,7 +732,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 		{
 			// here the connectivity per subnet is getting split to few parts by various local ranges within the subnet cidr,
 			// and the split is by the ACL's rules "local" part (e.g. "from" in egress rule / "to" in ingress rule)
-			commonvpc.VpcTestCommon{
+			VpcTestCommon: commonvpc.VpcTestCommon{
 				Name:        "unsupported_analysis_acl_testing3",
 				InputConfig: "acl_testing3",
 				UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
@@ -745,7 +745,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 		},
 		{
 			// here the split is by  ACL's rules "remote" part (e.g. "to" in egress rule / "from" in ingress rule)
-			commonvpc.VpcTestCommon{
+			VpcTestCommon: commonvpc.VpcTestCommon{
 				Name:        "unsupported_nacl_split_subnet",
 				InputConfig: "nacl_split_subnet",
 				UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},

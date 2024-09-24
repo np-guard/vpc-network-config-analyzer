@@ -72,12 +72,10 @@ type VpcTestCommon struct {
 	ActualOutput   map[vpcmodel.OutputUseCase]string // actual output file path
 	UseCases       []vpcmodel.OutputUseCase          // the list of output use cases to test
 	ErrPerUseCase  map[vpcmodel.OutputUseCase]error
+	Format         vpcmodel.OutFormat
 	ResourceGroup  string   // filter vpc configs by resource group
 	Regions        []string // filter vpc configs by region
 	Mode           testMode
-	Grouping       bool
-	NoLbAbstract   bool
-	Format         vpcmodel.OutFormat
 	VpcList        []string
 }
 
@@ -175,9 +173,9 @@ func (tt *VpcTestCommon) initTest() {
 }
 
 func (tt *VpcTestCommon) initTestFileNames(uc vpcmodel.OutputUseCase,
-	vpcName string, allVPCs, detailExplain bool, testDirOut string) error {
+	vpcName string, allVPCs, detailExplain bool, testDirOut string, grouping, noLbAbstract bool) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.Name, uc, tt.Grouping, tt.NoLbAbstract, detailExplain, tt.Format, vpcName, allVPCs, tt.VpcList)
+		tt.Name, uc, grouping, noLbAbstract, detailExplain, tt.Format, vpcName, allVPCs, tt.VpcList)
 	if err != nil {
 		return err
 	}
@@ -192,17 +190,18 @@ func (tt *VpcTestCommon) runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
+	grouping, noLbAbstract bool,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
 	detailExplain := false
 	if explanationArgs != nil {
 		detailExplain = explanationArgs.Detail
 	}
 	allVpcs := len(tt.VpcList) == 0
-	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir); err != nil {
+	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, tt.Grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,
-		explanationArgs, tt.Format, !tt.NoLbAbstract)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,
+		explanationArgs, tt.Format, !noLbAbstract)
 	if err != nil {
 		return err
 	}
@@ -326,7 +325,7 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 }
 
 func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc ResourcesContainer,
-	explanationArgs *vpcmodel.ExplanationArgs) {
+	grouping, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
@@ -335,7 +334,7 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc Re
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, explanationArgs)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, grouping, noLbAbstract, explanationArgs)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {
@@ -343,11 +342,12 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc Re
 	}
 }
 
-func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
+func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir,
+	testName string, grouping, noLbAbstract bool) {
 	tt.Name = testName
 	tt.setMode(mode)
 	t.Run(tt.Name, func(t *testing.T) {
 		t.Parallel()
-		tt.runSingleCommonTest(t, testDir, rc, nil)
+		tt.runSingleCommonTest(t, testDir, rc, grouping, noLbAbstract, nil)
 	})
 }

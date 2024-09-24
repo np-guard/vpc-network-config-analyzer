@@ -40,6 +40,6 @@ func (tt *VpcExplainTest) TestSingleExplain(t *testing.T, mode testMode, rc Reso
 	tt.Format = vpcmodel.Text
 	t.Run(tt.Name, func(t *testing.T) {
 		t.Parallel()
-		tt.runSingleCommonTest(t, explainOut, rc, explanationArgs)
+		tt.runSingleCommonTest(t, explainOut, rc, false, false, explanationArgs)
 	})
 }

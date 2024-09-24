@@ -16,38 +16,52 @@ import (
 
 const synthesisOut = "synthesis_out"
 
-var synthesisTests = []*commonvpc.VpcTestCommon{
+var synthesisTests = []*commonvpc.VpcAnalysisTest{
 	{
-		InputConfig: "acl_testing3",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "acl_testing3",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		},
 	},
 	{
-		InputConfig: "acl_testing4",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "acl_testing4",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		},
 	},
 	{
-		InputConfig: "acl_testing5",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "acl_testing5",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		},
 	},
 	// multi-vpc
 	{
-		InputConfig: "multiple_vpcs",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "multiple_vpcs",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		},
 	},
 	{
-		InputConfig: "experiments_env",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "experiments_env",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		},
 	},
 	// grouping
 	{
-		InputConfig: "acl_testing5",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		Grouping:    true,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "acl_testing5",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		},
+		Grouping: true,
 	},
 	{
-		InputConfig: "subnet_grouping",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
-		Grouping:    true,
+		VpcTestCommon: commonvpc.VpcTestCommon{
+			InputConfig: "subnet_grouping",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
+		},
+		Grouping: true,
 	},
 }
 
@@ -67,7 +81,8 @@ func TestSynthesisWithComparison(t *testing.T) {
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig,
+			tt.Grouping, tt.NoLbAbstract)
 	}
 	fmt.Println("done")
 }
