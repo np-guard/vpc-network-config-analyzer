@@ -446,15 +446,15 @@ func printConfig(c *vpcmodel.VPCConfig) {
 		if n.IsExternal() {
 			continue
 		}
-		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.NameForAnalyzerOut(nil), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CidrOrAddress(), n.NameForAnalyzerOut(c), n.UID()}, separator))
 	}
 	logging.Debug("Subnets:")
 	for _, n := range c.Subnets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.NameForAnalyzerOut(nil), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.CIDR(), n.NameForAnalyzerOut(c), n.UID()}, separator))
 	}
 	logging.Debug("NodeSets:")
 	for _, n := range c.NodeSets {
-		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.NameForAnalyzerOut(nil), n.UID()}, separator))
+		logging.Debug(strings.Join([]string{n.Kind(), n.AddressRange().ToIPRanges(), n.NameForAnalyzerOut(c), n.UID()}, separator))
 	}
 	logging.Debug("FilterResources:")
 	for _, f := range c.FilterResources {

@@ -19,7 +19,7 @@ func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
 		return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
 	}
 	tgw := c.RoutingResources[0]
-	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.NameForAnalyzerOut(nil), tgw.UID()), nil
+	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.NameForAnalyzerOut(c), tgw.UID()), nil
 }
 
 func headerOfAnalyzedVPC(uc OutputUseCase, vpcName, vpc2Name string, c1 *VPCConfig,

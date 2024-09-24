@@ -139,7 +139,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	privateSubnetRule := g.CommonProperties.expDetails.privateSubnetRule
 	if externalRouter != nil && isExternal {
-		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.NameForAnalyzerOut(nil) + newLine
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.NameForAnalyzerOut(c) + newLine
 	}
 	if loadBalancerRule != nil {
 		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String(true)

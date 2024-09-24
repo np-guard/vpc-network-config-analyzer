@@ -47,14 +47,14 @@ func subnetConnLine(subnet string, conn *connection.Set) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
 }
 
-func (c *ConfigBasedConnectivityResults) string() string {
+func (c *ConfigBasedConnectivityResults) string(config *VPCConfig) string {
 	res := "Ingress: \n"
 	for n, conn := range c.IngressAllowedConns {
-		res += subnetConnLine(n.NameForAnalyzerOut(nil), conn)
+		res += subnetConnLine(n.NameForAnalyzerOut(config), conn)
 	}
 	res += "Egress: \n"
 	for n, conn := range c.EgressAllowedConns {
-		res += subnetConnLine(n.NameForAnalyzerOut(nil), conn)
+		res += subnetConnLine(n.NameForAnalyzerOut(config), conn)
 	}
 
 	return res
@@ -63,10 +63,10 @@ func (c *ConfigBasedConnectivityResults) string() string {
 var _ = (*VPCsubnetConnectivity).printAllowedConns // avoiding "unused" warning
 
 // print AllowedConns (not combined)
-func (v *VPCsubnetConnectivity) printAllowedConns() {
+func (v *VPCsubnetConnectivity) printAllowedConns(c *VPCConfig) {
 	for n, connMap := range v.AllowedConns {
-		fmt.Println(n.NameForAnalyzerOut(nil))
-		fmt.Println(connMap.string())
+		fmt.Println(n.NameForAnalyzerOut(c))
+		fmt.Println(connMap.string(v.VPCConfig))
 		fmt.Println("-----------------")
 	}
 }
@@ -86,7 +86,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 			// the ACL splits connectivity to part of that subnet,
 			// this is currently not supported in subnets connectivity analysis
 			return nil, fmt.Errorf("unsupported subnets connectivity analysis - no consistent connectivity for entire subnet %s",
-				subnet.NameForAnalyzerOut(nil))
+				subnet.NameForAnalyzerOut(c))
 		}
 	}
 
@@ -277,7 +277,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 				if egressConns == nil {
 					// should not get here
 					return nil, fmt.Errorf("could not find egress connection from %s to  %s",
-						concPeerNode.NameForAnalyzerOut(nil), subnetNodeSet.NameForAnalyzerOut(nil))
+						concPeerNode.NameForAnalyzerOut(v.VPCConfig), subnetNodeSet.NameForAnalyzerOut(v.VPCConfig))
 				}
 				combinedConns = conns.Intersect(egressConns)
 				// for subnets cross-vpc connection, add intersection with tgw connectivity (prefix filters)

@@ -424,7 +424,7 @@ func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
 		src.IsExternal() && !srcIsNode {
-		return fmt.Errorf("%s or %s is External but not a node", src.NameForAnalyzerOut(nil), dst.NameForAnalyzerOut(nil))
+		return fmt.Errorf("%s or %s is External but not a node", src.NameForAnalyzerOut(g.config), dst.NameForAnalyzerOut(g.config))
 	}
 	if dst.IsExternal() && src.IsExternal() {
 		return fmt.Errorf("unexpected grouping - both src and dst external")

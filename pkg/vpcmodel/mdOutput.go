@@ -91,7 +91,7 @@ func linesToOutput(connLines, lines []string) string {
 func (m *MDoutputFormatter) getGroupedOutput(connLines *GroupConnLines) []string {
 	lines := make([]string, len(connLines.GroupedLines))
 	for i, line := range connLines.GroupedLines {
-		lines[i] = getGroupedMDLine(line)
+		lines[i] = getGroupedMDLine(line, connLines.config)
 	}
 	return lines
 }
@@ -113,6 +113,6 @@ func connectivityLineMD(src, dst, conn string) string {
 	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
 }
 
-func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.Src.NameForAnalyzerOut(nil), line.Dst.NameForAnalyzerOut(nil), line.CommonProperties.groupingStrKey)
+func getGroupedMDLine(line *groupedConnLine, c *VPCConfig) string {
+	return connectivityLineMD(line.Src.NameForAnalyzerOut(c), line.Dst.NameForAnalyzerOut(c), line.CommonProperties.groupingStrKey)
 }
