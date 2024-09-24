@@ -57,7 +57,7 @@ var synthesisTests = []*commonvpc.VpcTestCommon{
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestCommonSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/

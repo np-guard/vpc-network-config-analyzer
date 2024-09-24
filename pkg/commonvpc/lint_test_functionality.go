@@ -42,7 +42,7 @@ func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc ResourcesContainer) {
 	vpcConfigs := tt.getVPCConfigs(t, tt.InputConfig, rc)
 
 	// generate actual output for all use cases specified for this test
-	err := tt.runLintTestPerUseCase(t, vpcConfigs.Configs(), lintOut)
+	err := tt.runLintTest(t, vpcConfigs.Configs(), lintOut)
 	require.Equal(t, tt.ErrPerUseCase[vpcmodel.AllEndpoints], err, "comparing lint actual err to expected err")
 	for uc, outFile := range tt.ActualOutput {
 		fmt.Printf("lint test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
@@ -50,7 +50,7 @@ func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc ResourcesContainer) {
 }
 
 // runExplainTestPerUseCase executes lint for the required use case and compares/generates the output
-func (tt *VpcLintTest) runLintTestPerUseCase(t *testing.T, cConfigs map[string]*vpcmodel.VPCConfig, outDir string) error {
+func (tt *VpcLintTest) runLintTest(t *testing.T, cConfigs map[string]*vpcmodel.VPCConfig, outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	tt.initLintTestFileNames(outDir)
 	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.PrintAllLints, tt.Enable, tt.Disable)

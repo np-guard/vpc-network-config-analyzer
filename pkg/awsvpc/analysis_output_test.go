@@ -16,36 +16,48 @@ import (
 
 const analysisOut = "analysis_out"
 
-var tests = []*commonvpc.VpcTestCommon{
+var tests = []*commonvpc.VpcAnalysisTest{
 	{
-		InputConfig: "basic_config_with_sg",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.Text,
+		commonvpc.VpcTestCommon{
+			InputConfig: "basic_config_with_sg",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+			Format:      vpcmodel.Text,
+		},
 	},
 	{
-		InputConfig: "aws_sg_1",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.Text,
+		commonvpc.VpcTestCommon{
+			InputConfig: "aws_sg_1",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+			Format:      vpcmodel.Text,
+		},
 	},
 	{
-		InputConfig: "aws_sg_1",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		Format:      vpcmodel.HTML,
+		commonvpc.VpcTestCommon{
+			InputConfig: "aws_sg_1",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
 	},
 	{
-		InputConfig: "aws_acl_1",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.Text,
+		commonvpc.VpcTestCommon{
+			InputConfig: "aws_acl_1",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+			Format:      vpcmodel.Text,
+		},
 	},
 	{
-		InputConfig: "aws_mixed",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
-		Format:      vpcmodel.Text,
+		commonvpc.VpcTestCommon{
+			InputConfig: "aws_mixed",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
+			Format:      vpcmodel.Text,
+		},
 	},
 	{
-		InputConfig: "aws_mixed",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		Format:      vpcmodel.HTML,
+		commonvpc.VpcTestCommon{
+			InputConfig: "aws_mixed",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
 	},
 }
 
@@ -55,7 +67,7 @@ var tests = []*commonvpc.VpcTestCommon{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestCommonSingleTest(t, commonvpc.OutputGeneration, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, commonvpc.OutputGeneration, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -64,7 +76,7 @@ func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestCommonSingleTest(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
