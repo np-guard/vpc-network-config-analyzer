@@ -61,7 +61,7 @@ func (n *VPCResource) SynthesisKind() spec.ResourceType {
 
 func (n *VPCResource) NameForAnalyzerOut(c *VPCConfig) string {
 	prefix := ""
-	if c != nil {
+	if c != nil && n.VPC() != nil {
 		prefix = c.MultipleVPCsConfigPrefix(n.VPC().Name())
 	}
 	return prefix + n.ResourceName
