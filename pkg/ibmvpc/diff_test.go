@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
