@@ -8,7 +8,9 @@ package common
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -40,7 +42,7 @@ func (s GenericSet[T]) AsKey() SetAsKey {
 }
 
 func (s GenericSet[T]) AsList() []T {
-	return MapKeys(s)
+	return slices.Collect(maps.Keys(s))
 }
 
 func FromList[T comparable](l []T) GenericSet[T] {
@@ -73,24 +75,4 @@ func AnyMapEntry[K comparable, V any](m map[K]V) (k K, v V) {
 		break
 	}
 	return k, v
-}
-
-// todo - these two methods will be available on go 1.23:
-func MapValues[K comparable, V any](m map[K]V) []V {
-	vals := make([]V, len(m))
-	i := 0
-	for _, v := range m {
-		vals[i] = v
-		i++
-	}
-	return vals
-}
-func MapKeys[K comparable, V any](m map[K]V) []K {
-	keys := make([]K, len(m))
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-	return keys
 }

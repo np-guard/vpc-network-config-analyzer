@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package drawio
 
 import (
+	"maps"
 	"slices"
 	"sort"
 
@@ -466,7 +467,7 @@ func sortIconsBySGs(sgs []SquareTreeNodeInterface) [][]TreeNodeInterface {
 		sgsToIcons[sgsAsKey] = append(sgsToIcons[sgsAsKey], icon)
 	}
 	// covert to list:
-	return common.MapValues(sgsToIcons)
+	return slices.Collect(maps.Values(sgsToIcons))
 }
 
 // ///////////////////////////////////////////////////////////
