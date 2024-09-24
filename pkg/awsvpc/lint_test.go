@@ -10,26 +10,26 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 )
 
-var lintTests = []*commonvpc.VpcLintTest{
+var lintTests = []*testfunc.VpcLintTest{
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "aws_acl1",
 			InputConfig: "aws_acl_1",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "aws_mixed",
 			InputConfig: "aws_mixed",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "aws_sg_1",
 			InputConfig: "aws_sg_1",
 		},
@@ -44,7 +44,7 @@ func TestLintWithComparsion(t *testing.T) {
 	// lintTests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
-		tt.Mode = commonvpc.OutputComparison
+		tt.Mode = testfunc.OutputComparison
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &AWSresourcesContainer{}
@@ -60,7 +60,7 @@ func TestLintWithComparsion(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
-		tt.Mode = commonvpc.OutputGeneration
+		tt.Mode = testfunc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &AWSresourcesContainer{}

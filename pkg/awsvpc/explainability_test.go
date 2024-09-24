@@ -8,15 +8,14 @@ package awsvpc
 
 import (
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"testing"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-var explainTests = []*commonvpc.VpcExplainTest{
+var explainTests = []*testfunc.VpcExplainTest{
 	// existing connection between two endpoints of different subnets
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "ip_to_ip",
 			InputConfig: "aws_sg_1",
 		},
@@ -26,7 +25,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// non-existing connection between two endpoints of different subnets due to one of the nacls
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "nacl_blocking",
 			InputConfig: "aws_mixed",
 		},
@@ -37,7 +36,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	// existing sub-connection between two endpoints of the same subnet
 	// todo: https://github.com/np-guard/vpc-network-config-analyzer/issues/859
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "same_subnet_partial_connection",
 			InputConfig: "aws_mixed",
 		},
@@ -47,7 +46,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// no connection between two endpoints of the same subnet
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "subnet_to_subnet",
 			InputConfig: "aws_mixed",
 		},
@@ -57,7 +56,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection to the public internet blocked by sg and private subnet
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "to_external_private_subnet",
 			InputConfig: "aws_sg_1",
 		},
@@ -67,7 +66,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// existing connection to the public internet
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "to_external_public_subnet",
 			InputConfig: "aws_sg_1",
 		},
@@ -77,7 +76,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// existing connection from the public internet
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "from_external_public_subnet",
 			InputConfig: "aws_mixed",
 		},
@@ -87,7 +86,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection to the public internet blocked only by private subnet
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "to_external_blocked_only_private_subnet",
 			InputConfig: "aws_sg_1_allow_sg_private",
 		},
@@ -101,7 +100,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		tt.TestSingleExplain(t, commonvpc.OutputComparison, &AWSresourcesContainer{}, tt.Name)
+		tt.TestSingleExplain(t, testfunc.OutputComparison, &AWSresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }

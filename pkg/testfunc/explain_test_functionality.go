@@ -4,9 +4,10 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package commonvpc
+package testfunc
 
 import (
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"testing"
 
 	"github.com/np-guard/models/pkg/netp"
@@ -31,7 +32,7 @@ type VpcExplainTest struct {
 
 const explainOut = "explain_out"
 
-func (tt *VpcExplainTest) TestSingleExplain(t *testing.T, mode testMode, rc ResourcesContainer, testName string) {
+func (tt *VpcExplainTest) TestSingleExplain(t *testing.T, mode testMode, rc commonvpc.ResourcesContainer, testName string) {
 	tt.Name = testName
 	tt.setMode(mode)
 	explanationArgs := vpcmodel.NewExplanationArgs(tt.ESrc, tt.EDst, string(tt.EProtocol),

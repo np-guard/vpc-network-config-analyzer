@@ -8,28 +8,27 @@ package ibmvpc
 
 import (
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"testing"
-
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
-var lintTests = []*commonvpc.VpcLintTest{
+var lintTests = []*testfunc.VpcLintTest{
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "basic_acl3",
 			InputConfig: "acl_testing3",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "acl3_shadowed_rules",
 			InputConfig: "acl_testing3_with_redundant_rules",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "acl3_shadowed_rules_other_lints_disabled",
 			InputConfig: "acl_testing3_with_redundant_rules",
 		},
@@ -38,28 +37,28 @@ var lintTests = []*commonvpc.VpcLintTest{
 			"tcp-response-blocked", "sg-rule-implied"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "acl3_3rd",
 			InputConfig: "acl_testing3_3rd",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "basic_sg1",
 			InputConfig: "sg_testing1_new",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multivpc",
 			InputConfig: "tgw_larger_example",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multivpc_print_all",
 			InputConfig: "tgw_larger_example",
 		},
@@ -67,14 +66,14 @@ var lintTests = []*commonvpc.VpcLintTest{
 		Enable:        []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multivpc_partly_overlap",
 			InputConfig: "tgw_larger_example_partly_overlap",
 		},
 		Enable: []string{"sg-split-subnet"},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "PartialTCPRespond",
 			InputConfig: "sg_testing1_new_respond_partly",
 		},
@@ -86,7 +85,7 @@ func TestLintWithComparsion(t *testing.T) {
 	// lintTests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
-		tt.Mode = commonvpc.OutputComparison
+		tt.Mode = testfunc.OutputComparison
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &IBMresourcesContainer{}

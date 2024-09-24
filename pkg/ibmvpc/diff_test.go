@@ -11,56 +11,56 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-var diffTests = []*commonvpc.VpcDiffTest{
+var diffTests = []*testfunc.VpcDiffTest{
 	// diff tests:
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.SubnetsDiff},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.MD,
 		},
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{ // example with diff with partial TCP respond
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing1_copy",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
 		},
 	},
 	{ // example with diff in which the diff is in the amount of TCP respond enabled
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing1_new_respond_partly",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
@@ -68,7 +68,7 @@ var diffTests = []*commonvpc.VpcDiffTest{
 	},
 	{
 		// diff between VPCs of different UIDs
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing_3",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
@@ -76,7 +76,7 @@ var diffTests = []*commonvpc.VpcDiffTest{
 	},
 	{
 		// diff between identical VPCs
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing_default",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
@@ -84,7 +84,7 @@ var diffTests = []*commonvpc.VpcDiffTest{
 	},
 	{
 		// ports manipulation
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing1_diff_ports",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.EndpointsDiff},
 			Format:      vpcmodel.Text,
@@ -99,7 +99,7 @@ func TestDiffWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range diffTests {
 		tt := diffTests[testIdx]
-		tt.TestDiffSingle(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestDiffSingle(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -111,7 +111,7 @@ func TestDiffWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range diffTests {
 		tt := diffTests[testIdx]
-		tt.TestDiffSingle(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
+		tt.TestDiffSingle(t, testfunc.OutputComparison, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

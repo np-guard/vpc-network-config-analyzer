@@ -16,14 +16,14 @@ import (
 	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 // getConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
 func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
-	inputConfigFile := filepath.Join(commonvpc.GetTestsDirInput(),
-		commonvpc.InputFilePrefix+fileName+commonvpc.JSONOutSuffix)
+	inputConfigFile := filepath.Join(testfunc.GetTestsDirInput(),
+		testfunc.InputFilePrefix+fileName+testfunc.JSONOutSuffix)
 	rc := IBMresourcesContainer{}
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
@@ -36,9 +36,9 @@ func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 	return vpcConfigs
 }
 
-var explainTests = []*commonvpc.VpcExplainTest{
+var explainTests = []*testfunc.VpcExplainTest{
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiToVsi1",
 			InputConfig: "sg_testing1_new",
 		},
@@ -47,7 +47,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiToVsi2",
 			InputConfig: "sg_testing1_new",
 		},
@@ -56,7 +56,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiToVsi3",
 			InputConfig: "sg_testing1_new",
 		},
@@ -65,7 +65,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiToVsi4",
 			InputConfig: "sg_testing1_new",
 		},
@@ -74,7 +74,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiToVsi5",
 			InputConfig: "sg_testing1_new",
 		},
@@ -83,7 +83,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "subnetToVsiSingleVpc",
 			InputConfig: "sg_testing1_new",
 		},
@@ -92,7 +92,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "externalToSubnet",
 			InputConfig: "sg_testing1_new",
 		},
@@ -101,7 +101,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "SimpleExternalSG1",
 			InputConfig: "sg_testing1_new",
 		},
@@ -110,7 +110,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "SimpleExternalSG2",
 			InputConfig: "sg_testing1_new",
 		},
@@ -118,7 +118,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "vsi1-ky",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "SimpleExternalSG3",
 			InputConfig: "sg_testing1_new",
 		},
@@ -127,7 +127,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "SimpleExternalSG4",
 			InputConfig: "sg_testing1_new",
 		},
@@ -135,7 +135,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "161.26.0.0/32",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "GroupingExternalSG1",
 			InputConfig: "sg_testing1_new",
 		},
@@ -144,7 +144,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "GroupingExternalSG1",
 			InputConfig: "sg_testing1_new",
 		},
@@ -152,7 +152,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "161.26.0.0/8",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			// the existing connection is exactly the one required by the query
 			Name:        "QueryConnectionSGBasic1",
 			InputConfig: "sg_testing1_new",
@@ -168,7 +168,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// the required connection is contained in the existing one per connection
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGBasic2",
 			InputConfig: "sg_testing1_new",
 		},
@@ -183,7 +183,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	//  the required connection is contained in the existing one per ip of src/dst
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGBasic3",
 			InputConfig: "sg_testing1_new",
 		},
@@ -198,7 +198,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// the required connection exists for part of the dst ip
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGBasic4",
 			InputConfig: "sg_testing1_new",
 		},
@@ -213,7 +213,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// a connection does not exist regardless of the query
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGBasic5",
 			InputConfig: "sg_testing1_new",
 		},
@@ -228,7 +228,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// a subset of the required ports exists
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGSubsetPorts",
 			InputConfig: "sg_testing1_new",
 		},
@@ -243,7 +243,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	//  all rules are relevant (for comparison)
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGRules1",
 			InputConfig: "sg_testing1_new",
 		},
@@ -253,7 +253,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// only a subset of the rules are relevant, protocol wise
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGRules2",
 			InputConfig: "sg_testing1_new",
 		},
@@ -268,7 +268,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// only a subset of the rules are relevant, port wise and protocol wise
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGRules3",
 			InputConfig: "sg_testing1_new",
 		},
@@ -283,7 +283,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	//  all rules are relevant, with specified port wise protocol
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "QueryConnectionSGRules4",
 			InputConfig: "sg_testing1_new",
 		},
@@ -298,7 +298,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection exists to external
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLExternal1",
 			InputConfig: "acl_testing3",
 		},
@@ -308,7 +308,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection does not exist to external, blocked by egress
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLExternal2",
 			InputConfig: "acl_testing3",
 		},
@@ -318,7 +318,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection does not exist to external, no fip router
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLExternal3",
 			InputConfig: "acl_testing3",
 		},
@@ -326,7 +326,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "vsi1-ky",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternal1",
 			InputConfig: "acl_testing3",
 		},
@@ -335,7 +335,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternal1",
 			InputConfig: "acl_testing3",
 		},
@@ -343,7 +343,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "vsi2-ky",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternal2",
 			InputConfig: "acl_testing3",
 		},
@@ -352,7 +352,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternal3",
 			InputConfig: "acl_testing3",
 		},
@@ -362,7 +362,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	{
 		// same subnet: no actual rules in nacl, but connection enabled
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternal4",
 			InputConfig: "acl_testing3",
 		},
@@ -371,7 +371,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLGrouping",
 			InputConfig: "acl_testing3",
 		},
@@ -380,7 +380,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryConnection1",
 			InputConfig: "acl_testing3",
 		},
@@ -394,7 +394,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryConnection2",
 			InputConfig: "acl_testing3",
 		},
@@ -409,7 +409,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// src: one of these network interfaces, dst: internal address of 4 network interfaces
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLInternalSrcTo4DstInternal",
 			InputConfig: "acl_testing3",
 		},
@@ -420,7 +420,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	// src: internal address of 5 network interfaces, dst: external address that spans rules
 	// "many to many"
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "SGInternal3SrcToExternalGroup",
 			InputConfig: "sg_testing1_new",
 		},
@@ -430,7 +430,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// all rules
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryConnectionRules2",
 			InputConfig: "acl_testing3_3rd",
 		},
@@ -440,7 +440,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// without the udp rule
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryConnectionRules3",
 			InputConfig: "acl_testing3_3rd",
 		},
@@ -455,7 +455,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// without the "all" rule since udp rule has higher priority
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryConnectionRules4",
 			InputConfig: "acl_testing3_3rd",
 		},
@@ -469,7 +469,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLOnlyDenyNoConnQuery",
 			InputConfig: "acl_testing3_3rd",
 		},
@@ -484,7 +484,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// allow connection subset of the queried one
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "NACLQueryAllowSubset",
 			InputConfig: "acl_testing3_4th",
 		},
@@ -499,7 +499,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// two SGs attached to one VSI
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiWithTwoSgs",
 			InputConfig: "sg_testing1_new_2SGs",
 		},
@@ -509,7 +509,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// two SGs attached to one VSI, only one enabling
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiWithTwoSgsOneEnabling",
 			InputConfig: "sg_testing1_new_2SGs_one_enabling",
 		},
@@ -519,7 +519,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// two SGs attached to one VSI, none enabling
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "VsiWithTwoSgsNeitherEnabling",
 			InputConfig: "sg_testing1_new_2SGs_none_enabling",
 		},
@@ -529,7 +529,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// respond enabled only on part of the TCP connection
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "PartialTCPRespond",
 			InputConfig: "sg_testing1_new_respond_partly",
 		},
@@ -539,7 +539,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// original path as well as respond enabled only on part of the TCP connection
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "PartialTCPAndRespond",
 			InputConfig: "sg_testing1_new_partly_TCP_and_respond",
 		},
@@ -548,7 +548,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	// respond w.r.t. specific ports query
-	{VpcTestCommon: commonvpc.VpcTestCommon{
+	{VpcTestCommon: testfunc.VpcTestCommon{
 		Name:        "TCPRespondPortsQuery",
 		InputConfig: "sg_testing1_new_respond_partly",
 	},
@@ -564,7 +564,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	// the following three tests are within a single VPC in a multiVPC context
 	// 2 vsi connection
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCVsiToVsi",
 			InputConfig: "tgw_larger_example",
 		},
@@ -574,7 +574,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// vsi to external connection
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCVsiToExternal",
 			InputConfig: "tgw_larger_example",
 		},
@@ -584,7 +584,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// vsi to external missing router
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCVsiToExternalMissingRouter",
 			InputConfig: "tgw_larger_example",
 		},
@@ -595,7 +595,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	// tests for routing between vpcs:
 	// connection enabled by specific allow prefix
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwEnabledSpecificFilter",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -605,7 +605,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection enabled by default tgw definition (2 examples from 2 different input files, one detailed format)
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwEnableDefaultFilter",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -614,7 +614,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwAnotherEnableDefaultDifFile",
 			InputConfig: "tgw_larger_example",
 		},
@@ -623,7 +623,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection disabled by specific deny prefix
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwDisabledDenyPrefix",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -632,7 +632,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwDisabledDenyPrefix",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -640,7 +640,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "ky-vsi0-subnet0",  // test-vpc0-ky
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwAnotherExampleEnabledConn",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -648,7 +648,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		EDst: "ky-vsi0-subnet11",
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwExampleCidr",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -657,7 +657,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwSubnetToSubnet",
 			InputConfig: "tgw_larger_example",
 		},
@@ -666,7 +666,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// connection disabled by lack of cross-vpc router (tgw)
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCNoCrossVPCRouter",
 			InputConfig: "multiVpc_larger_example_dup_names",
 		},
@@ -675,7 +675,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCSameNamesCrossVPCNoTgw",
 			InputConfig: "multiVpc_larger_example_dup_names",
 		},
@@ -684,7 +684,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 		DetailExplain: true,
 	},
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiVPCSameNamesCrossVPCByAddrNoTgw",
 			InputConfig: "multiVpc_larger_example_dup_names",
 		},
@@ -694,7 +694,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// TCP respond disabled by the tgw
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "tgwDisablesTCPRespond",
 			InputConfig: "tg-prefix-filters",
 		},
@@ -704,7 +704,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// iks-node to iks-node
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "IksNodeToIksNode",
 			InputConfig: "iks_config_object",
 		},
@@ -714,7 +714,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// vpe to iks-node, not all rules relevant
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "vpeToIksNodeSubsetRules",
 			InputConfig: "iks_config_object",
 		},
@@ -729,7 +729,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// iks-node no connection (specific protocol)
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "vpeToIksNodeNoProtocolConn",
 			InputConfig: "iks_config_object",
 		},
@@ -744,7 +744,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// load_balancer to iks-node, which is a pool member, should be allowed
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "LBToIksNode",
 			InputConfig: "iks_config_object",
 		},
@@ -754,7 +754,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// load_balancer to resIP, should be blocked by LB rule
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "LBToResIPNode",
 			InputConfig: "iks_config_object",
 		},
@@ -764,7 +764,7 @@ var explainTests = []*commonvpc.VpcExplainTest{
 	},
 	// multiNI to single NI
 	{
-		VpcTestCommon: commonvpc.VpcTestCommon{
+		VpcTestCommon: testfunc.VpcTestCommon{
 			Name:        "multiNIsToSingleNI",
 			InputConfig: "mult_NIs_single_VSI",
 		},
@@ -779,7 +779,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		tt.TestSingleExplain(t, commonvpc.OutputComparison, &IBMresourcesContainer{}, tt.Name)
+		tt.TestSingleExplain(t, testfunc.OutputComparison, &IBMresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }
@@ -791,7 +791,7 @@ func TestExplainWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		tt.TestSingleExplain(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, tt.Name)
+		tt.TestSingleExplain(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, tt.Name)
 	}
 	fmt.Println("done")
 }*/

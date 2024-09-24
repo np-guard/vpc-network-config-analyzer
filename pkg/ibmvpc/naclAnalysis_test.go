@@ -8,6 +8,7 @@ package ibmvpc
 
 import (
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"path/filepath"
 	"testing"
 
@@ -20,7 +21,7 @@ import (
 
 func TestGetRules(t *testing.T) {
 	rc := IBMresourcesContainer{}
-	err := rc.ParseResourcesFromFile(filepath.Join(commonvpc.GetTestsDirInput(), "input_acl_testing3.json"))
+	err := rc.ParseResourcesFromFile(filepath.Join(testfunc.GetTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
 	vpcConfigs, err := rc.VPCConfigsFromResources("", nil, nil)
 	require.Nilf(t, err, "err: %s", err)

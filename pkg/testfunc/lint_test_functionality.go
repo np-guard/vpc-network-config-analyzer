@@ -4,10 +4,11 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package commonvpc
+package testfunc
 
 import (
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"testing"
 
 	"path/filepath"
@@ -31,7 +32,7 @@ type VpcLintTest struct {
 
 const lintOut = "lint_out"
 
-func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc ResourcesContainer) {
+func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc commonvpc.ResourcesContainer) {
 	// all tests in lint mode
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	tt.UseCases = []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints}

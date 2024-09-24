@@ -4,11 +4,12 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package commonvpc
+package testfunc
 
 import (
 	"errors"
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"os"
 	"strings"
 	"testing"
@@ -142,7 +143,7 @@ func getTestFileName(testName string,
 }
 
 // getVPCConfigs returns  *vpcmodel.MultipleVPCConfigs obj for the input test (config json file)
-func (tt *VpcTestCommon) getVPCConfigs(t *testing.T, inputConfig string, rc ResourcesContainer) *vpcmodel.MultipleVPCConfigs {
+func (tt *VpcTestCommon) getVPCConfigs(t *testing.T, inputConfig string, rc commonvpc.ResourcesContainer) *vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(GetTestsDirInput(), inputConfig)
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
@@ -324,7 +325,7 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 	}
 }
 
-func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc ResourcesContainer,
+func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc commonvpc.ResourcesContainer,
 	grouping, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
@@ -342,7 +343,7 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc Re
 	}
 }
 
-func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc ResourcesContainer, testDir,
+func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc commonvpc.ResourcesContainer, testDir,
 	testName string, grouping, noLbAbstract bool) {
 	tt.Name = testName
 	tt.setMode(mode)

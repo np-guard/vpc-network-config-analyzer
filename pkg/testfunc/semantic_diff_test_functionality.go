@@ -4,11 +4,12 @@ Copyright 2023- IBM Inc. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package commonvpc
+package testfunc
 
 import (
 	_ "embed"
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,7 +22,7 @@ type VpcDiffTest struct {
 	InputConfig2nd string // 2nd input file for diff
 }
 
-func (tt *VpcDiffTest) TestDiffSingle(t *testing.T, mode testMode, rc ResourcesContainer, testDir, testName string) {
+func (tt *VpcDiffTest) TestDiffSingle(t *testing.T, mode testMode, rc commonvpc.ResourcesContainer, testDir, testName string) {
 	tt.Name = testName
 	tt.setMode(mode)
 	t.Run(tt.Name, func(t *testing.T) {
@@ -30,7 +31,7 @@ func (tt *VpcDiffTest) TestDiffSingle(t *testing.T, mode testMode, rc ResourcesC
 	})
 }
 
-func (tt *VpcDiffTest) runDiffSingleTest(t *testing.T, testDir string, rc ResourcesContainer) {
+func (tt *VpcDiffTest) runDiffSingleTest(t *testing.T, testDir string, rc commonvpc.ResourcesContainer) {
 	// init test - set the input/output file names according to test name
 	tt.InputConfig2nd = InputFilePrefix + tt.InputConfig + secJSONOutSuffix
 	tt.initTest()
