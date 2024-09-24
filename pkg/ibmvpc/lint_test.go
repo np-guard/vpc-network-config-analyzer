@@ -8,8 +8,9 @@ package ibmvpc
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
 	"testing"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
 )
 
 var lintTests = []*testfunc.VpcLintTest{
