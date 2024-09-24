@@ -91,11 +91,7 @@ func (ni *NetworkInterface) VsiName() string {
 }
 
 func (ni *NetworkInterface) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c != nil {
-		prefix = c.MultipleVPCsConfigPrefix(ni.VPC().Name())
-	}
-	return prefix + nameWithBracketsInfo(ni.Vsi, ni.Address())
+	return MultipleVPCsConfigPrefix(c, ni.VPC().Name()) + nameWithBracketsInfo(ni.Vsi, ni.Address())
 }
 
 func nameWithBracketsInfo(name, inBrackets string) string {
@@ -736,4 +732,12 @@ func getTableConnEffect(connQuery, conn *connection.Set) (*connection.Set, vpcmo
 	default:
 		return conn.Intersect(connQuery), vpcmodel.PartlyAllow
 	}
+}
+
+// MultipleVPCsConfigPrefix returns the passed vpcName when config is multi-vpc
+func MultipleVPCsConfigPrefix(c *vpcmodel.VPCConfig, vpcName string) string {
+	if c != nil && c.IsMultipleVPCsConfig {
+		return c.MultipleVPCsConfigPrefix(vpcName)
+	}
+	return ""
 }

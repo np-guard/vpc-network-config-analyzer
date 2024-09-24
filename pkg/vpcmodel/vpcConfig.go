@@ -44,10 +44,10 @@ type VPCConfig struct {
 	IsMultipleVPCsConfig bool
 }
 
-// MultipleVPCsConfigPrefix returns the passed prefix when config is multi-vpc
-func (c *VPCConfig) MultipleVPCsConfigPrefix(prefix string) string {
+// MultipleVPCsConfigPrefix returns the passed vpcName when config is multi-vpc
+func (c *VPCConfig) MultipleVPCsConfigPrefix(vpcName string) string {
 	if c.IsMultipleVPCsConfig {
-		return prefix + Deliminator
+		return vpcName + Deliminator
 	}
 	return ""
 }

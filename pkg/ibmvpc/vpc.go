@@ -38,11 +38,7 @@ type ReservedIP struct {
 }
 
 func (r *ReservedIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c != nil {
-		prefix = c.MultipleVPCsConfigPrefix(r.VPC().Name())
-	}
-	return prefix + nameWithBracketsInfo(r.vpe, r.Address())
+	return commonvpc.MultipleVPCsConfigPrefix(c, r.VPC().Name()) + nameWithBracketsInfo(r.vpe, r.Address())
 }
 
 // used for synthesis output
@@ -67,11 +63,6 @@ type PrivateIP struct {
 }
 
 func (pip *PrivateIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c != nil {
-		prefix = c.MultipleVPCsConfigPrefix(pip.VPC().Name())
-	}
-
 	kind := "LB private IP"
 	address := pip.Address()
 	if !pip.original {
@@ -80,7 +71,7 @@ func (pip *PrivateIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 		address = strings.Join(pip.block.ListToPrint(), ",")
 	}
 	name := nameWithBracketsInfo(pip.loadBalancer.Name(), kind)
-	return prefix + nameWithBracketsInfo(name, address)
+	return commonvpc.MultipleVPCsConfigPrefix(c, pip.VPC().Name()) + nameWithBracketsInfo(name, address)
 }
 
 // AbstractedToNodeSet returns the pip load balancer if it was abstracted
@@ -105,11 +96,7 @@ func (n *IKSNode) VsiName() string {
 }
 
 func (n *IKSNode) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c != nil {
-		prefix = c.MultipleVPCsConfigPrefix(n.VPC().Name())
-	}
-	return prefix + nameWithBracketsInfo(n.Name(), n.Address())
+	return commonvpc.MultipleVPCsConfigPrefix(c, n.VPC().Name()) + nameWithBracketsInfo(n.Name(), n.Address())
 }
 
 // vpe can be in multiple zones - depending on the zones of its network interfaces..
@@ -163,11 +150,7 @@ func (lb *LoadBalancer) nameWithKind() string {
 	return nameWithBracketsInfo(lb.ResourceName, lb.Kind())
 }
 func (lb *LoadBalancer) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
-	prefix := ""
-	if c != nil {
-		prefix = c.MultipleVPCsConfigPrefix(lb.VPC().Name())
-	}
-	return prefix + lb.nameWithKind()
+	return commonvpc.MultipleVPCsConfigPrefix(c, lb.VPC().Name()) + lb.nameWithKind()
 }
 
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
