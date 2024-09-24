@@ -9,15 +9,15 @@ package testfunc
 import (
 	"errors"
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"path/filepath"
 
+	"github.com/stretchr/testify/require"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 

@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package testfunc
 
 import (
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"testing"
 
 	"github.com/np-guard/models/pkg/netp"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 

@@ -8,8 +8,9 @@ package awsvpc
 
 import (
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 	"testing"
+
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/testfunc"
 )
 
 var explainTests = []*testfunc.VpcExplainTest{
