@@ -92,8 +92,8 @@ func (ni *NetworkInterface) VsiName() string {
 
 func (ni *NetworkInterface) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c != nil && c.IsMultipleVPCsConfig {
-		prefix = ni.VPC().Name() + vpcmodel.Deliminator
+	if c != nil {
+		prefix = c.MultipleVPCsConfigPrefix(ni.VPC().Name())
 	}
 	return prefix + nameWithBracketsInfo(ni.Vsi, ni.Address())
 }

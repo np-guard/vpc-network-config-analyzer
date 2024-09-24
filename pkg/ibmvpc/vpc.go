@@ -39,8 +39,8 @@ type ReservedIP struct {
 
 func (r *ReservedIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c != nil && c.IsMultipleVPCsConfig {
-		prefix = r.VPC().Name() + vpcmodel.Deliminator
+	if c != nil {
+		prefix = c.MultipleVPCsConfigPrefix(r.VPC().Name())
 	}
 	return prefix + nameWithBracketsInfo(r.vpe, r.Address())
 }
@@ -68,8 +68,8 @@ type PrivateIP struct {
 
 func (pip *PrivateIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c != nil && c.IsMultipleVPCsConfig {
-		prefix = pip.VPC().Name() + vpcmodel.Deliminator
+	if c != nil {
+		prefix = c.MultipleVPCsConfigPrefix(pip.VPC().Name())
 	}
 
 	kind := "LB private IP"
@@ -106,8 +106,8 @@ func (n *IKSNode) VsiName() string {
 
 func (n *IKSNode) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c != nil && c.IsMultipleVPCsConfig {
-		prefix = n.VPC().Name() + vpcmodel.Deliminator
+	if c != nil {
+		prefix = c.MultipleVPCsConfigPrefix(n.VPC().Name())
 	}
 	return prefix + nameWithBracketsInfo(n.Name(), n.Address())
 }
@@ -164,8 +164,8 @@ func (lb *LoadBalancer) nameWithKind() string {
 }
 func (lb *LoadBalancer) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 	prefix := ""
-	if c != nil && c.IsMultipleVPCsConfig {
-		prefix = lb.VPC().Name() + vpcmodel.Deliminator
+	if c != nil {
+		prefix = c.MultipleVPCsConfigPrefix(lb.VPC().Name())
 	}
 	return prefix + lb.nameWithKind()
 }
