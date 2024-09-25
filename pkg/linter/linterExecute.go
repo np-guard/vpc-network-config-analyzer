@@ -8,11 +8,11 @@ package linter
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strings"
 
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -37,7 +37,7 @@ var linterGenerators = map[string]linterGenerator{
 }
 
 func ValidLintersNames() string {
-	return strings.Join(common.MapKeys(linterGenerators), ",")
+	return strings.Join(slices.Collect(maps.Keys(linterGenerators)), ",")
 }
 func IsValidLintersNames(name string) bool {
 	_, ok := linterGenerators[name]

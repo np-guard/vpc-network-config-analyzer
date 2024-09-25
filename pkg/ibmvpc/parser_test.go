@@ -16,12 +16,13 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
 	rc := IBMresourcesContainer{}
-	err := rc.ParseResourcesFromFile(filepath.Join(commonvpc.GetTestsDirInput(), "input_multi_regions.json"))
+	err := rc.ParseResourcesFromFile(filepath.Join(testfunc.GetTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
 
 	vpcConfigs := vpcmodel.NewMultipleVPCConfigs(common.IBM)

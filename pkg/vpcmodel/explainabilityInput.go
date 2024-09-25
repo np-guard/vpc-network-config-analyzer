@@ -25,7 +25,7 @@ type ExplanationArgs struct {
 	srcMaxPort int64
 	dstMinPort int64
 	dstMaxPort int64
-	detail     bool
+	Detail     bool
 }
 
 func (e *ExplanationArgs) Src() string {
