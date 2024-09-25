@@ -54,7 +54,7 @@ func (tt *VpcLintTest) TestSingleLint(t *testing.T, rc commonvpc.ResourcesContai
 func (tt *VpcLintTest) runLintTest(t *testing.T, cConfigs map[string]*vpcmodel.VPCConfig, outDir string) error {
 	// output use case is not significant here, but being used so that lint test can rely on existing mechanism
 	tt.initLintTestFileNames(outDir)
-	_, actualOutput, _ := linter.LinterExecute(cConfigs, tt.PrintAllLints, tt.Enable, tt.Disable)
+	_, actualOutput, _ := linter.LinterExecuteOld(cConfigs, tt.PrintAllLints, tt.Enable, tt.Disable)
 	if err := compareOrRegenerateOutputPerTest(t, tt.Mode, actualOutput, lintOut, tt.Name, tt.ExpectedOutput,
 		vpcmodel.AllEndpoints); err != nil {
 		return err
