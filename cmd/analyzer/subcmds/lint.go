@@ -52,7 +52,7 @@ func lintVPCConfigs(cmd *cobra.Command, args *inArgs) error {
 		return err1
 	}
 	// potential errors already handled
-	_, _, err2 := linter.LinterExecute(multiConfigs.Configs(), args.printAllLinters,
+	_, _, err2 := linter.LinterExecuteOld(multiConfigs.Configs(), args.printAllLinters,
 		args.enableLinters, args.disableLinters)
 	return err2
 }
