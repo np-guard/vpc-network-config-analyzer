@@ -69,7 +69,7 @@ type rulesAndConnDetails []*srcDstDetails
 
 func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMinPort, dstMaxPort int64, detail bool) *ExplanationArgs {
 	return &ExplanationArgs{src: src, dst: dst, protocol: protocol,
-		srcMinPort: srcMinPort, srcMaxPort: srcMaxPort, dstMinPort: dstMinPort, dstMaxPort: dstMaxPort, detail: detail}
+		srcMinPort: srcMinPort, srcMaxPort: srcMaxPort, dstMinPort: dstMinPort, dstMaxPort: dstMaxPort, Detail: detail}
 }
 
 type Explanation struct {
