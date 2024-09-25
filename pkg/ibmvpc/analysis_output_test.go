@@ -27,16 +27,6 @@ const analysisOut = "analysis_out"
 
 var tests = []*commonvpc.VpcGeneralTest{
 	{
-		InputConfig:  "iks_config_object",
-		UseCases:     []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		Grouping:     true,
-		Format:       vpcmodel.HTML,
-		NoLbAbstract: true,
-	},
-}
-
-var tests1 = []*commonvpc.VpcGeneralTest{
-	{
 		InputConfig: "acl_testing5",
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		Format:      vpcmodel.MD,
