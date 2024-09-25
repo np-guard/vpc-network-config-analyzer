@@ -66,10 +66,10 @@ func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vp
 }
 
 // //////////////////////////////////////////////////////////////////////////////////////////////
-// LinterExecuteOld executes linters one by one
-func LinterExecuteOld(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool,
+// LinterExecute executes linters one by one
+func LinterExecute(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool,
 	enableList, disableList []string) (issueFound bool, resString string, err error) {
-	linters, err := LinterExecute(configs, enableList, disableList)
+	linters, err := linterAnalysis(configs, enableList, disableList)
 	if err != nil {
 		return false, "", err
 	}
@@ -78,8 +78,8 @@ func LinterExecuteOld(configs map[string]*vpcmodel.VPCConfig, printAllFindings b
 	return issueFound, resString, nil
 }
 
-// LinterExecute executes linters one by one and collects their results
-func LinterExecute(configs map[string]*vpcmodel.VPCConfig, enableList, disableList []string) (linters Linters, err error) {
+// linterAnalysis executes linters one by one and collects their results
+func linterAnalysis(configs map[string]*vpcmodel.VPCConfig, enableList, disableList []string) (linters Linters, err error) {
 	nodesConn, err := computeConnectivity(configs)
 	if err != nil {
 		return nil, err
