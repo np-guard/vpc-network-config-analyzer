@@ -81,8 +81,7 @@ func TestSynthesisWithComparison(t *testing.T) {
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestCommonSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig,
-			tt.Grouping, tt.NoLbAbstract)
+		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

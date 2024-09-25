@@ -342,13 +342,3 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc co
 		fmt.Printf("test %s use-case %d - generated output file: %s\n", tt.Name, uc, outFile)
 	}
 }
-
-func (tt *VpcTestCommon) TestCommonSingleTest(t *testing.T, mode testMode, rc commonvpc.ResourcesContainer, testDir,
-	testName string, grouping, noLbAbstract bool) {
-	tt.Name = testName
-	tt.setMode(mode)
-	t.Run(tt.Name, func(t *testing.T) {
-		t.Parallel()
-		tt.runSingleCommonTest(t, testDir, rc, grouping, noLbAbstract, nil)
-	})
-}
