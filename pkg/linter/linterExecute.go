@@ -68,14 +68,14 @@ func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vp
 // LinterExecute performs the lint analysis and then prints the string result; should be redundant once lint is
 // integrated in the general flow
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool,
-	enableList, disableList []string) (issueFound bool, resString string, err error) {
+	enableList, disableList []string) (resString string, err error) {
 	linters, err := linterAnalysis(configs, enableList, disableList)
 	if err != nil {
-		return false, "", err
+		return "", err
 	}
 	resString = linters.String(printAllFindings)
 	fmt.Println(resString)
-	return issueFound, resString, nil
+	return resString, nil
 }
 
 // linterAnalysis executes linters one by one and collects their results
