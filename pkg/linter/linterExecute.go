@@ -43,7 +43,7 @@ func IsValidLintersNames(name string) bool {
 	_, ok := linterGenerators[name]
 	return ok
 }
-func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) []linter {
+func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string]*vpcmodel.VPCConnectivity) Linters {
 	res := make([]linter, len(linterGenerators))
 	i := 0
 	for name, generator := range linterGenerators {
@@ -65,17 +65,27 @@ func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vp
 	return nodesConn, nil
 }
 
-// //////////////////////////////////////////////////////////////////////////////////////////////
-// LinterExecute executes linters one by one
+// LinterExecute performs the lint analysis and then prints the string result; should be redundant once lint is
+// integrated in the general flow
 func LinterExecute(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool,
-	enableList, disableList []string) (issueFound bool, resString string, err error) {
+	enableList, disableList []string) (resString string, err error) {
+	linters, err := linterAnalysis(configs, enableList, disableList)
+	if err != nil {
+		return "", err
+	}
+	resString = linters.String(printAllFindings)
+	fmt.Println(resString)
+	return resString, nil
+}
+
+// linterAnalysis executes linters one by one and collects their results
+func linterAnalysis(configs map[string]*vpcmodel.VPCConfig, enableList, disableList []string) (linters Linters, err error) {
 	nodesConn, err := computeConnectivity(configs)
 	if err != nil {
-		return false, "", err
+		return nil, err
 	}
 
-	linters := generateLinters(configs, nodesConn)
-	strPerLint := []string{}
+	linters = generateLinters(configs, nodesConn)
 	for _, thisLinter := range linters {
 		name := thisLinter.lintName()
 		enable := thisLinter.enableByDefault()
@@ -84,21 +94,25 @@ func LinterExecute(configs map[string]*vpcmodel.VPCConfig, printAllFindings bool
 		if !enable {
 			continue
 		}
-		thisLintStr := ""
 		err := thisLinter.check()
 		if err != nil {
-			return false, "", err
+			return nil, err
 		}
+	}
+	return linters, nil
+}
+
+func (linters Linters) String(printAllFindings bool) (resString string) {
+	strPerLint := []string{}
+	for _, thisLinter := range linters {
 		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) > 0 {
-			issueFound = true
-			thisLintStr = thisLinter.string(thisLinter.lintDescription(), printAllFindings)
+			thisLintStr := thisLinter.string(thisLinter.lintDescription(), printAllFindings)
 			strPerLint = append(strPerLint, thisLintStr)
 		}
 	}
 	sort.Strings(strPerLint)
 	delimBetweenLints := strings.Repeat("_", delimBetweenLintsChars)
 	resString = strings.Join(strPerLint, "\n"+delimBetweenLints+"\n\n")
-	fmt.Println(resString)
-	return issueFound, resString, nil
+	return resString
 }

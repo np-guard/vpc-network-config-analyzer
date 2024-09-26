@@ -16,6 +16,8 @@ import (
 
 const numFindingToPrint = 3
 
+type Linters []linter
+
 type linter interface {
 	check() error
 	getFindings() []finding                       // returns all findings detected by the linter
