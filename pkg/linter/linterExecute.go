@@ -105,10 +105,9 @@ func linterAnalysis(configs map[string]*vpcmodel.VPCConfig, enableList, disableL
 func (linters Linters) String(printAllFindings bool) (resString string) {
 	strPerLint := []string{}
 	for _, thisLinter := range linters {
-		thisLintStr := ""
 		lintFindings := thisLinter.getFindings()
 		if len(lintFindings) > 0 {
-			thisLintStr = thisLinter.string(thisLinter.lintDescription(), printAllFindings)
+			thisLintStr := thisLinter.string(thisLinter.lintDescription(), printAllFindings)
 			strPerLint = append(strPerLint, thisLintStr)
 		}
 	}
