@@ -114,6 +114,5 @@ func (linters Linters) String(printAllFindings bool) (resString string) {
 	sort.Strings(strPerLint)
 	delimBetweenLints := strings.Repeat("_", delimBetweenLintsChars)
 	resString = strings.Join(strPerLint, "\n"+delimBetweenLints+"\n\n")
-	fmt.Println(resString)
 	return resString
 }
