@@ -43,8 +43,8 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 	multiExplanation := make([]explainOutputEntry, len(srcDstCouples))
 	for i, srcDstCouple := range srcDstCouples {
 		emptyExplain := &Explanation{
-			src: srcDstCouple.src.Name(),
-			dst: srcDstCouple.dst.Name(),
+			src: srcDstCouple.src.NameForAnalyzerOut(nil),
+			dst: srcDstCouple.dst.NameForAnalyzerOut(nil),
 		}
 		if srcDstCouple.c == nil {
 			// no vpc config implies missing cross-vpc router between src and dst which are not in the same VPC
@@ -70,7 +70,8 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errConn}
 			continue
 		}
-		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.Name(), srcDstCouple.dst.Name(),
+		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.NameForAnalyzerOut(nil),
+			srcDstCouple.dst.NameForAnalyzerOut(nil),
 			srcNodes, dstNodes, nil, connectivity)
 		if errExplain != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errExplain}
@@ -104,7 +105,7 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 		}
 		return disjointNodes, nil
 	}
-	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.Name())
+	return nil, fmt.Errorf("np-Guard error: %v not of type InternalNodeIntf or groupedExternalNodes", endpoint.NameForAnalyzerOut(nil))
 }
 
 // CreateMultiExplanationsInput given configs and results of connectivity analysis, generates input

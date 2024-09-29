@@ -64,7 +64,7 @@ func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {
-		networkInterfaces[i] = node.ExtendedName(c)
+		networkInterfaces[i] = node.NameForAnalyzerOut(c)
 	}
 	return strings.Join(networkInterfaces, comma)
 }
@@ -139,7 +139,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	externalRouter, crossVpcRouter, crossVpcRules := expDetails.externalRouter, expDetails.crossVpcRouter, expDetails.crossVpcRules
 	privateSubnetRule := g.CommonProperties.expDetails.privateSubnetRule
 	if externalRouter != nil && isExternal {
-		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.Name() + newLine
+		externalRouterHeader = "External traffic via " + externalRouter.Kind() + ": " + externalRouter.NameForAnalyzerOut(c) + newLine
 	}
 	if loadBalancerRule != nil {
 		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String(true)
@@ -149,7 +149,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
 		crossVpcRules, src, dst)
 	// noConnection is the 1 above when no connectivity
-	noConnection := noConnectionHeader(src.ExtendedName(c), dst.ExtendedName(c), connQuery) + newLine
+	noConnection := noConnectionHeader(src.NameForAnalyzerOut(c), dst.NameForAnalyzerOut(c), connQuery) + newLine
 
 	// resourceEffectHeader is "2" above
 	rules := expDetails.rules
@@ -312,7 +312,8 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 	// Computing the header, "1" described in explainabilityLineStr
 	respondConnStr := respondString(conn)
 	if connQuery == nil {
-		resComponents = append(resComponents, fmt.Sprintf("Connections from %v to %v: %v%v\n", src.ExtendedName(c), dst.ExtendedName(c),
+		resComponents = append(resComponents, fmt.Sprintf("Connections from %v to %v: %v%v\n",
+			src.NameForAnalyzerOut(c), dst.NameForAnalyzerOut(c),
 			conn.allConn.String(), respondConnStr))
 	} else {
 		properSubsetConn := ""
@@ -320,7 +321,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst End
 			properSubsetConn = "(note that not all queried protocols/ports are allowed)\n"
 		}
 		resComponents = append(resComponents, fmt.Sprintf("Connections are allowed from %s to %s%s%s\n%s",
-			src.ExtendedName(c), dst.ExtendedName(c), connHeader(conn.allConn), respondConnStr, properSubsetConn))
+			src.NameForAnalyzerOut(c), dst.NameForAnalyzerOut(c), connHeader(conn.allConn), respondConnStr, properSubsetConn))
 	}
 	resComponents = append(resComponents, path, details)
 	return strings.Join(resComponents, newLine)
@@ -423,7 +424,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
 	rules *rulesConnection, privateSubnetRule PrivateSubnetRule) string {
 	var pathSlice []string
-	pathSlice = append(pathSlice, "\t"+src.Name())
+	pathSlice = append(pathSlice, "\t"+src.NameForAnalyzerOut(nil))
 	if loadBalancerBlocking {
 		// todo: add loadBalancer as part of the path and also as blocking??? separate PR?
 		// connection is stopped at the src itself:
@@ -441,7 +442,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.Name()
+		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.NameForAnalyzerOut(nil)
 		// externalRouter is fip - add its cidr
 		if externalRouter.Kind() == fipRouter {
 			externalRouterStr += space + externalRouter.ExternalIP()
@@ -449,7 +450,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
 		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
-			crossVpcRouter.Kind()+space+crossVpcRouter.Name())
+			crossVpcRouter.Kind()+space+crossVpcRouter.NameForAnalyzerOut(nil))
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
@@ -463,9 +464,9 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 	}
 	// got here: full path
 	if len(ingressPath) == 0 {
-		pathSlice = append(pathSlice, newLineTab+dst.Name())
+		pathSlice = append(pathSlice, newLineTab+dst.NameForAnalyzerOut(nil))
 	} else {
-		pathSlice = append(pathSlice, dst.Name())
+		pathSlice = append(pathSlice, dst.NameForAnalyzerOut(nil))
 	}
 	return strings.Join(pathSlice, arrow)
 }

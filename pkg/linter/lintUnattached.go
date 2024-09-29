@@ -87,5 +87,6 @@ type nonConnectedTableJSON struct {
 }
 
 func (finding *nonConnectedTable) toJSON() any {
-	return nonConnectedTableJSON{vpcName: finding.vpc()[0].Name(), layerName: finding.layerName, tableName: finding.table.FilterName}
+	return nonConnectedTableJSON{vpcName: finding.vpc()[0].Name(),
+		layerName: finding.layerName, tableName: finding.table.FilterName}
 }
