@@ -25,7 +25,19 @@ tests for the entire flow:
 
 const analysisOut = "analysis_out"
 
-var tests = []*testfunc.VpcAnalysisTest{
+var tests = []testfunc.VpcAnalysisTest{
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		Grouping:     true,
+		NoLbAbstract: true,
+	},
+}
+
+var tests1 = []*testfunc.VpcAnalysisTest{
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing5",
@@ -706,7 +718,7 @@ var tests = []*testfunc.VpcAnalysisTest{
 }
 
 // uncomment the function below to run for updating the expected output
-/*
+
 func TestReportWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
@@ -715,7 +727,6 @@ func TestReportWithGeneration(t *testing.T) {
 	}
 	fmt.Println("done")
 }
-*/
 
 func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
