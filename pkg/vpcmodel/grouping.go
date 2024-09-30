@@ -365,6 +365,56 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 	return nil
 }
 
+// for the html graphical representation. In the graph presentation, each node must have all relevant edges.
+// this is not the case in the textual presentation. E.g., a textual presentation may look like:
+// 142.0.64.0/17 ->vsi2
+// 142.0.0.0/16 -> vsi1
+// 0.0.0.0/0 -> vsi3
+// 142.0.64.0/17 should also be connected to vsi2 and vsi3
+// In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
+// if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
+func (g *GroupConnLines) consistencyEdgesExternal() error {
+	// 1. Get a map from external endpoints to their translation to cidrs
+	eeToIpBlock := getMapToGroupedExternalBlocks(g.GroupedLines)
+	_ = eeToIpBlock // todo tmp
+	// 2. Check for containment
+	// 3. Add edges
+	return nil
+}
+
+// gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
+func getMapToGroupedExternalBlocks(grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
+	for _, line := range grouped {
+		addExternalEndpointToMap(line.Src, eeToIpBlock)
+		addExternalEndpointToMap(line.Dst, eeToIpBlock)
+	}
+	return eeToIpBlock
+}
+
+func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipblock.IPBlock) {
+	ipBlock := groupedExternalToIpBlock(ee)
+	if ipBlock == nil {
+		return
+	}
+	if _, ok := endpointsIPBlocks[ee.Name()]; !ok {
+		endpointsIPBlocks[ee.Name()] = ipBlock
+	}
+}
+
+func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
+	switch reflect.TypeOf(ee).Elem() {
+	case reflect.TypeOf(groupedExternalNodes{}):
+		elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
+		var res *ipblock.IPBlock
+		for _, e := range elements {
+			res.Union(e.ipblock)
+		}
+		return res
+	default:
+		return nil
+	}
+}
+
 // group public internet ranges for semantic-diff connectivity lines (subnets/vsis)
 func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) error {
 	// initialize data structures; this is required for the 2nd call of this function
