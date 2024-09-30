@@ -91,7 +91,7 @@ func linesToOutput(connLines, lines []string) string {
 func (m *MDoutputFormatter) getGroupedOutput(connLines *GroupConnLines) []string {
 	lines := make([]string, len(connLines.GroupedLines))
 	for i, line := range connLines.GroupedLines {
-		lines[i] = getGroupedMDLine(line)
+		lines[i] = getGroupedMDLine(line, connLines.config)
 	}
 	return lines
 }
@@ -102,8 +102,8 @@ func (m *MDoutputFormatter) getGroupedDiffOutput(diff *diffBetweenCfgs) []string
 		diffType, endpointsDiff := diffAndEndpointsDescription(line.CommonProperties.connDiff.diff,
 			line.Src, line.Dst, line.CommonProperties.connDiff.thisMinusOther)
 		conn1Str, conn2Str := conn1And2Str(line.CommonProperties.connDiff)
-		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.Name(),
-			line.Dst.Name(), conn1Str, conn2Str, endpointsDiff)
+		lines[i] = fmt.Sprintf("| %s | %s | %s | %s | %s | %s |", diffType, line.Src.NameForAnalyzerOut(nil),
+			line.Dst.NameForAnalyzerOut(nil), conn1Str, conn2Str, endpointsDiff)
 	}
 	return lines
 }
@@ -113,6 +113,6 @@ func connectivityLineMD(src, dst, conn string) string {
 	return fmt.Sprintf("| %s | %s | %s |", src, dst, conn)
 }
 
-func getGroupedMDLine(line *groupedConnLine) string {
-	return connectivityLineMD(line.Src.Name(), line.Dst.Name(), line.CommonProperties.groupingStrKey)
+func getGroupedMDLine(line *groupedConnLine, c *VPCConfig) string {
+	return connectivityLineMD(line.Src.NameForAnalyzerOut(c), line.Dst.NameForAnalyzerOut(c), line.CommonProperties.groupingStrKey)
 }

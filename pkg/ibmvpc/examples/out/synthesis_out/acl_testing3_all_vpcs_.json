@@ -10,201 +10,6 @@
                     "protocol": "ANY"
                 }
             ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "UDP"
-                },
-                {
-                    "protocol": "ICMP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3c-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "UDP"
-                },
-                {
-                    "protocol": "ICMP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3b-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "TCP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "UDP"
-                },
-                {
-                    "protocol": "ICMP"
-                }
-            ],
-            "dst": {
-                "name": "test-vpc1-ky/vsi1-ky",
-                "type": "instance"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
-            "bidirectional": true,
-            "dst": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
-            },
-            "src": {
-                "name": "test-vpc1-ky/vsi3a-ky",
-                "type": "instance"
-            }
-        },
-        {
-            "allowed-protocols": [
-                {
-                    "protocol": "ANY"
-                }
-            ],
             "dst": {
                 "name": "test-vpc1-ky/vsi1-ky",
                 "type": "instance"
@@ -226,6 +31,201 @@
             },
             "src": {
                 "name": "test-vpc1-ky/vsi2-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3b-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3a-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                },
+                {
+                    "protocol": "ICMP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3c-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
+                "type": "vpe"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3a-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3b-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3b-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                },
+                {
+                    "protocol": "ICMP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3b-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3c-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3b-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "TCP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3a-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "UDP"
+                },
+                {
+                    "protocol": "ICMP"
+                }
+            ],
+            "dst": {
+                "name": "test-vpc1-ky/vsi1-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3a-ky",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "bidirectional": true,
+            "dst": {
+                "name": "test-vpc1-ky/vsi3c-ky",
+                "type": "instance"
+            },
+            "src": {
+                "name": "test-vpc1-ky/vsi3a-ky",
                 "type": "instance"
             }
         },
@@ -273,8 +273,8 @@
                 "type": "instance"
             },
             "src": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
+                "name": "test-vpc1-ky/vsi3c-ky",
+                "type": "instance"
             }
         },
         {
@@ -291,8 +291,8 @@
                 "type": "instance"
             },
             "src": {
-                "name": "test-vpc1-ky/db-endpoint-gateway-ky",
-                "type": "vpe"
+                "name": "test-vpc1-ky/vsi3c-ky",
+                "type": "instance"
             }
         }
     ]
