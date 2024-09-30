@@ -44,6 +44,14 @@ type VPCConfig struct {
 	IsMultipleVPCsConfig bool
 }
 
+// MultipleVPCsConfigPrefix returns the passed vpcName when config is multi-vpc
+func (c *VPCConfig) MultipleVPCsConfigPrefix(vpcName string) string {
+	if c.IsMultipleVPCsConfig {
+		return vpcName + Deliminator
+	}
+	return ""
+}
+
 func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
 	for _, subnet := range c.Subnets {
 		if subnet.CIDR() == cidr {

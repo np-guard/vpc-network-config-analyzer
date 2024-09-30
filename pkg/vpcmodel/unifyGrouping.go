@@ -65,9 +65,9 @@ func getPublicNetworkNode() *groupedExternalNodes {
 // if exists, nil otherwise
 func (cachedGrouped *cacheGroupedElements) getExistEndpointElemFromCache(
 	grouped *groupedEndpointsElems) *groupedEndpointsElems {
-	// since the endpoints (vsis/subnets) are sorted before printed, grouped.Name() will be identical
+	// since the endpoints (vsis/subnets) are sorted before printed, grouped.NameForAnalyzerOut(nil) will be identical
 	// to equiv groupedEndpointsElems
-	if existingGrouped, ok := cachedGrouped.groupedEndpointsElemsMap[grouped.Name()]; ok {
+	if existingGrouped, ok := cachedGrouped.groupedEndpointsElemsMap[grouped.NameForAnalyzerOut(nil)]; ok {
 		return existingGrouped
 	}
 	return nil
@@ -88,7 +88,7 @@ func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
 // sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
 func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
 	groupedElem *groupedEndpointsElems) {
-	cachedGrouped.groupedEndpointsElemsMap[groupedElem.Name()] = groupedElem
+	cachedGrouped.groupedEndpointsElemsMap[groupedElem.NameForAnalyzerOut(nil)] = groupedElem
 }
 
 // 2. Similar to the above, functionality related to cachedGrouped.groupedExternalNodesMap
@@ -96,7 +96,7 @@ func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
 // if exists, nil otherwise
 func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
 	grouped *groupedExternalNodes) *groupedExternalNodes {
-	if existingGrouped, ok := cachedGrouped.groupedExternalNodesMap[grouped.Name()]; ok {
+	if existingGrouped, ok := cachedGrouped.groupedExternalNodesMap[grouped.NameForAnalyzerOut(nil)]; ok {
 		return existingGrouped
 	}
 	return nil
@@ -104,7 +104,7 @@ func (cachedGrouped *cacheGroupedElements) getExistGroupedExternalFromCache(
 
 func (cachedGrouped *cacheGroupedElements) setGroupedExternalFromCache(
 	groupedExternal *groupedExternalNodes) {
-	cachedGrouped.groupedExternalNodesMap[groupedExternal.Name()] = groupedExternal
+	cachedGrouped.groupedExternalNodesMap[groupedExternal.NameForAnalyzerOut(nil)] = groupedExternal
 }
 
 func (cachedGrouped *cacheGroupedElements) getAndSetGroupedExternalFromCache(
@@ -130,7 +130,8 @@ func (o *OutputGenerator) UnificationDebugPrint() string {
 					k := common.FromList[EndpointElem](*g).AsKey()
 					if g2, ok := elg[k]; ok {
 						if g != g2 {
-							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n", g, g.Name(), g2, g2.Name())
+							outString += fmt.Sprintf("pointer %p of %s and pointer %p of the same %s  \n",
+								g, g.NameForAnalyzerOut(nil), g2, g2.NameForAnalyzerOut(nil))
 						}
 					}
 					elg[k] = g
