@@ -30,10 +30,35 @@ var tests = []testfunc.VpcAnalysisTest{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "iks_config_object",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		Grouping:     true,
+		NoLbAbstract: true,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
 		Grouping:     true,
 		NoLbAbstract: true,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		Grouping: true,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		Grouping: true,
 	},
 }
 
