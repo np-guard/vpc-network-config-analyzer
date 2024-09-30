@@ -633,7 +633,7 @@ func listEndpointElemStr(eps []EndpointElem, fn func(ep EndpointElem) string) st
 
 func (g *groupedExternalNodes) String() string {
 	// 1 gets list and a union of all IPBlocks
-	ipbList, unionBlock := g.toIpBlocks()
+	ipbList, unionBlock := g.toIPBlocks()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
@@ -641,7 +641,7 @@ func (g *groupedExternalNodes) String() string {
 	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
 }
 
-func (g *groupedExternalNodes) toIpBlocks() (ipbList []*ipblock.IPBlock, unionBlock *ipblock.IPBlock) {
+func (g *groupedExternalNodes) toIPBlocks() (ipbList []*ipblock.IPBlock, unionBlock *ipblock.IPBlock) {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
