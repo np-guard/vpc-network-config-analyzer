@@ -284,6 +284,58 @@ func (fip *FloatingIP) IsMultipleVPCs() bool {
 	return false
 }
 
+type ServiceNetworkGateway struct {
+	vpcmodel.VPCResource
+	cidr *ipblock.IPBlock
+}
+
+func (sgw *ServiceNetworkGateway) Cidr() *ipblock.IPBlock {
+	return sgw.cidr
+}
+func (sgw *ServiceNetworkGateway) Sources() []vpcmodel.Node {
+	return nil
+}
+func (sgw *ServiceNetworkGateway) SourcesSubnets() []vpcmodel.Subnet {
+	return nil
+}
+
+func (sgw *ServiceNetworkGateway) Destinations() []vpcmodel.Node {
+	return nil
+}
+func (sgw *ServiceNetworkGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+}
+
+func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+	if areNodes, _, dst1 := isNodesPair(src, dst); areNodes {
+		if dst1.IsExternal() {
+			return connection.All(), nil
+		}
+		return connection.None(), nil
+	}
+	return nil, errors.New("ServiceNetworkGateway.AllowedConnectivity unexpected src/dst types")
+}
+
+func (sgw *ServiceNetworkGateway) RouterDefined(src, dst vpcmodel.Node) bool {
+	return dst.IsExternal()
+}
+
+func (sgw *ServiceNetworkGateway) ExternalIP() string {
+	return ""
+}
+
+func (sgw *ServiceNetworkGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
+}
+
+func (sgw *ServiceNetworkGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
+	return "", nil
+}
+
+func (sgw *ServiceNetworkGateway) IsMultipleVPCs() bool {
+	return false
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string

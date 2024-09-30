@@ -60,6 +60,7 @@ type systemRTConfig struct {
 	tgwList []*TransitGateway
 	fipList []*FloatingIP
 	pgwList []*PublicGateway
+	sgwList []*ServiceNetworkGateway
 }
 
 func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
@@ -81,6 +82,8 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 			res.pgwList = append(res.pgwList, router.(*PublicGateway))
 		case commonvpc.ResourceTypeFloatingIP:
 			res.fipList = append(res.fipList, router.(*FloatingIP))
+		case commonvpc.ResourceTypeServiceNetwork:
+			res.sgwList = append(res.sgwList, router.(*ServiceNetworkGateway))
 		}
 	}
 	return res
@@ -89,6 +92,11 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 func isDestPublicInternet(dest *ipblock.IPBlock) bool {
 	_, publicRange, _ := vpcmodel.GetPublicInternetIPblocksList()
 	return dest.ContainedIn(publicRange)
+}
+
+func isDestServiceNetwork(dest *ipblock.IPBlock) bool {
+	_, serviceNetworkRange, _ := vpcmodel.GetServiceNetworkIPblocksList()
+	return dest.ContainedIn(serviceNetworkRange)
 }
 
 func fipHasSource(src vpcmodel.Node, fip *FloatingIP) bool {
@@ -144,6 +152,13 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 		return nil
 	}
 
+	if isDestServiceNetwork(dest) {
+		for _, sgw := range rt.config.sgwList {
+			if dest.ContainedIn(sgw.cidr) {
+				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(sgw), vpcmodel.PathFromIPBlock(dest))
+			}
+		}
+	}
 	for _, tgw := range rt.config.tgwList {
 		logging.Debugf("look for dest %s in tgw.availableRoutes ", dest.ToIPAddressString())
 		for vpcUID, availablePrefixes := range tgw.availableRoutes {

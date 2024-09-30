@@ -19,6 +19,7 @@ const (
 	DetailsAttributeCIDR = "cidr"
 
 	publicInternetNodeName  = "Public Internet"
+	serviceNetworkNodeName  = "Service Network"
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
@@ -42,6 +43,14 @@ func getPublicInternetAddressList() []string {
 		"198.20.0.0-198.51.99.255",
 		"198.51.101.0-203.0.112.255",
 		"203.0.114.0-223.255.255.255",
+	}
+}
+
+// All service network IP addresses belong to one of the following service network IP address ranges:
+func getServiceNetworkAddressList() []string {
+	return []string{
+		"161.26.0.0/16",
+		"166.8.0.0/14",
 	}
 }
 
@@ -129,26 +138,31 @@ func GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, a
 	return ipStringsToIPblocks(publicInternetAddressList)
 }
 
-func newExternalNode(isPublicInternet bool, ipb *ipblock.IPBlock) (Node, error) {
+func GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock, serviceNetworkRagnes *ipblock.IPBlock, err error) {
+	serviceNetworkAddressList := getServiceNetworkAddressList()
+	return ipStringsToIPblocks(serviceNetworkAddressList)
+}
+
+func newExternalNode(isPublicInternet bool, ipb *ipblock.IPBlock, resourceType string) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
 		return nil, errors.New("newExternalNode: input ip-block should be of a single CIDR")
 	}
 	cidr := ipb.ToCidrList()[0]
 	return &ExternalNetwork{
-		ResourceType:     publicInternetNodeName,
+		ResourceType:     resourceType,
 		CidrStr:          cidr,
 		isPublicInternet: isPublicInternet,
 		ipblock:          ipb}, nil
 }
 
-func newExternalNodeForCidr(cidr string) (Node, error) {
+func newExternalNodeForCidr(cidr string, resourceType string) (Node, error) {
 	cidrIPBlodk, err := ipblock.FromCidr(cidr)
 	if err != nil {
 		return nil, err
 	}
 	return &ExternalNetwork{
-		ResourceType:     publicInternetNodeName,
+		ResourceType:     resourceType,
 		CidrStr:          cidr,
 		isPublicInternet: true,
 		ipblock:          cidrIPBlodk,
@@ -161,14 +175,18 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]
 	if err != nil {
 		return nil, err
 	}
-	disjointRefExternalIPBlocksAll := ipblock.DisjointIPBlocks(internetIPblocks, disjointRefExternalIPBlocks)
+	serviceNetworkIPblocks, serviceNetworkRagnes, err := GetServiceNetworkIPblocksList()
+	if err != nil {
+		return nil, err
+	}
+	disjointRefExternalIPBlocksPublicInternet := ipblock.DisjointIPBlocks(internetIPblocks, disjointRefExternalIPBlocks)
+	disjointRefExternalIPBlocksServiceNetwork := ipblock.DisjointIPBlocks(serviceNetworkIPblocks, disjointRefExternalIPBlocks)
 
-	for _, ipb := range disjointRefExternalIPBlocksAll {
+	for _, ipb := range disjointRefExternalIPBlocksPublicInternet {
 		var isPublicInternet bool
 		if ipb.ContainedIn(allInternetRagnes) {
 			isPublicInternet = true
 		} else {
-			// currently skip external nodes which are not in public internet ranges
 			continue
 		}
 		cidrs := ipb.ToCidrList()
@@ -177,7 +195,27 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]
 			if err != nil {
 				return nil, err
 			}
-			newNode, err := newExternalNode(isPublicInternet, nodeIPBlock)
+			newNode, err := newExternalNode(isPublicInternet, nodeIPBlock, publicInternetNodeName)
+			if err != nil {
+				return nil, err
+			}
+			res = append(res, newNode)
+		}
+	}
+	for _, ipb := range disjointRefExternalIPBlocksServiceNetwork {
+		var isPublicInternet bool
+		if ipb.ContainedIn(serviceNetworkRagnes) {
+			isPublicInternet = false
+		} else {
+			continue
+		}
+		cidrs := ipb.ToCidrList()
+		for _, cidr := range cidrs {
+			nodeIPBlock, err := ipblock.FromCidr(cidr)
+			if err != nil {
+				return nil, err
+			}
+			newNode, err := newExternalNode(isPublicInternet, nodeIPBlock, serviceNetworkNodeName)
 			if err != nil {
 				return nil, err
 			}
@@ -185,6 +223,23 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]
 		}
 	}
 	return res, nil
+}
+
+func isEntireServiceNetworkRange(nodes []*ExternalNetwork) (bool, error) {
+	ipList := make([]string, len(nodes))
+	for i, n := range nodes {
+		ipList[i] = n.CidrStr
+	}
+
+	_, nodesRanges, err := ipStringsToIPblocks(ipList)
+	if err != nil {
+		return false, err
+	}
+	_, allServiceNetworkRagnes, err := GetServiceNetworkIPblocksList()
+	if err != nil {
+		return false, err
+	}
+	return nodesRanges.Equal(allServiceNetworkRagnes), nil
 }
 
 func isEntirePublicInternetRange(nodes []*ExternalNetwork) (bool, error) {

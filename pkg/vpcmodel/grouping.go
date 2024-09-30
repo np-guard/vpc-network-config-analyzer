@@ -268,10 +268,15 @@ func (g *groupedExternalNodes) IsExternal() bool {
 	return true
 }
 
+func (g *groupedExternalNodes) resourceType() string {
+	return (*g)[0].ResourceType
+}
+
 func (g *groupedExternalNodes) Name() string {
-	isAllInternetRange, err := isEntirePublicInternetRange(*g)
-	prefix := publicInternetNodeName + " "
-	if err == nil && isAllInternetRange {
+	prefix := g.resourceType() + " "
+	isAllInternetRange, err1 := isEntirePublicInternetRange(*g)
+	isAllServiceNetworkRange, err2 := isEntireServiceNetworkRange(*g)
+	if err1 == nil && err2 == nil && (isAllInternetRange || isAllServiceNetworkRange) {
 		return prefix + "(all ranges)"
 	}
 	return prefix + g.String()
@@ -306,7 +311,7 @@ func (g *groupedExternalNodes) UID() string {
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
-	connKey := commonProps.groupingStrKey
+	connKey := commonProps.groupingStrKey + targetNode.ResourceType // added resource type to group service network and public internet each alone
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string]*groupedExternalNodesInfo{}
 	}
