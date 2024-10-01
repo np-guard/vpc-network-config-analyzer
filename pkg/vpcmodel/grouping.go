@@ -643,6 +643,13 @@ func listEndpointElemStrWithConfig(eps []EndpointElem, fn func(ep EndpointElem, 
 }
 
 func (g *groupedExternalNodes) String() string {
+	// 1 gets list and a union of all IPBlocks
+	unionBlock := g.toIPBlock()
+	// 2. print a list s.t. each element contains either a single cidr or an ip range
+	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
+}
+
+func (g *groupedExternalNodes) toIPBlock() *ipblock.IPBlock {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
@@ -650,15 +657,14 @@ func (g *groupedExternalNodes) String() string {
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
-		return ""
+		return ipblock.New()
 	}
 	// 2. union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
 	unionBlock := ipblock.New()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}
-	// 3. print a list s.t. each element contains either a single cidr or an ip range
-	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
+	return unionBlock
 }
 
 // connDiffEncode encodes connectivesDiff information for grouping:
