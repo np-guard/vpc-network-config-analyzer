@@ -56,7 +56,7 @@ func generateLinters(configs map[string]*vpcmodel.VPCConfig, nodeConn map[string
 func computeConnectivity(configs map[string]*vpcmodel.VPCConfig) (map[string]*vpcmodel.VPCConnectivity, error) {
 	nodesConn := map[string]*vpcmodel.VPCConnectivity{}
 	for uid, vpcConfig := range configs {
-		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true)
+		nodesConnThisCfg, err := vpcConfig.GetVPCNetworkConnectivity(false, true, false)
 		if err != nil {
 			return nil, err
 		}

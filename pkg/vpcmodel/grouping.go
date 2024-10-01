@@ -81,22 +81,22 @@ func newGroupingConnections() *groupingConnections {
 }
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
-	grouping bool) (res *GroupConnLines, err error) {
+	grouping, addConsistencyEdgesExternal bool) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(true, grouping)
+	err = res.computeGrouping(true, grouping, addConsistencyEdgesExternal)
 	return res, err
 }
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
-	grouping bool) (res *GroupConnLines, err error) {
+	grouping, addConsistencyEdgesExternal bool) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(false, grouping)
+	err = res.computeGrouping(false, grouping, addConsistencyEdgesExternal)
 	return res, err
 }
 
@@ -329,7 +329,7 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 
 // group public internet ranges for vsis/subnets connectivity lines
 // internal (vsi/subnets) are added as is
-func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
+func (g *GroupConnLines) groupExternalAddresses(vsi, addConsistencyEdgesExternal bool) error {
 	res := []*groupedConnLine{}
 	var allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 	if vsi {
@@ -362,6 +362,9 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		}
 	}
 	g.appendGrouped(res)
+	if addConsistencyEdgesExternal {
+		g.consistencyEdgesExternal()
+	}
 	return nil
 }
 
@@ -373,13 +376,13 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 // 142.0.64.0/17 should also be connected to vsi2 and vsi3
 // In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
-func (g *GroupConnLines) consistencyEdgesExternal() error {
-	// 1. Get a map from external endpoints to their translation to cidrs
+func (g *GroupConnLines) consistencyEdgesExternal() {
+	// 1. Get a map from external endpoints to their IPs
 	eeToIpBlock := getMapToGroupedExternalBlocks(g.GroupedLines)
-	_ = eeToIpBlock // todo tmp
 	// 2. Check for containment
+	containedMap := findContainEndpointMap(eeToIpBlock)
 	// 3. Add edges
-	return nil
+	g.addEdgesOfContainingEPs(containedMap)
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
@@ -402,17 +405,92 @@ func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipb
 }
 
 func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
-	switch reflect.TypeOf(ee).Elem() {
-	case reflect.TypeOf(groupedExternalNodes{}):
-		elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
-		var res *ipblock.IPBlock
-		for _, e := range elements {
-			res.Union(e.ipblock)
-		}
-		return res
-	default:
-		return nil
+	// EndpointElem must be of type groupedExternalNodes
+	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
+	var res *ipblock.IPBlock
+	for _, e := range elements {
+		res.Union(e.ipblock)
 	}
+	return res
+}
+
+// given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that contains it
+// (if any)
+func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (containedMap map[string][]string) {
+	containedMap = map[string][]string{}
+	for containedEP, containedIP := range endpointsIPBlocks {
+		containingEPs := []string{}
+		for containingEP, containingIP := range endpointsIPBlocks {
+			if containedIP.ContainedIn(containingIP) {
+				containingEPs = append(containingEPs, containingEP)
+			}
+		}
+		if len(containingEPs) > 0 {
+			containedMap[containedEP] = containingEPs
+		}
+	}
+	return containedMap
+}
+
+// give the above containedMap adds edges of containing endpoints
+func (g *GroupConnLines) addEdgesOfContainingEPs(containedMap map[string][]string) {
+	endpointToLines := g.getEndpointToLines()
+	for _, toAddEdgesLine := range g.GroupedLines {
+		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, true)
+		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, false)
+	}
+}
+
+func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines map[string][]*groupedConnLine,
+	containedMap map[string][]string, src bool) {
+	nameToEndpointElem := map[string]EndpointElem{}
+	for _, line := range g.GroupedLines {
+		// there could be rewriting with identical values; not an issue complexity wise, and keeps the code simpler
+		nameToEndpointElem[line.Src.Name()] = line.Src
+		nameToEndpointElem[line.Dst.Name()] = line.Dst
+	}
+	var addToNodeName string
+	if src {
+		addToNodeName = line.Src.Name()
+	} else {
+		addToNodeName = line.Dst.Name()
+	}
+	for _, containedEndpoint := range containedMap[addToNodeName] {
+		for _, toAddLine := range endpointToLines[containedEndpoint] {
+			// adding edges; the other end of the edges will always be internal, since "this" edge is not internal
+			switch {
+			case src && toAddLine.Src.Name() == addToNodeName:
+				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: nameToEndpointElem[addToNodeName],
+					Dst: toAddLine.Dst, CommonProperties: toAddLine.CommonProperties})
+			case !src && toAddLine.Dst.Name() == addToNodeName:
+				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: toAddLine.Src,
+					Dst: nameToEndpointElem[addToNodeName], CommonProperties: toAddLine.CommonProperties})
+			}
+		}
+	}
+}
+
+// creates an auxiliary map between each endpoint element to all the lines it participates in (as src or dst)
+func (g *GroupConnLines) getEndpointToLines() (endpointToLines map[string][]*groupedConnLine) {
+	endpointToLines = map[string][]*groupedConnLine{}
+	for _, line := range g.GroupedLines {
+		addLineToMap(endpointToLines, line, true)
+		addLineToMap(endpointToLines, line, false)
+	}
+	return endpointToLines
+}
+
+func addLineToMap(endpointToLines map[string][]*groupedConnLine, line *groupedConnLine, src bool) {
+	var name string
+	if src {
+		name = line.Src.Name()
+	} else {
+		name = line.Dst.Name()
+	}
+	if _, ok := endpointToLines[name]; !ok {
+		endpointToLines[name] = []*groupedConnLine{}
+	}
+	endpointToLines[name] = append(endpointToLines[name], line)
 }
 
 // group public internet ranges for semantic-diff connectivity lines (subnets/vsis)
@@ -618,8 +696,8 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 // computeGrouping does the grouping; for vsis (all_endpoints analysis)
 // if vsi = true otherwise for subnets (all_subnets analysis)
 // external endpoints are always grouped; vsis/subnets are grouped iff grouping is true
-func (g *GroupConnLines) computeGrouping(vsi, grouping bool) (err error) {
-	err = g.groupExternalAddresses(vsi)
+func (g *GroupConnLines) computeGrouping(vsi, grouping, addConsistencyEdgesExternal bool) (err error) {
+	err = g.groupExternalAddresses(vsi, addConsistencyEdgesExternal)
 	if err != nil {
 		return err
 	}

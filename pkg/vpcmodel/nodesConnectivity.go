@@ -22,7 +22,8 @@ import (
 // (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate responsive info
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
-func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res *VPCConnectivity, err error) {
+func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction,
+	addConsistencyEdgesExternal bool) (res *VPCConnectivity, err error) {
 	res = &VPCConnectivity{
 		AllowedConnsPerLayer: map[Node]map[string]*ConnectivityResult{},
 	}
@@ -65,7 +66,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		return nil, err3
 	}
 	res.abstractLoadBalancers(c.LoadBalancers, lbAbstraction)
-	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping)
+	res.GroupedConnectivity, err = newGroupConnLines(c, res, grouping, addConsistencyEdgesExternal)
 	return res, err
 }
 
