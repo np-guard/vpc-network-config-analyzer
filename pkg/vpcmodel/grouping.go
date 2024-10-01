@@ -644,10 +644,7 @@ func listEndpointElemStrWithConfig(eps []EndpointElem, fn func(ep EndpointElem, 
 
 func (g *groupedExternalNodes) String() string {
 	// 1 gets list and a union of all IPBlocks
-	ipbList, unionBlock := g.toIPBlocks()
-	for _, ipBlock := range ipbList {
-		unionBlock = unionBlock.Union(ipBlock)
-	}
+	_, unionBlock := g.toIPBlocks()
 	// 2. print a list s.t. each element contains either a single cidr or an ip range
 	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
 }
