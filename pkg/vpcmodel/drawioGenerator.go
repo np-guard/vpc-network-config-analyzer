@@ -107,7 +107,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	if all, _ := isEntirePublicInternetRange(*g); all {
 		name = publicInternetNodeName
 	} else {
-		_, ipBlock := g.toIPBlocks()
+		ipBlock := g.toIPBlocks()
 		if len(ipBlock.ListToPrint()) == 1 {
 			name = ipBlock.String()
 		}
