@@ -106,6 +106,11 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	name := "Various IP ranges"
 	if all, _ := isEntirePublicInternetRange(*g); all {
 		name = publicInternetNodeName
+	} else {
+		ipBlock := g.toIPBlock()
+		if len(ipBlock.ListToPrint()) == 1 {
+			name = ipBlock.String()
+		}
 	}
 	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	tn.SetTooltip(tooltip)
