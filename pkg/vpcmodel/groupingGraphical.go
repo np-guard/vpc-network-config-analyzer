@@ -20,7 +20,7 @@ import (
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
 	// 1. Get a map from external endpoints to their IPs
-	eeToIpBlock := getMapToGroupedExternalBlocks(g.GroupedLines)
+	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines)
 	// 2. Check for containment
 	containedMap := findContainEndpointMap(eeToIpBlock)
 	// 3. Add edges
@@ -28,24 +28,24 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
-func getMapToGroupedExternalBlocks(grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
+func getMapToGroupedExternalBlocks(config *VPCConfig, grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
 	eeToIpBlock = map[string]*ipblock.IPBlock{}
 	for _, line := range grouped {
-		addExternalEndpointToMap(line.Src, eeToIpBlock)
-		addExternalEndpointToMap(line.Dst, eeToIpBlock)
+		addExternalEndpointToMap(line.Src, config, eeToIpBlock)
+		addExternalEndpointToMap(line.Dst, config, eeToIpBlock)
 	}
 	return eeToIpBlock
 }
 
-func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipblock.IPBlock) {
+func addExternalEndpointToMap(ee EndpointElem, config *VPCConfig, endpointsIPBlocks map[string]*ipblock.IPBlock) {
 	if !ee.IsExternal() {
 		return
 	}
-	_, ok := endpointsIPBlocks[ee.Name()]
+	_, ok := endpointsIPBlocks[ee.NameForAnalyzerOut(config)]
 	if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 		return
 	}
-	endpointsIPBlocks[ee.Name()] = groupedExternalToIpBlock(ee)
+	endpointsIPBlocks[ee.NameForAnalyzerOut(config)] = groupedExternalToIpBlock(ee)
 }
 
 func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
@@ -93,18 +93,18 @@ func (g *GroupConnLines) addEdgesOfContainingEPs(containedMap map[string][]strin
 func (g *GroupConnLines) getEndpointToLines() (endpointToLines map[string][]*groupedConnLine) {
 	endpointToLines = map[string][]*groupedConnLine{}
 	for _, line := range g.GroupedLines {
-		addLineToMap(endpointToLines, line, true)
-		addLineToMap(endpointToLines, line, false)
+		addLineToMap(g.config, endpointToLines, line, true)
+		addLineToMap(g.config, endpointToLines, line, false)
 	}
 	return endpointToLines
 }
 
-func addLineToMap(endpointToLines map[string][]*groupedConnLine, line *groupedConnLine, src bool) {
+func addLineToMap(config *VPCConfig, endpointToLines map[string][]*groupedConnLine, line *groupedConnLine, src bool) {
 	var name string
 	if src {
-		name = line.Src.Name()
+		name = line.Src.NameForAnalyzerOut(config)
 	} else {
-		name = line.Dst.Name()
+		name = line.Dst.NameForAnalyzerOut(config)
 	}
 	if _, ok := endpointToLines[name]; !ok {
 		endpointToLines[name] = []*groupedConnLine{}
@@ -117,14 +117,14 @@ func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines m
 	nameToEndpointElem := map[string]EndpointElem{}
 	for _, line := range g.GroupedLines {
 		// there could be rewriting with identical values; not an issue complexity wise, not checking this keeps the code simpler
-		nameToEndpointElem[line.Src.Name()] = line.Src
-		nameToEndpointElem[line.Dst.Name()] = line.Dst
+		nameToEndpointElem[line.Src.NameForAnalyzerOut(g.config)] = line.Src
+		nameToEndpointElem[line.Dst.NameForAnalyzerOut(g.config)] = line.Dst
 	}
 	var addToNodeName string
 	if src {
-		addToNodeName = line.Src.Name()
+		addToNodeName = line.Src.NameForAnalyzerOut(g.config)
 	} else {
-		addToNodeName = line.Dst.Name()
+		addToNodeName = line.Dst.NameForAnalyzerOut(g.config)
 	}
 	for _, containedEndpoint := range containedMap[addToNodeName] {
 		for _, toAddLine := range endpointToLines[containedEndpoint] {
@@ -132,10 +132,10 @@ func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines m
 			// end of the edges will always be internal, since "this" edge is not internal.
 			// Grouping per internal endpoints is done (if requested) after this point
 			switch {
-			case src && toAddLine.Src.Name() == addToNodeName:
+			case src && toAddLine.Src.NameForAnalyzerOut(g.config) == addToNodeName:
 				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: nameToEndpointElem[addToNodeName],
 					Dst: toAddLine.Dst, CommonProperties: toAddLine.CommonProperties})
-			case !src && toAddLine.Dst.Name() == addToNodeName:
+			case !src && toAddLine.Dst.NameForAnalyzerOut(g.config) == addToNodeName:
 				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: toAddLine.Src,
 					Dst: nameToEndpointElem[addToNodeName], CommonProperties: toAddLine.CommonProperties})
 			}
