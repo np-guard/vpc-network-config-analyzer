@@ -131,11 +131,10 @@ func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines m
 			// adding edges - namely, lines in grouping. "This" end of the edge is external (by design) and the "other"
 			// end of the edges will always be internal, since "this" edge is not internal.
 			// Grouping per internal endpoints is done (if requested) after this point
-			switch {
-			case src && toAddLine.Src.NameForAnalyzerOut(g.config) == addToNodeName:
+			if src {
 				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: nameToEndpointElem[addToNodeName],
 					Dst: toAddLine.Dst, CommonProperties: toAddLine.CommonProperties})
-			case !src && toAddLine.Dst.NameForAnalyzerOut(g.config) == addToNodeName:
+			} else {
 				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: toAddLine.Src,
 					Dst: nameToEndpointElem[addToNodeName], CommonProperties: toAddLine.CommonProperties})
 			}
