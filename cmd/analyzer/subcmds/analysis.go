@@ -83,7 +83,7 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		inArgs.grouping,
 		analysisType,
 		false,
-		inArgs.explanationArgs, outFormat, inArgs.lbAbstraction)
+		inArgs.explanationArgs, outFormat, inArgs.lbAbstraction, false)
 	if err != nil {
 		return err
 	}

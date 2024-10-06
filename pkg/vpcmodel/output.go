@@ -73,7 +73,8 @@ type OutputGenerator struct {
 }
 
 func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
-	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat, lbAbstraction bool) (*OutputGenerator, error) {
+	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat, lbAbstraction,
+	addConsistencyEdgesExternal bool) (*OutputGenerator, error) { // addConsistencyEdgesExternal is for testing
 	res := &OutputGenerator{
 		configs:        cConfigs,
 		outputGrouping: grouping,
@@ -89,7 +90,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 		switch uc {
 		case AllEndpoints:
 			for i, vpcConfig := range cConfigs.Configs() {
-				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction, graphicNonArchFormat)
+				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction, consistencyEdgesExternal)
 				if err != nil {
 					return nil, err
 				}
@@ -97,7 +98,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 			}
 		case AllSubnets:
 			for i, vpcConfig := range cConfigs.Configs() {
-				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping, graphicNonArchFormat)
+				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, grouping, consistencyEdgesExternal)
 				if err != nil {
 					return nil, err
 				}
