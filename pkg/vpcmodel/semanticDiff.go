@@ -118,7 +118,7 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 func (c *VPCConfig) getAllowedResponsiveConnections(
 	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
-		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
+		subnetsConn, err := c.GetSubnetsConnectivity(true, false, false)
 		if err != nil {
 			return nil, err
 		}
