@@ -53,7 +53,7 @@ func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
 	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
 	var res = ipblock.New()
 	for _, e := range elements {
-		res.Union(e.ipblock)
+		res = res.Union(e.ipblock)
 	}
 	return res
 }
