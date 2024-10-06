@@ -84,7 +84,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 		subnetsConn:    map[string]*VPCsubnetConnectivity{},
 	}
 	graphicFormat := slices.Contains([]OutFormat{DRAWIO, ARCHDRAWIO, SVG, ARCHSVG, HTML, ARCHHTML}, f)
-	graphicNonArchFormat := slices.Contains([]OutFormat{DRAWIO, SVG, HTML}, f)
+	consistencyEdgesExternal := slices.Contains([]OutFormat{DRAWIO, SVG, HTML}, f) || addConsistencyEdgesExternal
 	archOnlyFormat := slices.Contains([]OutFormat{ARCHDRAWIO, ARCHSVG, ARCHHTML}, f)
 	if !archOnlyFormat {
 		switch uc {

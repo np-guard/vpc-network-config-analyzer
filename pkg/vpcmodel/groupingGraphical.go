@@ -29,6 +29,7 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
 func getMapToGroupedExternalBlocks(grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
+	eeToIpBlock = map[string]*ipblock.IPBlock{}
 	for _, line := range grouped {
 		addExternalEndpointToMap(line.Src, eeToIpBlock)
 		addExternalEndpointToMap(line.Dst, eeToIpBlock)
@@ -50,7 +51,7 @@ func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipb
 func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
 	// EndpointElem must be of type groupedExternalNodes
 	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
-	var res *ipblock.IPBlock
+	var res = ipblock.New()
 	for _, e := range elements {
 		res.Union(e.ipblock)
 	}
