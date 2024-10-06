@@ -47,6 +47,7 @@ const (
 	suffixOutFileDiffEndpoints        = "endpointsDiff"
 	suffixOutFileExplain              = "explain"
 	suffixOutFileDetail               = "_detail"
+	consistencyEdgesExternal          = "_EdgeConsistent"
 	txtOutSuffix                      = ".txt"
 	mdOutSuffix                       = ".md"
 	JSONOutSuffix                     = ".json"
@@ -86,6 +87,7 @@ func getTestFileName(testName string,
 	grouping bool,
 	noLbAbstract bool,
 	detailExplain bool,
+	addConsistencyEdgesExternal bool,
 	format vpcmodel.OutFormat,
 	configName string,
 	allVPCs bool,
@@ -127,6 +129,9 @@ func getTestFileName(testName string,
 	}
 	if detailExplain {
 		res += suffixOutFileDetail
+	}
+	if addConsistencyEdgesExternal {
+		res += consistencyEdgesExternal
 	}
 	if !allVPCs {
 		res += strings.ReplaceAll(strings.Join(vpcIDs, ""), ":", "")
@@ -174,9 +179,10 @@ func (tt *VpcTestCommon) initTest() {
 }
 
 func (tt *VpcTestCommon) initTestFileNames(uc vpcmodel.OutputUseCase,
-	vpcName string, allVPCs, detailExplain bool, testDirOut string, grouping, noLbAbstract bool) error {
+	vpcName string, allVPCs, detailExplain bool, testDirOut string, grouping, noLbAbstract,
+	addConsistencyEdgesExternal bool) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.Name, uc, grouping, noLbAbstract, detailExplain, tt.Format, vpcName, allVPCs, tt.VpcList)
+		tt.Name, uc, grouping, noLbAbstract, detailExplain, addConsistencyEdgesExternal, tt.Format, vpcName, allVPCs, tt.VpcList)
 	if err != nil {
 		return err
 	}
@@ -199,7 +205,8 @@ func (tt *VpcTestCommon) runTestPerUseCase(t *testing.T,
 		detailExplain = explanationArgs.Detail
 	}
 	allVpcs := len(tt.VpcList) == 0
-	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract); err != nil {
+	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract,
+		addConsistencyEdgesExternal); err != nil {
 		return err
 	}
 	og, err := vpcmodel.NewOutputGenerator(cConfigs, grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,
