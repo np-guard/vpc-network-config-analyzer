@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strconv"
 	"strings"
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
@@ -542,13 +541,11 @@ func newSGW(sgwName string, cidr *ipblock.IPBlock) *ServiceNetworkGateway {
 func (rc *IBMresourcesContainer) addSgwToConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 ) {
-	serviceNetworkIPblocksList, _, _ := vpcmodel.GetServiceNetworkIPblocksList()
-	for i, ip := range serviceNetworkIPblocksList {
-		routerSgw := newSGW("serviceNetwork"+strconv.Itoa(i), ip)
-		for _, vpcConfig := range res.Configs() {
-			vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)
-			vpcConfig.UIDToResource[routerSgw.ResourceUID] = routerSgw
-		}
+	_, serviceNetworkIPblock, _ := vpcmodel.GetServiceNetworkIPblocksList()
+	routerSgw := newSGW("serviceNetwork", serviceNetworkIPblock)
+	for _, vpcConfig := range res.Configs() {
+		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)
+		vpcConfig.UIDToResource[routerSgw.ResourceUID] = routerSgw
 	}
 }
 

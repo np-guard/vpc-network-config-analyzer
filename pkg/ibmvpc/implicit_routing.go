@@ -60,7 +60,7 @@ type systemRTConfig struct {
 	tgwList []*TransitGateway
 	fipList []*FloatingIP
 	pgwList []*PublicGateway
-	sgwList []*ServiceNetworkGateway
+	sgw     *ServiceNetworkGateway
 }
 
 func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
@@ -83,7 +83,7 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 		case commonvpc.ResourceTypeFloatingIP:
 			res.fipList = append(res.fipList, router.(*FloatingIP))
 		case commonvpc.ResourceTypeServiceNetwork:
-			res.sgwList = append(res.sgwList, router.(*ServiceNetworkGateway))
+			res.sgw = router.(*ServiceNetworkGateway)
 		}
 	}
 	return res
@@ -153,10 +153,8 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 	}
 
 	if isDestServiceNetwork(dest) {
-		for _, sgw := range rt.config.sgwList {
-			if dest.ContainedIn(sgw.cidr) {
-				return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(sgw), vpcmodel.PathFromIPBlock(dest))
-			}
+		if dest.ContainedIn(rt.config.sgw.cidr) {
+			return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(rt.config.sgw), vpcmodel.PathFromIPBlock(dest))
 		}
 	}
 	for _, tgw := range rt.config.tgwList {
