@@ -51,12 +51,12 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, nil}
 			continue
 		}
-		srcNodes, errSrc := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.src)
+		srcNodes, errSrc := getNodesFromEndpoint(srcDstCouple.c, srcDstCouple.src)
 		if errSrc != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errSrc}
 			continue
 		}
-		dstNodes, errDst := srcDstCouple.c.getNodesFromEndpoint(srcDstCouple.dst)
+		dstNodes, errDst := getNodesFromEndpoint(srcDstCouple.c, srcDstCouple.dst)
 		if errDst != nil {
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errDst}
 			continue
@@ -70,7 +70,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 			multiExplanation[i] = explainOutputEntry{emptyExplain, errConn}
 			continue
 		}
-		explain, errExplain := srcDstCouple.c.explainConnectivityForVPC(srcDstCouple.src.NameForAnalyzerOut(nil),
+		explain, errExplain := explainConnectivityForVPC(srcDstCouple.c, srcDstCouple.src.NameForAnalyzerOut(nil),
 			srcDstCouple.dst.NameForAnalyzerOut(nil),
 			srcNodes, dstNodes, nil, connectivity)
 		if errExplain != nil {
@@ -87,7 +87,7 @@ func MultiExplain(srcDstCouples []explainInputEntry, vpcConns map[string]*VPCCon
 // 2. A number of Nodes, all are private IPs of the load Balancer
 // 2. A number of Nodes, each representing an external address, if the endpoint is groupedExternalNodes
 // if the endpoint is neither, returns error
-func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) {
+func getNodesFromEndpoint(c *VPCConfig, endpoint EndpointElem) ([]Node, error) {
 	switch n := endpoint.(type) {
 	case InternalNodeIntf:
 		return []Node{endpoint.(Node)}, nil
@@ -99,7 +99,7 @@ func (c *VPCConfig) getNodesFromEndpoint(endpoint EndpointElem) ([]Node, error) 
 			externalIP = externalIP.Union(e.ipblock)
 		}
 		// gets external nodes from e as explained in getCidrExternalNodes
-		disjointNodes, _, err := c.getCidrExternalNodes(externalIP)
+		disjointNodes, _, err := getCidrExternalNodes(c, externalIP)
 		if err != nil {
 			return nil, err
 		}

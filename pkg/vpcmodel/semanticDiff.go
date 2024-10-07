@@ -74,11 +74,11 @@ type diffBetweenCfgs struct {
 // computes and returns the semantic diff of endpoints or subnets connectivity, as per the required analysis
 func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	// 1. compute connectivity for each of the configurations
-	responsiveConnectivityMap1, err := configs.config1.getAllowedResponsiveConnections(configs.diffAnalysis)
+	responsiveConnectivityMap1, err := getAllowedResponsiveConnections(configs.config1, configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
-	responsiveConnectivityMap2, err := configs.config2.getAllowedResponsiveConnections(configs.diffAnalysis)
+	responsiveConnectivityMap2, err := getAllowedResponsiveConnections(configs.config2, configs.diffAnalysis)
 	if err != nil {
 		return nil, err
 	}
@@ -115,10 +115,10 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 	return res, nil
 }
 
-func (c *VPCConfig) getAllowedResponsiveConnections(
+func getAllowedResponsiveConnections(c *VPCConfig,
 	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
-		subnetsConn, err := c.GetSubnetsConnectivity(true, false)
+		subnetsConn, err := GetSubnetsConnectivity(c, true, false)
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,7 @@ func (c *VPCConfig) getAllowedResponsiveConnections(
 
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
-func (c *VPCConfig) getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
+func getVPCResourceInfInOtherConfig(c *VPCConfig, other *VPCConfig, ep VPCResourceIntf,
 	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
 		if node, ok := ep.(*ExternalNetwork); ok {
@@ -183,11 +183,11 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
 				connectivityMissingOrChanged[src] = map[VPCResourceIntf]*connectionDiff{}
 			}
-			srcInOther, err1 := confConnectivity.config.getVPCResourceInfInOtherConfig(other.config, src, diffAnalysis)
+			srcInOther, err1 := getVPCResourceInfInOtherConfig(confConnectivity.config, other.config, src, diffAnalysis)
 			if err1 != nil {
 				return nil, err1
 			}
-			dstInOther, err2 := confConnectivity.config.getVPCResourceInfInOtherConfig(other.config, dst, diffAnalysis)
+			dstInOther, err2 := getVPCResourceInfInOtherConfig(confConnectivity.config, other.config, dst, diffAnalysis)
 			if err2 != nil {
 				return nil, err2
 			}
@@ -355,12 +355,12 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 	}
 	disjointIPblocks := ipblock.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
-	err = confConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
+	err = refineConfigExternalNodes(confConnectivity.config, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
 	alignedConfig := confConnectivity.config
-	err = otherConfConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
+	err = refineConfigExternalNodes(otherConfConnectivity.config, disjointIPblocks)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -393,7 +393,7 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGiven
 
 // aligned config: copies from old config everything but external nodes,
 // external nodes are resized by disjointIPblocks
-func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblock.IPBlock) error {
+func refineConfigExternalNodes(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock) error {
 	// copy config
 	var err error
 	//  nodes - external addresses - are resized

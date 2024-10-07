@@ -57,7 +57,7 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing lint on dummy vpcs
 		}
-		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+		filterLayer := vpcmodel.GetFilterTrafficResourceOfKind(config, filterLayerName)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err

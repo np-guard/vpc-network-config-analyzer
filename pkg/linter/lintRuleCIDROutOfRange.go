@@ -59,7 +59,7 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 			continue // no use in executing lint on dummy vpcs
 		}
 		vpcAddressRange := config.VPC.AddressRange()
-		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+		filterLayer := vpcmodel.GetFilterTrafficResourceOfKind(config, filterLayerName)
 		rules, err := filterLayer.GetRules()
 		if err != nil {
 			return nil, err

@@ -33,11 +33,11 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 		if !node.IsInternal() {
 			continue
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
+		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := getAllowedConnsPerDirection(c, true, node)
 		if err1 != nil {
 			return nil, err1
 		}
-		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
+		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := getAllowedConnsPerDirection(c, false, node)
 		if err2 != nil {
 			return nil, err2
 		}
@@ -69,7 +69,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(grouping, lbAbstraction bool) (res
 	return res, err
 }
 
-func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
+func getLoadBalancerRule(c *VPCConfig, src, dst Node) LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
 		if rule := lb.GetLoadBalancerRule(src, dst); rule != nil {
 			return rule
@@ -78,7 +78,7 @@ func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	return nil
 }
 
-func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
+func getPrivateSubnetRule(c *VPCConfig, src, dst Node) PrivateSubnetRule {
 	switch {
 	case dst.IsInternal():
 		return dst.(InternalNodeIntf).Subnet().GetPrivateSubnetRule(src, dst)
@@ -89,23 +89,24 @@ func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 }
 
 // getNonFilterNonRouterRulesConn() return the connectivity of all rules that are not part of the filters and routers.
-func (c *VPCConfig) getNonFilterNonRouterRulesConn(src, dst Node, isIngress bool) *connection.Set {
-	loadBalancerRule := c.getLoadBalancerRule(src, dst)
+func getNonFilterNonRouterRulesConn(c *VPCConfig, src, dst Node, isIngress bool) *connection.Set {
+	loadBalancerRule := getLoadBalancerRule(c, src, dst)
 	if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 		return NoConns()
 	}
-	privateSubnetRule := c.getPrivateSubnetRule(src, dst)
+	privateSubnetRule := getPrivateSubnetRule(c, src, dst)
 	if privateSubnetRule != nil && privateSubnetRule.Deny(isIngress) {
 		return NoConns()
 	}
 	return AllConns()
 }
 
-func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
+func getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
+	c *VPCConfig,
 	src, dst Node,
 	isIngress bool,
 	layer string) (*connection.Set, error) {
-	filter := c.GetFilterTrafficResourceOfKind(layer)
+	filter := GetFilterTrafficResourceOfKind(c, layer)
 	if filter == nil {
 		return AllConns(), nil
 	}
@@ -121,7 +122,7 @@ func updatePerLayerRes(res map[string]map[Node]*connection.Set, layer string, no
 
 // getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
 // all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
-func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
+func getAllowedConnsPerDirection(c *VPCConfig, isIngress bool, capturedNode Node) (
 	allLayersRes map[Node]*connection.Set, // result considering all layers
 	perLayerRes map[string]map[Node]*connection.Set, // result separated per layer
 	err error,
@@ -132,7 +133,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
 		// skip analysis between certain pairs of nodes
-		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
+		considerPair, err := shouldConsiderPairForConnectivity(c, capturedNode, peerNode)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -144,7 +145,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		// first compute connectivity per layer of filters resources
 		filterLayers := []string{NaclLayer, SecurityGroupLayer}
 		for _, layer := range filterLayers {
-			conns, err1 := c.getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(src, dst, isIngress, layer)
+			conns, err1 := getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(c, src, dst, isIngress, layer)
 			if err1 != nil {
 				return nil, nil, err1
 			}
@@ -155,7 +156,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			var allowedConnsBetweenCapturedAndPeerNode *connection.Set
 			if c.IsMultipleVPCsConfig {
 				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
-				_, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
+				_, allowedConnsBetweenCapturedAndPeerNode, err = getRoutingResource(c, src, dst)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -170,7 +171,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else {
 			// else : external node -> needs external router, which considers both NACL and SG
-			appliedRouter, routerConnRes, err := c.getRoutingResource(src, dst)
+			appliedRouter, routerConnRes, err := getRoutingResource(c, src, dst)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -187,7 +188,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			}
 			allLayersRes[peerNode] = routerConnRes
 		}
-		moreRulesConn := c.getNonFilterNonRouterRulesConn(src, dst, isIngress)
+		moreRulesConn := getNonFilterNonRouterRulesConn(c, src, dst, isIngress)
 		allLayersRes[peerNode] = allLayersRes[peerNode].Intersect(moreRulesConn)
 	}
 	return allLayersRes, perLayerRes, nil
@@ -267,7 +268,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// in case the connection is multi-vpc: does the tgw enable respond?
 			if c.IsMultipleVPCsConfig {
-				_, allowedConnsBetweenCapturedAndPeerNode, err := c.getRoutingResource(dstNode, srcNode)
+				_, allowedConnsBetweenCapturedAndPeerNode, err := getRoutingResource(c, dstNode, srcNode)
 				if err != nil {
 					return err
 				}

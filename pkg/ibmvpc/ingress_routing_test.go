@@ -158,7 +158,7 @@ func newHubSpokeBase2Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2}, transitConfig, &vpcmodel.VPCResource{})
 
 	// add ingressRT to transit vpc config
-	transitConfig.AddRoutingTable(ingressRT)
+	vpcmodel.AddRoutingTable(transitConfig, ingressRT)
 
 	analyzer := NewGlobalRTAnalyzer(globalConfig)
 	return globalConfig, analyzer
@@ -185,7 +185,7 @@ func newHubSpokeBase3Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2, r3}, transitConfig, &vpcmodel.VPCResource{})
 
 	// add ingressRT to transit vpc config
-	transitConfig.AddRoutingTable(ingressRT)
+	vpcmodel.AddRoutingTable(transitConfig, ingressRT)
 	analyzer := NewGlobalRTAnalyzer(globalConfig)
 	return globalConfig, analyzer
 }
@@ -224,16 +224,16 @@ func newHubSpokeBase4Config() (*vpcmodel.MultipleVPCConfigs, *GlobalRTAnalyzer) 
 	// define routes of the ingress routing table for transit vpc
 	ingressRT := newIngressRoutingTableFromRoutes([]*route{r1, r2}, transitConfig, &vpcmodel.VPCResource{})
 	// add ingressRT to transit vpc config
-	transitConfig.AddRoutingTable(ingressRT)
+	vpcmodel.AddRoutingTable(transitConfig, ingressRT)
 
 	transitEgressRT := newEgressRoutingTableFromRoutes([]*route{r4, r5, r6},
 		getSubnetsByUIDs(transitConfig, []string{"workerSubnetTransit"}), transitConfig, &vpcmodel.VPCResource{})
-	transitConfig.AddRoutingTable(transitEgressRT)
+	vpcmodel.AddRoutingTable(transitConfig, transitEgressRT)
 
 	spokeConfig := globalConfig.Config("spoke")
 	spokeEgressRT := newEgressRoutingTableFromRoutes([]*route{r4, r5, r7},
 		getSubnetsByUIDs(spokeConfig, []string{"workerSubnetSpoke"}), spokeConfig, &vpcmodel.VPCResource{})
-	spokeConfig.AddRoutingTable(spokeEgressRT)
+	vpcmodel.AddRoutingTable(spokeConfig, spokeEgressRT)
 	// define routes of the egress routing table for transit vpc
 
 	analyzer := NewGlobalRTAnalyzer(globalConfig)

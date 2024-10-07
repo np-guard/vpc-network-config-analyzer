@@ -55,7 +55,7 @@ func findUnattachedTables(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 		if config.IsMultipleVPCsConfig {
 			continue // no use in executing this lint on dummy vpcs
 		}
-		filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+		filterLayer := vpcmodel.GetFilterTrafficResourceOfKind(config, filterLayerName)
 		layerName := vpcmodel.FilterKindName(filterLayerName)
 		filtersAttachedResources := filterLayer.GetFiltersAttachedResources()
 		for table, attached := range filtersAttachedResources {
