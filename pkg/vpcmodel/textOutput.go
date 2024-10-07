@@ -15,7 +15,8 @@ type TextOutputFormatter struct {
 }
 
 func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
-	if len(c.RoutingResources) != 1 {
+	if len(c.RoutingResources) != 2 { // expecting tgw and sgw (virtual gateway)
+		fmt.Printf("c.RoutingResources: %v\n", c.RoutingResources)
 		return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
 	}
 	tgw := c.RoutingResources[0]
