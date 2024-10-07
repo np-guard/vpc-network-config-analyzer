@@ -284,6 +284,8 @@ func (fip *FloatingIP) IsMultipleVPCs() bool {
 	return false
 }
 
+// ServiceNetworkGateway is a virtual gateway
+// we add it for convenience - it is not a resource that appears in the input configuration file.
 type ServiceNetworkGateway struct {
 	vpcmodel.VPCResource
 	cidr *ipblock.IPBlock
