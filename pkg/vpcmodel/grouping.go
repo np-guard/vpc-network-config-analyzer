@@ -361,10 +361,10 @@ func (g *GroupConnLines) groupExternalAddresses(vsi, addConsistencyEdgesExternal
 			}
 		}
 	}
-	g.appendGrouped(res)
 	if addConsistencyEdgesExternal {
 		g.consistencyEdgesExternal()
 	}
+	g.appendGrouped(res)
 	return nil
 }
 
@@ -422,7 +422,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails
 }
 
 func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
-	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
+	src, dst EndpointElem, commonProps *groupedCommonProperties) error {
 	srcNode, srcIsNode := src.(Node)
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||
