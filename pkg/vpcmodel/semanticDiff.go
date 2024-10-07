@@ -135,7 +135,7 @@ func getAllowedResponsiveConnections(c *VPCConfig,
 
 // for a given VPCResourceIntf (representing a subnet or an external ip) in config return the VPCResourceIntf representing the
 // subnet/external address in otherConfig or nil if the subnet does not exist in the other config.
-func getVPCResourceInfInOtherConfig(c *VPCConfig, other *VPCConfig, ep VPCResourceIntf,
+func getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
 	diffAnalysis diffAnalysisType) (res VPCResourceIntf, err error) {
 	if ep.IsExternal() {
 		if node, ok := ep.(*ExternalNetwork); ok {
@@ -183,11 +183,11 @@ func (confConnectivity *configConnectivity) connMissingOrChanged(other *configCo
 			if _, ok := connectivityMissingOrChanged[src]; !ok {
 				connectivityMissingOrChanged[src] = map[VPCResourceIntf]*connectionDiff{}
 			}
-			srcInOther, err1 := getVPCResourceInfInOtherConfig(confConnectivity.config, other.config, src, diffAnalysis)
+			srcInOther, err1 := getVPCResourceInfInOtherConfig(other.config, src, diffAnalysis)
 			if err1 != nil {
 				return nil, err1
 			}
-			dstInOther, err2 := getVPCResourceInfInOtherConfig(confConnectivity.config, other.config, dst, diffAnalysis)
+			dstInOther, err2 := getVPCResourceInfInOtherConfig(other.config, dst, diffAnalysis)
 			if err2 != nil {
 				return nil, err2
 			}

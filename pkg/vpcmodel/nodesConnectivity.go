@@ -78,7 +78,7 @@ func getLoadBalancerRule(c *VPCConfig, src, dst Node) LoadBalancerRule {
 	return nil
 }
 
-func getPrivateSubnetRule(c *VPCConfig, src, dst Node) PrivateSubnetRule {
+func getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 	switch {
 	case dst.IsInternal():
 		return dst.(InternalNodeIntf).Subnet().GetPrivateSubnetRule(src, dst)
@@ -94,7 +94,7 @@ func getNonFilterNonRouterRulesConn(c *VPCConfig, src, dst Node, isIngress bool)
 	if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 		return NoConns()
 	}
-	privateSubnetRule := getPrivateSubnetRule(c, src, dst)
+	privateSubnetRule := getPrivateSubnetRule(src, dst)
 	if privateSubnetRule != nil && privateSubnetRule.Deny(isIngress) {
 		return NoConns()
 	}
