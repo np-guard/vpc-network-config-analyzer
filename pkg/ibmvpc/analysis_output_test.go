@@ -31,7 +31,6 @@ var t testfunc.VpcAnalysisTest = testfunc.VpcAnalysisTest{
 		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 		Format:      vpcmodel.DRAWIO,
 	},
-	Grouping: true,
 }
 func g(t testfunc.VpcAnalysisTest) *testfunc.VpcAnalysisTest{
 	return &t 
