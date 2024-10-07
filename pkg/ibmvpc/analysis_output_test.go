@@ -25,7 +25,26 @@ tests for the entire flow:
 
 const analysisOut = "analysis_out"
 
+var t testfunc.VpcAnalysisTest = testfunc.VpcAnalysisTest{
+	VpcTestCommon: testfunc.VpcTestCommon{
+		InputConfig: "iks_workers_large",
+		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+		Format:      vpcmodel.DRAWIO,
+	},
+	Grouping: true,
+}
+func g(t testfunc.VpcAnalysisTest) *testfunc.VpcAnalysisTest{
+	return &t 
+}
+var t2 = t
 var tests = []*testfunc.VpcAnalysisTest{
+	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
+	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
+	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
+	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
+}
+
+var tests2 = []*testfunc.VpcAnalysisTest{
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing5",
@@ -515,12 +534,15 @@ var tests = []*testfunc.VpcAnalysisTest{
 		Grouping: true,
 	},
 	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
-	// {
-	//	InputConfig: "iks_workers_large",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	Grouping:    true,
-	//	Format:      vpcmodel.DRAWIO,
-	// },
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_workers_large",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.DRAWIO,
+		},
+		Grouping: true,
+	},
+
 	// Grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
