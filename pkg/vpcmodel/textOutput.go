@@ -78,7 +78,7 @@ func (t *TextOutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 		out += subnetsConn.GroupedConnectivity.String(c1)
 		hasStatelessConns = subnetsConn.GroupedConnectivity.hasStatelessConns()
 	case SingleSubnet:
-		out += c1.GetConnectivityOutputPerEachSubnetSeparately()
+		out += GetConnectivityOutputPerEachSubnetSeparately(c1)
 	case SubnetsDiff, EndpointsDiff:
 		diffOut := cfgsDiff.String()
 		if diffOut != "" {

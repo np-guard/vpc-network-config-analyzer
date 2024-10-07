@@ -71,7 +71,7 @@ func (v *VPCsubnetConnectivity) printAllowedConns(c *VPCConfig) {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func ipblockToNamedResourcesInConfig(c *VPCConfig, ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
@@ -108,7 +108,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 	return res, nil
 }
 
-func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, excludeExternalNodes bool) (
+func convertIPbasedToSubnetBasedResult(c *VPCConfig, ipconn *IPbasedConnectivityResult, excludeExternalNodes bool) (
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
@@ -116,7 +116,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 
 	for ipb, conn := range ipconn.IngressAllowedConns {
 		// PGW does not allow ingress traffic but the ingress is required for the responsive computation
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, excludeExternalNodes); err == nil {
+		if namedResources, err := ipblockToNamedResourcesInConfig(c, ipb, excludeExternalNodes); err == nil {
 			for _, n := range namedResources {
 				res.IngressAllowedConns[n] = conn
 			}
@@ -127,7 +127,7 @@ func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivit
 
 	// egress traffic to external nodes may be enabled by a public gateway
 	for ipb, conn := range ipconn.EgressAllowedConns {
-		if namedResources, err := c.ipblockToNamedResourcesInConfig(ipb, excludeExternalNodes); err == nil {
+		if namedResources, err := ipblockToNamedResourcesInConfig(c, ipb, excludeExternalNodes); err == nil {
 			for _, n := range namedResources {
 				res.EgressAllowedConns[n] = conn
 			}
@@ -172,7 +172,7 @@ func getSubnetsWithPGW(c *VPCConfig) map[string]bool {
 }
 
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, tgw, routing-tables
-func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
+func GetSubnetsConnectivity(c *VPCConfig, includePGW, grouping bool) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
 	for _, fl := range c.FilterResources {
@@ -192,7 +192,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnet, err1 := c.SubnetCidrToSubnetElem(subnetCidrStr)
+		subnet, err1 := SubnetCidrToSubnetElem(c, subnetCidrStr)
 		if err1 != nil {
 			return nil, err1
 		}
@@ -206,7 +206,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW, grouping bool) (*VPCsubne
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
 		excludeExternalNodes := !subnetHasPGW || subnet.IsPrivate()
-		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, excludeExternalNodes)
+		configBasedConns, err2 := convertIPbasedToSubnetBasedResult(c, ipBasedConnectivity, excludeExternalNodes)
 		if err2 != nil {
 			return nil, err2
 		}
@@ -261,7 +261,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
-			considerPair, err := v.VPCConfig.shouldConsiderPairForConnectivity(src, dst)
+			considerPair, err := shouldConsiderPairForConnectivity(v.VPCConfig, src, dst)
 			if err != nil {
 				return nil, err
 			}
@@ -351,7 +351,7 @@ func (v *VPCsubnetConnectivity) computeResponsiveConnections(allowedConnsCombine
 // GetConnectivityOutputPerEachSubnetSeparately returns string results of connectivity analysis per
 // single subnet with its attached nacl, separately per subnet - useful to get understanding of the
 // connectivity implied from nacl configuration applied on a certain subnet in the vpc
-func (c *VPCConfig) GetConnectivityOutputPerEachSubnetSeparately() string {
+func GetConnectivityOutputPerEachSubnetSeparately(c *VPCConfig) string {
 	// iterate over all subnets, collect all outputs per subnet connectivity
 	for _, r := range c.FilterResources {
 		if r.Kind() == NaclLayer {

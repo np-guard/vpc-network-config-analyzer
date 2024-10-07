@@ -158,7 +158,7 @@ func getAtomicBlocks(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock)
 // 2. To slice of the atomic blocks of the table
 func getTablesRulesAndAtomicBlocks(config *vpcmodel.VPCConfig, filterLayerName string) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
 	tableToAtomicBlocks map[int][]*ipblock.IPBlock, err error) {
-	filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
+	filterLayer := vpcmodel.GetFilterTrafficResourceOfKind(config, filterLayerName)
 	rules, err := filterLayer.GetRules()
 	if err != nil {
 		return nil, nil, err
