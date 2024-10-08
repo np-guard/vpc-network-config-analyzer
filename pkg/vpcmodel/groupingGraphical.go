@@ -20,7 +20,7 @@ import (
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
 	// 1. Get a map from name to grouped external
-	nameExternalToObject := map[string]*groupedExternalNodesInfo{}
+	nameExternalToObject := map[string]groupedExternalNodes{}
 	getMapNameGroupedExternalToObject(nameExternalToObject, g.srcToDst)
 	getMapNameGroupedExternalToObject(nameExternalToObject, g.dstToSrc)
 	// 2. Get a map from grouped external name to their IPs
@@ -35,7 +35,7 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 }
 
 // gets *groupingConnections and returns a map from the string presentation of each grouped external to its object
-func getMapNameGroupedExternalToObject(nameToGroupedExternal map[string]*groupedExternalNodesInfo, grouped *groupingConnections) {
+func getMapNameGroupedExternalToObject(nameToGroupedExternal map[string]groupedExternalNodes, grouped *groupingConnections) {
 	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
 		for _, groupedInfo := range groupedInfoMap {
 			name := groupedInfo.nodes.Name()
@@ -43,7 +43,7 @@ func getMapNameGroupedExternalToObject(nameToGroupedExternal map[string]*grouped
 			if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 				return
 			}
-			nameToGroupedExternal[name] = groupedInfo
+			nameToGroupedExternal[name] = groupedInfo.nodes
 		}
 	}
 }
@@ -75,22 +75,22 @@ func groupedExternalToIpBlock(externalNodes groupedExternalNodes) *ipblock.IPBlo
 	return res
 }
 
-// given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that contains it
+// given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that it contains
 // (if any)
 func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (containedMap map[string][]string) {
 	containedMap = map[string][]string{}
-	for containedEP, containedIP := range endpointsIPBlocks {
-		containingEPs := []string{}
-		for containingEP, containingIP := range endpointsIPBlocks {
+	for containingEP, containingIP := range endpointsIPBlocks {
+		containedEPs := []string{}
+		for containedEP, containedIP := range endpointsIPBlocks {
 			if containingEP == containedEP {
 				continue
 			}
 			if containedIP.ContainedIn(containingIP) {
-				containingEPs = append(containingEPs, containingEP)
+				containedEPs = append(containedEPs, containedEP)
 			}
 		}
-		if len(containingEPs) > 0 {
-			containedMap[containedEP] = containingEPs
+		if len(containedEPs) > 0 {
+			containedMap[containingEP] = containedEPs
 		}
 	}
 	return containedMap
