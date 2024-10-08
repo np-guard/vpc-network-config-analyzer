@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"fmt"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -19,81 +18,39 @@ import (
 // 142.0.64.0/17 should also be connected to vsi2 and vsi3
 // In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
-func (g *GroupConnLines) consistencyEdgesExternal() error {
-	// 1. Get a map from name to grouped external
-	nameExternalToNodes := map[string]groupedExternalNodes{}
-	getMapNameGroupedExternalToNodes(nameExternalToNodes, g.srcToDst)
-	getMapNameGroupedExternalToNodes(nameExternalToNodes, g.dstToSrc)
-	// 2. Get a map from grouped external name to their IPs
-	nameExternalToIpBlock := map[string]*ipblock.IPBlock{}
-	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.srcToDst)
-	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.dstToSrc)
-	// 3. Check for containment of ips via nameToIpBlock
-	containedMap := findContainEndpointMap(nameExternalToIpBlock)
-	// 4. Add edges to g.srcToDst and to g.dstToSrc
-	err1 := g.addEdgesToGroupedConnection(true, containedMap, nameExternalToNodes)
-	if err1 != nil {
-		return err1
-	}
-	err2 := g.addEdgesToGroupedConnection(false, containedMap, nameExternalToNodes)
-	if err2 != nil {
-		return err2
-	}
-	return nil
+func (g *GroupConnLines) consistencyEdgesExternal() {
+	// 1. Get a map from external endpoints to their IPs
+	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines)
+	// 2. Check for containment
+	containedMap := findContainEndpointMap(eeToIpBlock)
+	// 3. Add edges
+	g.addEdgesOfContainingEPs(containedMap)
 }
 
-func (g *GroupConnLines) printSrcToDst() {
-	fmt.Println("g.srcToDst\n~~~~~~~~~~~~~~~~")
-	for src, object := range *g.srcToDst {
-		for _, externalInfo := range object {
-			fmt.Printf("\t%v => %v %v\n", src.NameForAnalyzerOut(g.config), externalInfo.nodes.Name(), externalInfo.commonProperties.Conn.string())
-		}
+// gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
+func getMapToGroupedExternalBlocks(config *VPCConfig, grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
+	eeToIpBlock = map[string]*ipblock.IPBlock{}
+	for _, line := range grouped {
+		addExternalEndpointToMap(line.Src, config, eeToIpBlock)
+		addExternalEndpointToMap(line.Dst, config, eeToIpBlock)
 	}
+	return eeToIpBlock
 }
 
-func (g *groupingConnections) printGroupingConnections() {
-	fmt.Println("groupingConnections\n~~~~~~~~~~~~~~~~")
-	for src, object := range *g {
-		for _, externalInfo := range object {
-			fmt.Printf("\t%v => %v %v\n", src.Name(), externalInfo.nodes.Name(), externalInfo.commonProperties.Conn.string())
-		}
+func addExternalEndpointToMap(ee EndpointElem, config *VPCConfig, endpointsIPBlocks map[string]*ipblock.IPBlock) {
+	if !ee.IsExternal() {
+		return
 	}
-}
-
-// gets *groupingConnections and returns a map from the string presentation of each grouped external to its nodes
-func getMapNameGroupedExternalToNodes(nameToGroupedExternal map[string]groupedExternalNodes, grouped *groupingConnections) {
-	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
-		for _, groupedInfo := range groupedInfoMap {
-			name := groupedInfo.nodes.Name()
-			_, ok := nameToGroupedExternal[name]
-			if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
-				return
-			}
-			nameToGroupedExternal[name] = groupedInfo.nodes
-		}
-	}
-}
-
-// gets *groupingConnections and returns a map from the string presentation of each grouped external to its ipBlock
-func getMapNameGroupedExternalToIP(nameToIpBlock map[string]*ipblock.IPBlock, grouped *groupingConnections) {
-	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
-		for _, groupedInfoMap := range groupedInfoMap {
-			addGroupedExternalNode(groupedInfoMap.nodes, nameToIpBlock)
-		}
-	}
-}
-
-func addGroupedExternalNode(externalNodes groupedExternalNodes, endpointsIPBlocks map[string]*ipblock.IPBlock) {
-	_, ok := endpointsIPBlocks[externalNodes.Name()]
+	_, ok := endpointsIPBlocks[ee.NameForAnalyzerOut(config)]
 	if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 		return
 	}
-	endpointsIPBlocks[externalNodes.Name()] = groupedExternalToIpBlock(externalNodes)
+	endpointsIPBlocks[ee.NameForAnalyzerOut(config)] = groupedExternalToIpBlock(ee)
 }
 
-func groupedExternalToIpBlock(externalNodes groupedExternalNodes) *ipblock.IPBlock {
+func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
 	// EndpointElem must be of type groupedExternalNodes
-	elements := []*ExternalNetwork(externalNodes)
+	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
 	var res = ipblock.New()
 	for _, e := range elements {
 		res = res.Union(e.ipblock)
@@ -101,63 +58,86 @@ func groupedExternalToIpBlock(externalNodes groupedExternalNodes) *ipblock.IPBlo
 	return res
 }
 
-// given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that it contains
+// given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that contains it
 // (if any)
 func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (containedMap map[string][]string) {
 	containedMap = map[string][]string{}
-	for containingEP, containingIP := range endpointsIPBlocks {
-		containedEPs := []string{}
-		for containedEP, containedIP := range endpointsIPBlocks {
+	for containedEP, containedIP := range endpointsIPBlocks {
+		containingEPs := []string{}
+		for containingEP, containingIP := range endpointsIPBlocks {
 			if containingEP == containedEP {
 				continue
 			}
 			if containedIP.ContainedIn(containingIP) {
-				containedEPs = append(containedEPs, containedEP)
+				containingEPs = append(containingEPs, containingEP)
 			}
 		}
-		if len(containedEPs) > 0 {
-			containedMap[containingEP] = containedEPs
+		if len(containingEPs) > 0 {
+			containedMap[containedEP] = containingEPs
 		}
 	}
 	return containedMap
 }
 
-// goes over g.srcToDst and over g.dstToSrc; for each "edge" represented by these structs of from/to external nodes,
-// duplicates the edge to all "external nodes" entities that are contained in the external node of the edge
-func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[string][]string,
-	nameExternalToNodes map[string]groupedExternalNodes) (err error) {
-	fmt.Println("addEdgesToGroupedConnection")
-	var groupedConnectionToAddBy *groupingConnections
-	if src {
-		groupedConnectionToAddBy = g.srcToDst
-	} else {
-		groupedConnectionToAddBy = g.dstToSrc
+// given the above containedMap adds edges of containing endpoints
+func (g *GroupConnLines) addEdgesOfContainingEPs(containedMap map[string][]string) {
+	endpointToLines := g.getEndpointToLines() // auxiliary map between each endpoint element to lines it participates in
+	// (as src or dst)
+	for _, toAddEdgesLine := range g.GroupedLines {
+		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, true)
+		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, false)
 	}
-	for srcOrDstEP, object := range *groupedConnectionToAddBy {
-		for _, groupedExternalInfo := range object {
-			// checks whether the groupedExternalNodes contains other groupedExternalNodes that are in the graph,
-			// in which case the line should be added to the contained groupedExternalNodes
-			contained, ok := containedMap[groupedExternalInfo.nodes.Name()]
-			if !ok {
-				continue
-			}
-			res := []*groupedConnLine{} // dummy placeholder for addLineToExternalGrouping
-			// goes over all external nodes contained in the node of groupedExternalInfo; the "edge" represented by
-			// <srcOrDstEP to containingObject> should be duplicated for these external nodes
-			for _, containedName := range contained {
-				containedNodes := nameExternalToNodes[containedName]
-				externalNodes := []*ExternalNetwork(containedNodes)
-				for _, node := range externalNodes {
-					if src {
-						err = g.addLineToExternalGrouping(&res, srcOrDstEP, node,
-							groupedExternalInfo.commonProperties)
-					} else {
-						err = g.addLineToExternalGrouping(&res, node, srcOrDstEP,
-							groupedExternalInfo.commonProperties)
-					}
-				}
+}
+
+// creates an auxiliary map between each endpoint element to all the lines it participates in (as src or dst)
+func (g *GroupConnLines) getEndpointToLines() (endpointToLines map[string][]*groupedConnLine) {
+	endpointToLines = map[string][]*groupedConnLine{}
+	for _, line := range g.GroupedLines {
+		addLineToMap(g.config, endpointToLines, line, true)
+		addLineToMap(g.config, endpointToLines, line, false)
+	}
+	return endpointToLines
+}
+
+func addLineToMap(config *VPCConfig, endpointToLines map[string][]*groupedConnLine, line *groupedConnLine, src bool) {
+	var name string
+	if src {
+		name = line.Src.NameForAnalyzerOut(config)
+	} else {
+		name = line.Dst.NameForAnalyzerOut(config)
+	}
+	if _, ok := endpointToLines[name]; !ok {
+		endpointToLines[name] = []*groupedConnLine{}
+	}
+	endpointToLines[name] = append(endpointToLines[name], line)
+}
+
+func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines map[string][]*groupedConnLine,
+	containedMap map[string][]string, src bool) {
+	nameToEndpointElem := map[string]EndpointElem{}
+	for _, line := range g.GroupedLines {
+		// there could be rewriting with identical values; not an issue complexity wise, not checking this keeps the code simpler
+		nameToEndpointElem[line.Src.NameForAnalyzerOut(g.config)] = line.Src
+		nameToEndpointElem[line.Dst.NameForAnalyzerOut(g.config)] = line.Dst
+	}
+	var addToNodeName string
+	if src {
+		addToNodeName = line.Src.NameForAnalyzerOut(g.config)
+	} else {
+		addToNodeName = line.Dst.NameForAnalyzerOut(g.config)
+	}
+	for _, containedEndpoint := range containedMap[addToNodeName] {
+		for _, toAddLine := range endpointToLines[containedEndpoint] {
+			// adding edges - namely, lines in grouping. "This" end of the edge is external (by design) and the "other"
+			// end of the edges will always be internal, since "this" edge is not internal.
+			// Grouping per internal endpoints is done (if requested) after this point
+			if src {
+				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: nameToEndpointElem[addToNodeName],
+					Dst: toAddLine.Dst, CommonProperties: toAddLine.CommonProperties})
+			} else {
+				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: toAddLine.Src,
+					Dst: nameToEndpointElem[addToNodeName], CommonProperties: toAddLine.CommonProperties})
 			}
 		}
 	}
-	return err
 }

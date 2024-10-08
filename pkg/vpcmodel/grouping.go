@@ -313,12 +313,7 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	if _, ok := (*g)[ep][connKey]; !ok {
 		(*g)[ep][connKey] = &groupedExternalNodesInfo{commonProperties: commonProps}
 	}
-	fmt.Printf("before appendNode %v: %v\n", targetNode.Name(), (*g)[ep][connKey].nodes.Name())
 	(*g)[ep][connKey].appendNode(targetNode)
-	fmt.Printf("after appendNode %v: %v\n", targetNode.Name(), (*g)[ep][connKey].nodes.Name())
-	fmt.Printf("appended to %v %v node %v\n", ep.Name(), connKey, targetNode.Name())
-	fmt.Println("inside addPublicConnectivity")
-	g.printGroupingConnections()
 }
 
 // given an endpoint representing a VSI or a subnet
@@ -366,13 +361,10 @@ func (g *GroupConnLines) groupExternalAddresses(vsi, addConsistencyEdgesExternal
 			}
 		}
 	}
-	if addConsistencyEdgesExternal {
-		err := g.consistencyEdgesExternal()
-		if err != nil {
-			return err
-		}
-	}
 	g.appendGrouped(res)
+	if addConsistencyEdgesExternal {
+		g.consistencyEdgesExternal()
+	}
 	return nil
 }
 
@@ -430,7 +422,7 @@ func (g *GroupConnLines) groupExternalAddressesForExplainability(allRulesDetails
 }
 
 func (g *GroupConnLines) addLineToExternalGrouping(res *[]*groupedConnLine,
-	src, dst EndpointElem, commonProps *groupedCommonProperties) error {
+	src, dst VPCResourceIntf, commonProps *groupedCommonProperties) error {
 	srcNode, srcIsNode := src.(Node)
 	dstNode, dstIsNode := dst.(Node)
 	if dst.IsExternal() && !dstIsNode ||

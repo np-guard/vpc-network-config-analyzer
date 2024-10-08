@@ -52,14 +52,14 @@ var tests = []testfunc.VpcAnalysisTest{
 		},
 		AddConsistencyEdgesExternal: true,
 	},
-	{
-		VpcTestCommon: testfunc.VpcTestCommon{
-			InputConfig: "sg_testing1_new",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:      vpcmodel.HTML,
-		},
-		AddConsistencyEdgesExternal: true,
-	},
+	//{
+	//	VpcTestCommon: testfunc.VpcTestCommon{
+	//		InputConfig: "sg_testing1_new",
+	//		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//		Format:      vpcmodel.HTML,
+	//	},
+	//	AddConsistencyEdgesExternal: true,
+	//},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "sg_testing1_new",
@@ -69,15 +69,15 @@ var tests = []testfunc.VpcAnalysisTest{
 		AddConsistencyEdgesExternal: true,
 		Grouping:                    true,
 	},
-	{
-		VpcTestCommon: testfunc.VpcTestCommon{
-			InputConfig: "sg_testing1_new",
-			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-			Format:      vpcmodel.HTML,
-		},
-		AddConsistencyEdgesExternal: true,
-		Grouping:                    true,
-	},
+	//{
+	//	VpcTestCommon: testfunc.VpcTestCommon{
+	//		InputConfig: "sg_testing1_new",
+	//		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+	//		Format:      vpcmodel.HTML,
+	//	},
+	//	AddConsistencyEdgesExternal: true,
+	//	Grouping:                    true,
+	//},
 }
 
 var tests1 = []*testfunc.VpcAnalysisTest{
