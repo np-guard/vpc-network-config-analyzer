@@ -20,22 +20,22 @@ import (
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
 	// 1. Get a map from name to grouped external
-	nameExternalToObject := map[string]groupedExternalNodes{}
-	getMapNameGroupedExternalToObject(nameExternalToObject, g.srcToDst)
-	getMapNameGroupedExternalToObject(nameExternalToObject, g.dstToSrc)
+	nameExternalToNodes := map[string]groupedExternalNodes{}
+	getMapNameGroupedExternalToNodes(nameExternalToNodes, g.srcToDst)
+	getMapNameGroupedExternalToNodes(nameExternalToNodes, g.dstToSrc)
 	// 2. Get a map from grouped external name to their IPs
 	nameExternalToIpBlock := map[string]*ipblock.IPBlock{}
 	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.srcToDst)
 	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.dstToSrc)
 	// 3. Check for containment of ips via nameToIpBlock
 	containedMap := findContainEndpointMap(nameExternalToIpBlock)
-	_ = containedMap
-	// 4. Add edges
-	//g.addEdgesOfContainingEPs(containedMap, nameExternalToObject)
+	// 4. Add edges to g.srcToDst and to g.dstToSrc
+	g.addEdgesToGroupedConnection(true, containedMap, nameExternalToNodes)
+	g.addEdgesToGroupedConnection(false, containedMap, nameExternalToNodes)
 }
 
-// gets *groupingConnections and returns a map from the string presentation of each grouped external to its object
-func getMapNameGroupedExternalToObject(nameToGroupedExternal map[string]groupedExternalNodes, grouped *groupingConnections) {
+// gets *groupingConnections and returns a map from the string presentation of each grouped external to its nodes
+func getMapNameGroupedExternalToNodes(nameToGroupedExternal map[string]groupedExternalNodes, grouped *groupingConnections) {
 	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
 		for _, groupedInfo := range groupedInfoMap {
 			name := groupedInfo.nodes.Name()
@@ -96,45 +96,39 @@ func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (cont
 	return containedMap
 }
 
-//// given the above containedMap adds edges of containing endpoints
-//func (g *GroupConnLines) addEdgesOfContainingEPs(containedMap map[string][]string,
-//	nameExternalToObject map[string]*groupedExternalNodesInfo) {
-//	for _, toAddEdgesLine := range g.GroupedLines {
-//		g.addEdgesToLine(toAddEdgesLine, containedMap, true)
-//		g.addEdgesToLine(toAddEdgesLine, containedMap, false)
-//	}
-//}
-//
-//func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines map[string][]*groupedConnLine,
-//	containedMap map[string][]string, src bool) {
-//	fmt.Println("here")
-//	nameToEndpointElem := map[string]EndpointElem{}
-//	res := []*groupedConnLine{} // dummy place holder for addLineToExternalGrouping
-//	for _, line := range g.GroupedLines {
-//		// there could be rewriting with identical values; not an issue complexity wise, not checking this keeps the code simpler
-//		nameToEndpointElem[line.Src.NameForAnalyzerOut(g.config)] = line.Src
-//		nameToEndpointElem[line.Dst.NameForAnalyzerOut(g.config)] = line.Dst
-//	}
-//	var addToNodeName string
-//	if src {
-//		addToNodeName = line.Src.NameForAnalyzerOut(g.config)
-//	} else {
-//		addToNodeName = line.Dst.NameForAnalyzerOut(g.config)
-//	}
-//	for _, containedEndpoint := range containedMap[addToNodeName] {
-//		for _, toAddLine := range endpointToLines[containedEndpoint] {
-//			fmt.Printf("about to add to %v line %v => %v\n", addToNodeName,
-//				toAddLine.Src.NameForAnalyzerOut(g.config), toAddLine.Dst.NameForAnalyzerOut(g.config))
-//			// adding edges - namely, lines in grouping. "This" end of the edge is external (by design) and the "other"
-//			// end of the edges will always be internal, since "this" edge is not internal.
-//			// Grouping per is done after this point
-//			if src {
-//				g.addLineToExternalGrouping(&res, nameToEndpointElem[addToNodeName], toAddLine.Dst,
-//					toAddLine.CommonProperties)
-//			} else {
-//				g.addLineToExternalGrouping(&res, toAddLine.Src, nameToEndpointElem[addToNodeName],
-//					toAddLine.CommonProperties)
-//			}
-//		}
-//	}
-//}
+// goes over g.srcToDst and over g.dstToSrc; for each "edge" represented by these structs of from/to external nodes,
+// duplicates the edge to all "external nodes" entities that are contained in the external node of the edge
+func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[string][]string,
+	nameExternalToNodes map[string]groupedExternalNodes) {
+	var groupedConnectionToAddBy *groupingConnections
+	if src {
+		groupedConnectionToAddBy = g.srcToDst
+	} else {
+		groupedConnectionToAddBy = g.dstToSrc
+	}
+	for srcOrDstEP, object := range *groupedConnectionToAddBy {
+		for _, groupedExternalInfo := range object {
+			fmt.Printf("")
+			// checks whether the groupedExternalNodes contains other groupedExternalNodes that are in the graph,
+			// in which case the line should be added to the contained groupedExternalNodes
+			contained, ok := containedMap[groupedExternalInfo.nodes.Name()]
+			if !ok {
+				continue
+			}
+			res := []*groupedConnLine{} // dummy placeholder for addLineToExternalGrouping
+			// goes over all external nodes contained in the node of groupedExternalInfo; the "edge" represented by
+			// <srcOrDstEP to containingObject> should be duplicated for these external nodes
+			for _, containedName := range contained {
+				containedNodes := nameExternalToNodes[containedName]
+				if src {
+					g.addLineToExternalGrouping(&res, srcOrDstEP, &containedNodes,
+						groupedExternalInfo.commonProperties)
+				} else {
+					g.addLineToExternalGrouping(&res, &containedNodes, srcOrDstEP,
+						groupedExternalInfo.commonProperties)
+				}
+			}
+		}
+	}
+
+}
