@@ -20,43 +20,55 @@ import (
 // In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
-	fmt.Println("1")
-	// 1. Get a map from external endpoints to their IPs
-	// todo need to work with and add the edges to g.srcToDst and g.dstToSrc, each separately. All together this should be smoother
-	//combinedGrouped := make([]*groupedConnLine, len(*g.srcToDst)+len(*g.dstToSrc))
-	//copy(combinedGrouped, g.srcToDst)
-	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines) // this needs to include both srcToDst and dstToSrc
-	// 2. Check for containment
-	containedMap := findContainEndpointMap(eeToIpBlock) // as above, needs to include both
-	// 3. Add edges
-	fmt.Println("2")
-	g.addEdgesOfContainingEPs(containedMap) // separately for each
+	// 1. Get a map from name to grouped external
+	nameExternalToObject := map[string]*groupedExternalNodes{}
+	getMapNameGroupedExternalToObject(nameExternalToObject, g.srcToDst)
+	getMapNameGroupedExternalToObject(nameExternalToObject, g.dstToSrc)
+	// 2. Get a map from grouped external name to their IPs
+	nameExternalToIpBlock := map[string]*ipblock.IPBlock{}
+	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.srcToDst)
+	getMapNameGroupedExternalToIP(nameExternalToIpBlock, g.dstToSrc)
+	// 3. Check for containment of ips via nameToIpBlock
+	containedMap := findContainEndpointMap(nameExternalToIpBlock)
+	_ = containedMap
+	//// 4. Add edges
+	//g.addEdgesOfContainingEPs(containedMap) // separately for each
 }
 
-// gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
-func getMapToGroupedExternalBlocks(config *VPCConfig, grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
-	eeToIpBlock = map[string]*ipblock.IPBlock{}
-	for _, line := range grouped {
-		addExternalEndpointToMap(line.Src, config, eeToIpBlock)
-		addExternalEndpointToMap(line.Dst, config, eeToIpBlock)
+// gets *groupingConnections and returns a map from the string presentation of each grouped external to its object
+func getMapNameGroupedExternalToObject(nameToGroupedExternal map[string]*groupedExternalNodes, grouped *groupingConnections) {
+	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
+		for _, groupedInfoMap := range groupedInfoMap {
+			name := groupedInfoMap.nodes.Name()
+			_, ok := nameToGroupedExternal[name]
+			if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
+				return
+			}
+			nameToGroupedExternal[name] = &groupedInfoMap.nodes
+		}
 	}
-	return eeToIpBlock
 }
 
-func addExternalEndpointToMap(ee EndpointElem, config *VPCConfig, endpointsIPBlocks map[string]*ipblock.IPBlock) {
-	if !ee.IsExternal() {
-		return
+// gets *groupingConnections and returns a map from the string presentation of each grouped external to its ipBlock
+func getMapNameGroupedExternalToIP(nameToIpBlock map[string]*ipblock.IPBlock, grouped *groupingConnections) {
+	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
+		for _, groupedInfoMap := range groupedInfoMap {
+			addGroupedExternalNode(groupedInfoMap.nodes, nameToIpBlock)
+		}
 	}
-	_, ok := endpointsIPBlocks[ee.NameForAnalyzerOut(config)]
+}
+
+func addGroupedExternalNode(externalNodes groupedExternalNodes, endpointsIPBlocks map[string]*ipblock.IPBlock) {
+	_, ok := endpointsIPBlocks[externalNodes.Name()]
 	if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 		return
 	}
-	endpointsIPBlocks[ee.NameForAnalyzerOut(config)] = groupedExternalToIpBlock(ee)
+	endpointsIPBlocks[externalNodes.Name()] = groupedExternalToIpBlock(externalNodes)
 }
 
-func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
+func groupedExternalToIpBlock(externalNodes groupedExternalNodes) *ipblock.IPBlock {
 	// EndpointElem must be of type groupedExternalNodes
-	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
+	elements := []*ExternalNetwork(externalNodes)
 	var res = ipblock.New()
 	for _, e := range elements {
 		res = res.Union(e.ipblock)
