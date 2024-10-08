@@ -362,7 +362,10 @@ func (g *GroupConnLines) groupExternalAddresses(vsi, addConsistencyEdgesExternal
 		}
 	}
 	if addConsistencyEdgesExternal {
-		g.consistencyEdgesExternal()
+		err := g.consistencyEdgesExternal()
+		if err != nil {
+			return err
+		}
 	}
 	g.appendGrouped(res)
 	return nil

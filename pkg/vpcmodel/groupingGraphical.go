@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"fmt"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -18,7 +19,7 @@ import (
 // 142.0.64.0/17 should also be connected to vsi2 and vsi3
 // In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
-func (g *GroupConnLines) consistencyEdgesExternal() {
+func (g *GroupConnLines) consistencyEdgesExternal() error {
 	// 1. Get a map from name to grouped external
 	nameExternalToNodes := map[string]groupedExternalNodes{}
 	getMapNameGroupedExternalToNodes(nameExternalToNodes, g.srcToDst)
@@ -30,8 +31,15 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 	// 3. Check for containment of ips via nameToIpBlock
 	containedMap := findContainEndpointMap(nameExternalToIpBlock)
 	// 4. Add edges to g.srcToDst and to g.dstToSrc
-	g.addEdgesToGroupedConnection(true, containedMap, nameExternalToNodes)
-	g.addEdgesToGroupedConnection(false, containedMap, nameExternalToNodes)
+	err1 := g.addEdgesToGroupedConnection(true, containedMap, nameExternalToNodes)
+	if err1 != nil {
+		return err1
+	}
+	err2 := g.addEdgesToGroupedConnection(false, containedMap, nameExternalToNodes)
+	if err2 != nil {
+		return err2
+	}
+	return nil
 }
 
 // gets *groupingConnections and returns a map from the string presentation of each grouped external to its nodes
@@ -99,7 +107,7 @@ func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (cont
 // goes over g.srcToDst and over g.dstToSrc; for each "edge" represented by these structs of from/to external nodes,
 // duplicates the edge to all "external nodes" entities that are contained in the external node of the edge
 func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[string][]string,
-	nameExternalToNodes map[string]groupedExternalNodes) {
+	nameExternalToNodes map[string]groupedExternalNodes) (err error) {
 	var groupedConnectionToAddBy *groupingConnections
 	if src {
 		groupedConnectionToAddBy = g.srcToDst
@@ -121,14 +129,14 @@ func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[
 			for _, containedName := range contained {
 				containedNodes := nameExternalToNodes[containedName]
 				if src {
-					g.addLineToExternalGrouping(&res, srcOrDstEP, &containedNodes,
+					err = g.addLineToExternalGrouping(&res, srcOrDstEP, &containedNodes,
 						groupedExternalInfo.commonProperties)
 				} else {
-					g.addLineToExternalGrouping(&res, &containedNodes, srcOrDstEP,
+					err = g.addLineToExternalGrouping(&res, &containedNodes, srcOrDstEP,
 						groupedExternalInfo.commonProperties)
 				}
 			}
 		}
 	}
-
+	return err
 }
