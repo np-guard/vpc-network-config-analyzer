@@ -128,12 +128,15 @@ func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[
 			// <srcOrDstEP to containingObject> should be duplicated for these external nodes
 			for _, containedName := range contained {
 				containedNodes := nameExternalToNodes[containedName]
-				if src {
-					err = g.addLineToExternalGrouping(&res, srcOrDstEP, &containedNodes,
-						groupedExternalInfo.commonProperties)
-				} else {
-					err = g.addLineToExternalGrouping(&res, &containedNodes, srcOrDstEP,
-						groupedExternalInfo.commonProperties)
+				externalNodes := []*ExternalNetwork(containedNodes)
+				for _, node := range externalNodes {
+					if src {
+						err = g.addLineToExternalGrouping(&res, srcOrDstEP, node,
+							groupedExternalInfo.commonProperties)
+					} else {
+						err = g.addLineToExternalGrouping(&res, node, srcOrDstEP,
+							groupedExternalInfo.commonProperties)
+					}
 				}
 			}
 		}
