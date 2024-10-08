@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
+	"fmt"
 	"github.com/np-guard/models/pkg/ipblock"
 )
 
@@ -19,12 +20,17 @@ import (
 // In order to add missing edges, we go over all the endpoints that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
+	fmt.Println("1")
 	// 1. Get a map from external endpoints to their IPs
-	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines)
+	// todo need to work with and add the edges to g.srcToDst and g.dstToSrc, each separately. All together this should be smoother
+	//combinedGrouped := make([]*groupedConnLine, len(*g.srcToDst)+len(*g.dstToSrc))
+	//copy(combinedGrouped, g.srcToDst)
+	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines) // this needs to include both srcToDst and dstToSrc
 	// 2. Check for containment
-	containedMap := findContainEndpointMap(eeToIpBlock)
+	containedMap := findContainEndpointMap(eeToIpBlock) // as above, needs to include both
 	// 3. Add edges
-	g.addEdgesOfContainingEPs(containedMap)
+	fmt.Println("2")
+	g.addEdgesOfContainingEPs(containedMap) // separately for each
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
@@ -83,6 +89,7 @@ func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (cont
 func (g *GroupConnLines) addEdgesOfContainingEPs(containedMap map[string][]string) {
 	endpointToLines := g.getEndpointToLines() // auxiliary map between each endpoint element to lines it participates in
 	// (as src or dst)
+	fmt.Printf("size of g.GroupedLines is %v\n", g.GroupedLines)
 	for _, toAddEdgesLine := range g.GroupedLines {
 		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, true)
 		g.addEdgesToLine(toAddEdgesLine, endpointToLines, containedMap, false)
@@ -114,7 +121,9 @@ func addLineToMap(config *VPCConfig, endpointToLines map[string][]*groupedConnLi
 
 func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines map[string][]*groupedConnLine,
 	containedMap map[string][]string, src bool) {
+	fmt.Println("here")
 	nameToEndpointElem := map[string]EndpointElem{}
+	res := []*groupedConnLine{} // dummy place holder for addLineToExternalGrouping
 	for _, line := range g.GroupedLines {
 		// there could be rewriting with identical values; not an issue complexity wise, not checking this keeps the code simpler
 		nameToEndpointElem[line.Src.NameForAnalyzerOut(g.config)] = line.Src
@@ -128,15 +137,17 @@ func (g *GroupConnLines) addEdgesToLine(line *groupedConnLine, endpointToLines m
 	}
 	for _, containedEndpoint := range containedMap[addToNodeName] {
 		for _, toAddLine := range endpointToLines[containedEndpoint] {
+			fmt.Printf("about to add to %v line %v => %v\n", addToNodeName,
+				toAddLine.Src.NameForAnalyzerOut(g.config), toAddLine.Dst.NameForAnalyzerOut(g.config))
 			// adding edges - namely, lines in grouping. "This" end of the edge is external (by design) and the "other"
 			// end of the edges will always be internal, since "this" edge is not internal.
-			// Grouping per internal endpoints is done (if requested) after this point
+			// Grouping per is done after this point
 			if src {
-				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: nameToEndpointElem[addToNodeName],
-					Dst: toAddLine.Dst, CommonProperties: toAddLine.CommonProperties})
+				g.addLineToExternalGrouping(&res, nameToEndpointElem[addToNodeName], toAddLine.Dst,
+					toAddLine.CommonProperties)
 			} else {
-				g.GroupedLines = append(g.GroupedLines, &groupedConnLine{Src: toAddLine.Src,
-					Dst: nameToEndpointElem[addToNodeName], CommonProperties: toAddLine.CommonProperties})
+				g.addLineToExternalGrouping(&res, toAddLine.Src, nameToEndpointElem[addToNodeName],
+					toAddLine.CommonProperties)
 			}
 		}
 	}
