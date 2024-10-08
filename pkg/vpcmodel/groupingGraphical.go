@@ -42,6 +42,24 @@ func (g *GroupConnLines) consistencyEdgesExternal() error {
 	return nil
 }
 
+func (g *GroupConnLines) printSrcToDst() {
+	fmt.Println("g.srcToDst\n~~~~~~~~~~~~~~~~")
+	for src, object := range *g.srcToDst {
+		for _, externalInfo := range object {
+			fmt.Printf("\t%v => %v %v\n", src.NameForAnalyzerOut(g.config), externalInfo.nodes.Name(), externalInfo.commonProperties.Conn.string())
+		}
+	}
+}
+
+func (g *groupingConnections) printGroupingConnections() {
+	fmt.Println("groupingConnections\n~~~~~~~~~~~~~~~~")
+	for src, object := range *g {
+		for _, externalInfo := range object {
+			fmt.Printf("\t%v => %v %v\n", src.Name(), externalInfo.nodes.Name(), externalInfo.commonProperties.Conn.string())
+		}
+	}
+}
+
 // gets *groupingConnections and returns a map from the string presentation of each grouped external to its nodes
 func getMapNameGroupedExternalToNodes(nameToGroupedExternal map[string]groupedExternalNodes, grouped *groupingConnections) {
 	for _, groupedInfoMap := range *grouped { //groupedExternalNodes
@@ -108,6 +126,7 @@ func findContainEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock) (cont
 // duplicates the edge to all "external nodes" entities that are contained in the external node of the edge
 func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[string][]string,
 	nameExternalToNodes map[string]groupedExternalNodes) (err error) {
+	fmt.Println("addEdgesToGroupedConnection")
 	var groupedConnectionToAddBy *groupingConnections
 	if src {
 		groupedConnectionToAddBy = g.srcToDst
@@ -116,7 +135,6 @@ func (g *GroupConnLines) addEdgesToGroupedConnection(src bool, containedMap map[
 	}
 	for srcOrDstEP, object := range *groupedConnectionToAddBy {
 		for _, groupedExternalInfo := range object {
-			fmt.Printf("")
 			// checks whether the groupedExternalNodes contains other groupedExternalNodes that are in the graph,
 			// in which case the line should be added to the contained groupedExternalNodes
 			contained, ok := containedMap[groupedExternalInfo.nodes.Name()]

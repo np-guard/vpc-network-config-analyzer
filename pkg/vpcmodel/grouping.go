@@ -313,7 +313,12 @@ func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps
 	if _, ok := (*g)[ep][connKey]; !ok {
 		(*g)[ep][connKey] = &groupedExternalNodesInfo{commonProperties: commonProps}
 	}
+	fmt.Printf("before appendNode %v: %v\n", targetNode.Name(), (*g)[ep][connKey].nodes.Name())
 	(*g)[ep][connKey].appendNode(targetNode)
+	fmt.Printf("after appendNode %v: %v\n", targetNode.Name(), (*g)[ep][connKey].nodes.Name())
+	fmt.Printf("appended to %v %v node %v\n", ep.Name(), connKey, targetNode.Name())
+	fmt.Println("inside addPublicConnectivity")
+	g.printGroupingConnections()
 }
 
 // given an endpoint representing a VSI or a subnet
