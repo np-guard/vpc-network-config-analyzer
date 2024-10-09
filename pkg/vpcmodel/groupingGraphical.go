@@ -15,7 +15,7 @@ import (
 // 142.0.64.0/17 ->vsi2
 // 142.0.0.0/16 -> vsi1
 // 0.0.0.0/0 -> vsi3
-// 142.0.64.0/17 should also be connected to vsi2 and vsi3
+// 142.0.64.0/17 should also be connected to vsi1 and vsi3
 // In order to add missing edges, we go over all the endpoints in grouping that present external nodes, and check for containment
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 are added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
