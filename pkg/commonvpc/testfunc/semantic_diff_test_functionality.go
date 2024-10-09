@@ -9,12 +9,12 @@ package testfunc
 import (
 	_ "embed"
 	"fmt"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 const secJSONOutSuffix = "_2nd.json"
