@@ -748,6 +748,16 @@ var tests = []*testfunc.VpcAnalysisTest{
 		NoLbAbstract:                true,
 		AddConsistencyEdgesExternal: true,
 	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		Grouping:                    true,
+		NoLbAbstract:                true,
+		AddConsistencyEdgesExternal: true,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
