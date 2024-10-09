@@ -25,7 +25,7 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 	eeNameToEE := getMapToEPEs(g.GroupedLines)
 	// 3. Gets a map from external endpoint name to all the endpoint it contains
 	containedMap := getContainedEndpointMap(eeNameToIPBlock, eeNameToEE)
-	// 3. Add edges, based on the above map (3)
+	// 4. Add edges, based on the above map (3)
 	g.addEdgesOfContainingEPs(containedMap)
 }
 
