@@ -30,8 +30,8 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
-func getMapToIps(grouped []*groupedConnLine) (eeToIPBlock map[string]*ipblock.IPBlock) {
-	eeToIPBlock = map[string]*ipblock.IPBlock{}
+func getMapToIps(grouped []*groupedConnLine) map[string]*ipblock.IPBlock {
+	eeToIPBlock := map[string]*ipblock.IPBlock{}
 	for _, line := range grouped {
 		addExternalEndpointToMap(line.Src, eeToIPBlock)
 		addExternalEndpointToMap(line.Dst, eeToIPBlock)
@@ -40,8 +40,8 @@ func getMapToIps(grouped []*groupedConnLine) (eeToIPBlock map[string]*ipblock.IP
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to the endpoint element
-func getMapToEPEs(grouped []*groupedConnLine) (eeNameToEE map[string]EndpointElem) {
-	eeNameToEE = map[string]EndpointElem{}
+func getMapToEPEs(grouped []*groupedConnLine) map[string]EndpointElem {
+	eeNameToEE := map[string]EndpointElem{}
 	for _, line := range grouped {
 		if line.Src.IsExternal() {
 			eeNameToEE[line.Src.Name()] = line.Src
@@ -76,8 +76,8 @@ func groupedExternalToIPBlock(ee EndpointElem) *ipblock.IPBlock {
 // given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that
 // it contained (if any)
 func getContainedEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock,
-	eeNameToEE map[string]EndpointElem) (containedMap map[string][]EndpointElem) {
-	containedMap = map[string][]EndpointElem{}
+	eeNameToEE map[string]EndpointElem) map[string][]EndpointElem {
+	containedMap := map[string][]EndpointElem{}
 	for containingEP, containingIP := range endpointsIPBlocks {
 		containedEPs := []EndpointElem{}
 		for containedEP, containedIP := range endpointsIPBlocks {
