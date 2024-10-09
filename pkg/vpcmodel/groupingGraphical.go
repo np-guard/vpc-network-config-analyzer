@@ -20,21 +20,21 @@ import (
 // if external endpoint e1 is contained in external end point e2 then all the "edges" of e2 should be added to e1
 func (g *GroupConnLines) consistencyEdgesExternal() {
 	// 1. Get a map from external endpoints to their IPs
-	eeToIpBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines)
+	eeToIPBlock := getMapToGroupedExternalBlocks(g.config, g.GroupedLines)
 	// 2. Check for containment
-	containedMap := findContainEndpointMap(eeToIpBlock)
+	containedMap := findContainEndpointMap(eeToIPBlock)
 	// 3. Add edges
 	g.addEdgesOfContainingEPs(containedMap)
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
-func getMapToGroupedExternalBlocks(config *VPCConfig, grouped []*groupedConnLine) (eeToIpBlock map[string]*ipblock.IPBlock) {
-	eeToIpBlock = map[string]*ipblock.IPBlock{}
+func getMapToGroupedExternalBlocks(config *VPCConfig, grouped []*groupedConnLine) (eeToIPBlock map[string]*ipblock.IPBlock) {
+	eeToIPBlock = map[string]*ipblock.IPBlock{}
 	for _, line := range grouped {
-		addExternalEndpointToMap(line.Src, config, eeToIpBlock)
-		addExternalEndpointToMap(line.Dst, config, eeToIpBlock)
+		addExternalEndpointToMap(line.Src, config, eeToIPBlock)
+		addExternalEndpointToMap(line.Dst, config, eeToIPBlock)
 	}
-	return eeToIpBlock
+	return eeToIPBlock
 }
 
 func addExternalEndpointToMap(ee EndpointElem, config *VPCConfig, endpointsIPBlocks map[string]*ipblock.IPBlock) {
@@ -45,10 +45,10 @@ func addExternalEndpointToMap(ee EndpointElem, config *VPCConfig, endpointsIPBlo
 	if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 		return
 	}
-	endpointsIPBlocks[ee.NameForAnalyzerOut(config)] = groupedExternalToIpBlock(ee)
+	endpointsIPBlocks[ee.NameForAnalyzerOut(config)] = groupedExternalToIPBlock(ee)
 }
 
-func groupedExternalToIpBlock(ee EndpointElem) *ipblock.IPBlock {
+func groupedExternalToIPBlock(ee EndpointElem) *ipblock.IPBlock {
 	// EndpointElem must be of type groupedExternalNodes
 	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
 	var res = ipblock.New()
