@@ -19,6 +19,13 @@ import (
 
 const commaSeparator = ","
 
+const (
+	NoGroupingNoConsistencyEdges = iota
+	NoGroupingWithConsistencyEdges
+	GroupingNoConsistencyEdges
+	GroupingWithConsistencyEdges
+)
+
 // for each line here can group list of external nodes to cidrs list as of one element
 // groupedNodesInfo contains the list of nodes to be grouped and their common connection properties
 type groupingConnections map[EndpointElem]map[string]*groupedExternalNodesInfo
@@ -81,22 +88,22 @@ func newGroupingConnections() *groupingConnections {
 }
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
-	grouping, addConsistencyEdgesExternal bool) (res *GroupConnLines, err error) {
+	groupingType int) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(true, grouping, addConsistencyEdgesExternal)
+	err = res.computeGrouping(true, groupingType)
 	return res, err
 }
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
-	grouping, addConsistencyEdgesExternal bool) (res *GroupConnLines, err error) {
+	groupingType int) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(false, grouping, addConsistencyEdgesExternal)
+	err = res.computeGrouping(false, groupingType)
 	return res, err
 }
 
@@ -571,7 +578,10 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 // computeGrouping does the grouping; for vsis (all_endpoints analysis)
 // if vsi = true otherwise for subnets (all_subnets analysis)
 // external endpoints are always grouped; vsis/subnets are grouped iff grouping is true
-func (g *GroupConnLines) computeGrouping(vsi, grouping, addConsistencyEdgesExternal bool) (err error) {
+func (g *GroupConnLines) computeGrouping(vsi bool, groupingType int) (err error) {
+	addConsistencyEdgesExternal := groupingType == NoGroupingWithConsistencyEdges ||
+		groupingType == GroupingWithConsistencyEdges
+	grouping := groupingType == GroupingNoConsistencyEdges || groupingType == GroupingWithConsistencyEdges
 	err = g.groupExternalAddresses(vsi, addConsistencyEdgesExternal)
 	if err != nil {
 		return err

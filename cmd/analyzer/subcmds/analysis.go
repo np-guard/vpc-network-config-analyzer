@@ -9,6 +9,7 @@ package subcmds
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -79,11 +80,24 @@ func analysisVPCConfigs(cmd *cobra.Command, inArgs *inArgs, analysisType vpcmode
 		return err
 	}
 	outFormat := inArgs.outputFormat.ToModelFormat()
+	consistencyEdgesExternal := slices.Contains([]vpcmodel.OutFormat{vpcmodel.DRAWIO, vpcmodel.SVG, vpcmodel.HTML},
+		outFormat)
+	var groupingType int
+	switch {
+	case !inArgs.grouping && !consistencyEdgesExternal:
+		groupingType = vpcmodel.NoGroupingNoConsistencyEdges
+	case !inArgs.grouping && consistencyEdgesExternal:
+		groupingType = vpcmodel.NoGroupingWithConsistencyEdges
+	case inArgs.grouping && !consistencyEdgesExternal:
+		groupingType = vpcmodel.GroupingNoConsistencyEdges
+	default:
+		groupingType = vpcmodel.GroupingWithConsistencyEdges
+	}
 	og, err := vpcmodel.NewOutputGenerator(vpcConfigs,
-		inArgs.grouping,
+		groupingType,
 		analysisType,
 		false,
-		inArgs.explanationArgs, outFormat, inArgs.lbAbstraction, false)
+		inArgs.explanationArgs, outFormat, inArgs.lbAbstraction)
 	if err != nil {
 		return err
 	}

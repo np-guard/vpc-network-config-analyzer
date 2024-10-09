@@ -19,8 +19,8 @@ func TestGroupingUnification(t *testing.T) {
 	vpcConfigMultiVpc := getConfig(t, "iks_workers_large")
 	require.NotNil(t, vpcConfigMultiVpc, "vpcConfigMultiVpc equals nil")
 
-	og, err := vpcmodel.NewOutputGenerator(vpcConfigMultiVpc, true,
-		vpcmodel.AllEndpoints, false, nil, vpcmodel.DRAWIO, true, false)
+	og, err := vpcmodel.NewOutputGenerator(vpcConfigMultiVpc, vpcmodel.GroupingNoConsistencyEdges,
+		vpcmodel.AllEndpoints, false, nil, vpcmodel.DRAWIO, true)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

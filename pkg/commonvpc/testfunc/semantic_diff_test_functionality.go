@@ -9,6 +9,7 @@ package testfunc
 import (
 	_ "embed"
 	"fmt"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -44,8 +45,8 @@ func (tt *VpcDiffTest) runDiffSingleTest(t *testing.T, testDir string, rc common
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, false, false,
-			nil, false)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, vpcmodel.NoGroupingNoConsistencyEdges, false,
+			nil)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing diff's actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {

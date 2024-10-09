@@ -197,20 +197,24 @@ func (tt *VpcTestCommon) runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
-	grouping, noLbAbstract bool,
-	explanationArgs *vpcmodel.ExplanationArgs,
-	addConsistencyEdgesExternal bool) error {
+	groupingType int,
+	noLbAbstract bool,
+	explanationArgs *vpcmodel.ExplanationArgs) error {
 	detailExplain := false
 	if explanationArgs != nil {
 		detailExplain = explanationArgs.Detail
 	}
 	allVpcs := len(tt.VpcList) == 0
+	grouping := groupingType == vpcmodel.GroupingNoConsistencyEdges ||
+		groupingType == vpcmodel.GroupingWithConsistencyEdges
+	addConsistencyEdgesExternal := groupingType == vpcmodel.NoGroupingWithConsistencyEdges ||
+		groupingType == vpcmodel.GroupingWithConsistencyEdges
 	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract,
 		addConsistencyEdgesExternal); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,
-		explanationArgs, tt.Format, !noLbAbstract, addConsistencyEdgesExternal)
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, groupingType, uc, tt.Format == vpcmodel.ARCHDRAWIO,
+		explanationArgs, tt.Format, !noLbAbstract)
 	if err != nil {
 		return err
 	}
@@ -334,7 +338,7 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 }
 
 func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc commonvpc.ResourcesContainer,
-	grouping, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs, addConsistencyEdgesExternal bool) {
+	groupingType int, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
@@ -343,8 +347,8 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc co
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, grouping, noLbAbstract,
-			explanationArgs, addConsistencyEdgesExternal)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, groupingType, noLbAbstract,
+			explanationArgs)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {

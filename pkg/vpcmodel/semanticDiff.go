@@ -118,13 +118,13 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 func (c *VPCConfig) getAllowedResponsiveConnections(
 	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
 	if diffAnalysis == Subnets {
-		subnetsConn, err := c.GetSubnetsConnectivity(true, false, false)
+		subnetsConn, err := c.GetSubnetsConnectivity(true, NoGroupingNoConsistencyEdges)
 		if err != nil {
 			return nil, err
 		}
 		return subnetsConn.AllowedConnsCombinedResponsive, err
 	} else if diffAnalysis == Vsis {
-		connectivity1, err := c.GetVPCNetworkConnectivity(false, false, false)
+		connectivity1, err := c.GetVPCNetworkConnectivity(false, NoGroupingNoConsistencyEdges)
 		if err != nil {
 			return nil, err
 		}

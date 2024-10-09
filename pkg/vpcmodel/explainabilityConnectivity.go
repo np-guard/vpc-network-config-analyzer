@@ -101,7 +101,7 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 		// No VPCConfig to work with in this case, thus, this case is treated separately
 		return &Explanation{connQuery: connQuery, src: src, dst: dst, srcNodes: srcNodes, dstNodes: dstNodes}, nil
 	}
-	connectivity, err1 := vpcConfig.GetVPCNetworkConnectivity(false, false, false) // computes connectivity
+	connectivity, err1 := vpcConfig.GetVPCNetworkConnectivity(false, NoGroupingNoConsistencyEdges) // computes connectivity
 	if err1 != nil {
 		return nil, err1
 	}
