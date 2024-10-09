@@ -60,14 +60,12 @@ func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipb
 	if ok { // no need to update twice; relevant if the same endpoint is in src and dst of different lines
 		return
 	}
-	endpointsIPBlocks[ee.Name()] = groupedExternalToIPBlock(ee)
+	endpointsIPBlocks[ee.Name()] = groupedExternalToIPBlock(ee.(*groupedExternalNodes))
 }
 
-func groupedExternalToIPBlock(ee EndpointElem) *ipblock.IPBlock {
-	// EndpointElem must be of type groupedExternalNodes
-	elements := []*ExternalNetwork(*ee.(*groupedExternalNodes))
+func groupedExternalToIPBlock(ee *groupedExternalNodes) *ipblock.IPBlock {
 	var res = ipblock.New()
-	for _, e := range elements {
+	for _, e := range *ee {
 		res = res.Union(e.ipblock)
 	}
 	return res
