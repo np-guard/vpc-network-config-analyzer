@@ -738,6 +738,16 @@ var tests = []*testfunc.VpcAnalysisTest{
 		AddConsistencyEdgesExternal: true,
 		Grouping:                    true,
 	},
+	{ // todo: finish verifying manually
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		Grouping:                    true,
+		NoLbAbstract:                true,
+		AddConsistencyEdgesExternal: true,
+	},
 }
 
 // uncomment the function below to run for updating the expected output
