@@ -207,6 +207,8 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(resourceGroup string, v
 		return nil, err
 	}
 
+	rc.addSgwToConfig(res)
+
 	printVPCConfigs(res)
 
 	return res, nil
@@ -521,6 +523,30 @@ func (rc *IBMresourcesContainer) getPgwConfig(
 		}
 	}
 	return nil
+}
+
+func newSGW(sgwName string, cidr *ipblock.IPBlock) *ServiceNetworkGateway {
+	return &ServiceNetworkGateway{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: sgwName,
+			ResourceUID:  sgwName,
+			Zone:         "",
+			ResourceType: commonvpc.ResourceTypeServiceNetwork,
+			VPCRef:       nil,
+		},
+		cidr: cidr,
+	} // TODO: get cidr from fip of the pgw
+}
+
+func (rc *IBMresourcesContainer) addSgwToConfig(
+	res *vpcmodel.MultipleVPCConfigs,
+) {
+	_, serviceNetworkIPblock, _ := vpcmodel.GetServiceNetworkIPblocksList()
+	routerSgw := newSGW("serviceNetwork", serviceNetworkIPblock)
+	for _, vpcConfig := range res.Configs() {
+		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)
+		vpcConfig.UIDToResource[routerSgw.ResourceUID] = routerSgw
+	}
 }
 
 func ignoreFIPWarning(fipName, details string) string {

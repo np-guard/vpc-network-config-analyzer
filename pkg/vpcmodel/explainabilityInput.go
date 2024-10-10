@@ -451,20 +451,33 @@ func (c *VPCConfig) getNodesWithinInternalAddressFilterNonRelevant(inputIPBlock 
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNodes []Node, errType int, err error) {
 	// 1.
-	vpcConfigNodesExternalBlock := []*ipblock.IPBlock{}
+	vpcConfigNodesExternalBlockPublicInternet := []*ipblock.IPBlock{}
+	vpcConfigNodesExternalBlockServiceNetwork := []*ipblock.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
 		}
-		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, node.IPBlock())
+		vpcConfigNodesExternalBlockPublicInternet = append(vpcConfigNodesExternalBlockPublicInternet, node.IPBlock())
+		vpcConfigNodesExternalBlockServiceNetwork = append(vpcConfigNodesExternalBlockServiceNetwork, node.IPBlock())
 	}
 	// 2.
-	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
+	disjointBlocksPublicInternet := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlockPublicInternet)
+	disjointBlocksServiceNetwork := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlockServiceNetwork)
+
 	// 3.
 	cidrNodes = []Node{}
-	for _, block := range disjointBlocks {
+	for _, block := range disjointBlocksPublicInternet {
 		if block.ContainedIn(inputIPBlock) {
-			node, err1 := newExternalNode(true, block)
+			node, err1 := newExternalNode(true, block, publicInternetNodeName)
+			if err1 != nil {
+				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
+			}
+			cidrNodes = append(cidrNodes, node)
+		}
+	}
+	for _, block := range disjointBlocksServiceNetwork {
+		if block.ContainedIn(inputIPBlock) {
+			node, err1 := newExternalNode(false, block, serviceNetworkNodeName)
 			if err1 != nil {
 				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
 			}
