@@ -452,38 +452,32 @@ func (c *VPCConfig) getNodesWithinInternalAddressFilterNonRelevant(inputIPBlock 
 //  3. Return the nodes created from each block from 2 contained in the input cidr
 func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNodes []Node, errType int, err error) {
 	// 1.
-	vpcConfigNodesExternalBlockPublicInternet := []*ipblock.IPBlock{}
-	vpcConfigNodesExternalBlockServiceNetwork := []*ipblock.IPBlock{}
+	vpcConfigNodesExternalBlock := []*ipblock.IPBlock{}
 	for _, node := range c.Nodes {
 		if node.IsInternal() {
 			continue
 		}
-		vpcConfigNodesExternalBlockPublicInternet = append(vpcConfigNodesExternalBlockPublicInternet, node.IPBlock())
-		vpcConfigNodesExternalBlockServiceNetwork = append(vpcConfigNodesExternalBlockServiceNetwork, node.IPBlock())
+		vpcConfigNodesExternalBlock = append(vpcConfigNodesExternalBlock, node.IPBlock())
 	}
 	// 2.
-	disjointBlocksPublicInternet := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlockPublicInternet)
-	disjointBlocksServiceNetwork := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlockServiceNetwork)
+	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 
 	// 3.
 	cidrNodes = []Node{}
-	for _, block := range disjointBlocksPublicInternet {
+	for _, block := range disjointBlocks {
 		if block.ContainedIn(inputIPBlock) {
-			node, err1 := newExternalNode(true, block, publicInternetNodeName)
+			externalType := publicInternetNodeName
+			ip, _ := ipblock.FromCidrList(getServiceNetworkAddressList())
+			if block.ContainedIn(ip) {
+				externalType = serviceNetworkNodeName
+			}
+			node, err1 := newExternalNode(true, block, externalType)
 			if err1 != nil {
 				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
 			}
 			cidrNodes = append(cidrNodes, node)
 		}
 	}
-	for _, block := range disjointBlocksServiceNetwork {
-		if block.ContainedIn(inputIPBlock) {
-			node, err1 := newExternalNode(false, block, serviceNetworkNodeName)
-			if err1 != nil {
-				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
-			}
-			cidrNodes = append(cidrNodes, node)
-		}
-	}
+
 	return cidrNodes, noErr, nil
 }
