@@ -99,7 +99,7 @@ func TestDiffWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range diffTests {
 		tt := diffTests[testIdx]
-		tt.TestDiffSingle(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestDiffSingle(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
