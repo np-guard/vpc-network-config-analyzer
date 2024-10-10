@@ -47,6 +47,7 @@ const (
 	suffixOutFileDiffEndpoints        = "endpointsDiff"
 	suffixOutFileExplain              = "explain"
 	suffixOutFileDetail               = "_detail"
+	consistencyEdgesExternal          = "_EdgeConsistent"
 	txtOutSuffix                      = ".txt"
 	mdOutSuffix                       = ".md"
 	JSONOutSuffix                     = ".json"
@@ -86,6 +87,7 @@ func getTestFileName(testName string,
 	grouping bool,
 	noLbAbstract bool,
 	detailExplain bool,
+	addConsistencyEdgesExternal bool,
 	format vpcmodel.OutFormat,
 	configName string,
 	allVPCs bool,
@@ -127,6 +129,9 @@ func getTestFileName(testName string,
 	}
 	if detailExplain {
 		res += suffixOutFileDetail
+	}
+	if addConsistencyEdgesExternal {
+		res += consistencyEdgesExternal
 	}
 	if !allVPCs {
 		res += strings.ReplaceAll(strings.Join(vpcIDs, ""), ":", "")
@@ -174,9 +179,10 @@ func (tt *VpcTestCommon) initTest() {
 }
 
 func (tt *VpcTestCommon) initTestFileNames(uc vpcmodel.OutputUseCase,
-	vpcName string, allVPCs, detailExplain bool, testDirOut string, grouping, noLbAbstract bool) error {
+	vpcName string, allVPCs, detailExplain bool, testDirOut string, grouping, noLbAbstract,
+	addConsistencyEdgesExternal bool) error {
 	expectedFileName, actualFileName, err := getTestFileName(
-		tt.Name, uc, grouping, noLbAbstract, detailExplain, tt.Format, vpcName, allVPCs, tt.VpcList)
+		tt.Name, uc, grouping, noLbAbstract, detailExplain, addConsistencyEdgesExternal, tt.Format, vpcName, allVPCs, tt.VpcList)
 	if err != nil {
 		return err
 	}
@@ -191,17 +197,23 @@ func (tt *VpcTestCommon) runTestPerUseCase(t *testing.T,
 	uc vpcmodel.OutputUseCase,
 	mode testMode,
 	outDir string,
-	grouping, noLbAbstract bool,
+	groupingType int,
+	noLbAbstract bool,
 	explanationArgs *vpcmodel.ExplanationArgs) error {
 	detailExplain := false
 	if explanationArgs != nil {
 		detailExplain = explanationArgs.Detail
 	}
 	allVpcs := len(tt.VpcList) == 0
-	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract); err != nil {
+	grouping := groupingType == vpcmodel.GroupingNoConsistencyEdges ||
+		groupingType == vpcmodel.GroupingWithConsistencyEdges
+	addConsistencyEdgesExternal := groupingType == vpcmodel.NoGroupingWithConsistencyEdges ||
+		groupingType == vpcmodel.GroupingWithConsistencyEdges
+	if err := tt.initTestFileNames(uc, "", allVpcs, detailExplain, outDir, grouping, noLbAbstract,
+		addConsistencyEdgesExternal); err != nil {
 		return err
 	}
-	og, err := vpcmodel.NewOutputGenerator(cConfigs, grouping, uc, tt.Format == vpcmodel.ARCHDRAWIO,
+	og, err := vpcmodel.NewOutputGenerator(cConfigs, groupingType, uc, tt.Format == vpcmodel.ARCHDRAWIO,
 		explanationArgs, tt.Format, !noLbAbstract)
 	if err != nil {
 		return err
@@ -326,7 +338,7 @@ func (tt *VpcTestCommon) setMode(mode testMode) {
 }
 
 func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc commonvpc.ResourcesContainer,
-	grouping, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs) {
+	groupingType int, noLbAbstract bool, explanationArgs *vpcmodel.ExplanationArgs) {
 	// init test - set the input/output file names according to test name
 	tt.initTest()
 
@@ -335,7 +347,8 @@ func (tt *VpcTestCommon) runSingleCommonTest(t *testing.T, testDir string, rc co
 
 	// generate actual output for all use cases specified for this test
 	for _, uc := range tt.UseCases {
-		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, grouping, noLbAbstract, explanationArgs)
+		err := tt.runTestPerUseCase(t, vpcConfigs, uc, tt.Mode, testDir, groupingType, noLbAbstract,
+			explanationArgs)
 		require.Equal(t, tt.ErrPerUseCase[uc], err, "comparing actual err to expected err")
 	}
 	for uc, outFile := range tt.ActualOutput {
