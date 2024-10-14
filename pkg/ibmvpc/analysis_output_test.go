@@ -32,15 +32,17 @@ var t testfunc.VpcAnalysisTest = testfunc.VpcAnalysisTest{
 		Format:      vpcmodel.DRAWIO,
 	},
 }
-func g(t testfunc.VpcAnalysisTest) *testfunc.VpcAnalysisTest{
-	return &t 
+
+func g(t testfunc.VpcAnalysisTest) *testfunc.VpcAnalysisTest {
+	return &t
 }
+
 var t2 = t
 var tests = []*testfunc.VpcAnalysisTest{
-	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
-	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
-	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
-	g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),g(t), g(t),
+	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
+	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
+	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
+	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
 }
 
 var tests2 = []*testfunc.VpcAnalysisTest{
