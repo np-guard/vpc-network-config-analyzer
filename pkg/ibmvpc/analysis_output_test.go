@@ -78,7 +78,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -86,7 +86,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// batch1: cover all use-cases, with text output Format , no Grouping
 	{
@@ -110,7 +110,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -118,7 +118,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -156,7 +156,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -164,7 +164,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// respond enabled only on part of the TCP connection
 	{
@@ -173,7 +173,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -181,7 +181,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 
 	// batch2.5: only vsi-level use-case, with Grouping , drawio Format
@@ -191,7 +191,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -199,7 +199,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -207,7 +207,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -215,7 +215,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -223,7 +223,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 
 	//batch3: only vsi-level use-case, no Grouping, with md output formats
@@ -297,7 +297,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// iks-nodes example
 	// iks_config_object example has three SG, one of them two targets - a pgw and a LB.
@@ -313,7 +313,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -321,7 +321,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	// json examples
@@ -421,7 +421,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 
 	{
@@ -445,7 +445,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// multivpc drawio:
 	{
@@ -461,7 +461,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -476,7 +476,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// resource group filtering example
 	// ete-storage-project and ete-backup-and-storage vpcs expected to be filtered out
@@ -506,7 +506,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -514,7 +514,6 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: false,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -522,7 +521,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -530,7 +529,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.ARCHSVG,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
 	{
@@ -549,7 +548,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -557,7 +556,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	{
@@ -566,7 +565,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	// LB examples:
@@ -576,7 +575,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -591,7 +590,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -599,7 +598,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -607,7 +606,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints, vpcmodel.AllSubnets},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	{
@@ -616,7 +615,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -624,7 +623,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	{
@@ -663,7 +662,6 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping:     false,
 		NoLbAbstract: true,
 	},
 	{
@@ -672,7 +670,6 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: false,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -680,7 +677,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	{
@@ -689,7 +686,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -697,7 +694,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping:     true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 		NoLbAbstract: true,
 	},
 	{
@@ -706,7 +703,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -714,7 +711,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.Text,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
@@ -722,21 +719,71 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.HTML,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
+	},
+	// tests for AddConsistencyEdgesExternal
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		GroupingType: vpcmodel.NoGroupingWithConsistencyEdges,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		GroupingType: vpcmodel.NoGroupingWithConsistencyEdges,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "sg_testing1_new",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
+		NoLbAbstract: true,
+	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_config_object",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.HTML,
+		},
+		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
+		NoLbAbstract: true,
 	},
 }
 
 // uncomment the function below to run for updating the expected output
-/*
-func TestReportWithGeneration(t *testing.T) {
+
+/*func TestReportWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
 		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
-}
-*/
+}*/
 
 func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run

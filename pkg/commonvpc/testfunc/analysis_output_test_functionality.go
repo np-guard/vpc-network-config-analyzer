@@ -15,7 +15,7 @@ import (
 
 type VpcAnalysisTest struct {
 	VpcTestCommon
-	Grouping     bool
+	GroupingType int
 	NoLbAbstract bool
 }
 
@@ -24,6 +24,6 @@ func (tt *VpcAnalysisTest) TestAnalysisSingleTest(t *testing.T, mode testMode, r
 	tt.setMode(mode)
 	t.Run(tt.Name, func(t *testing.T) {
 		t.Parallel()
-		tt.runSingleCommonTest(t, testDir, rc, tt.Grouping, tt.NoLbAbstract, nil)
+		tt.runSingleCommonTest(t, testDir, rc, tt.GroupingType, tt.NoLbAbstract, nil)
 	})
 }
