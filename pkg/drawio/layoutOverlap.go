@@ -190,6 +190,10 @@ func (lyO *layoutOverlap) potentialBypassPoints(srcPoint, dstPoint, middlePoint 
 	deltaX, deltaY := (srcPoint.X - dstPoint.X), (srcPoint.Y - dstPoint.Y)
 	disXY := int(math.Sqrt(float64(deltaX)*float64(deltaX) + float64(deltaY)*float64(deltaY)))
 	BPs := []point{}
+	if disXY <= 2*minSize {
+		// the points are too close, there is no point to bypass.
+		return BPs
+	}
 	for i := 0; i < nPotentialBP; i++ {
 		verticalVectorSize := pow(-1, i) * (1 + i/2) * iconSize
 		verticalVectorX := verticalVectorSize * deltaY / disXY
