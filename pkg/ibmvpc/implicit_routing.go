@@ -153,9 +153,7 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 	}
 
 	if isDestServiceNetwork(dest) {
-		if dest.ContainedIn(rt.config.sgw.cidr) {
-			return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(rt.config.sgw), vpcmodel.PathFromIPBlock(dest))
-		}
+		return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromResource(rt.config.sgw), vpcmodel.PathFromIPBlock(dest))
 	}
 	for _, tgw := range rt.config.tgwList {
 		logging.Debugf("look for dest %s in tgw.availableRoutes ", dest.ToIPAddressString())
