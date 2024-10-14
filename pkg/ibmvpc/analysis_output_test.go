@@ -538,7 +538,7 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
 			Format:      vpcmodel.DRAWIO,
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 
 	// Grouping test of identical names different resources and thus different UIDs that should not be merged
