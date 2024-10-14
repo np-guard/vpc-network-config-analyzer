@@ -25,27 +25,7 @@ tests for the entire flow:
 
 const analysisOut = "analysis_out"
 
-var t testfunc.VpcAnalysisTest = testfunc.VpcAnalysisTest{
-	VpcTestCommon: testfunc.VpcTestCommon{
-		InputConfig: "iks_workers_large",
-		UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-		Format:      vpcmodel.DRAWIO,
-	},
-}
-
-func g(t testfunc.VpcAnalysisTest) *testfunc.VpcAnalysisTest {
-	return &t
-}
-
-var t2 = t
 var tests = []*testfunc.VpcAnalysisTest{
-	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
-	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
-	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
-	g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t), g(t),
-}
-
-var tests2 = []*testfunc.VpcAnalysisTest{
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "acl_testing5",
@@ -533,7 +513,6 @@ var tests2 = []*testfunc.VpcAnalysisTest{
 		},
 		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
-	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "iks_workers_large",
