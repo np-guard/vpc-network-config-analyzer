@@ -11,14 +11,15 @@ import (
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
-func (n *IKSNode) ShowOnSubnetMode() bool          { return false }
-func (r *ReservedIP) ShowOnSubnetMode() bool       { return false }
-func (v *Vpe) ShowOnSubnetMode() bool              { return false }
-func (pgw *PublicGateway) ShowOnSubnetMode() bool  { return true }
-func (fip *FloatingIP) ShowOnSubnetMode() bool     { return false }
-func (tgw *TransitGateway) ShowOnSubnetMode() bool { return true }
-func (lb *LoadBalancer) ShowOnSubnetMode() bool    { return true }
-func (pip *PrivateIP) ShowOnSubnetMode() bool      { return false }
+func (n *IKSNode) ShowOnSubnetMode() bool                 { return false }
+func (r *ReservedIP) ShowOnSubnetMode() bool              { return false }
+func (v *Vpe) ShowOnSubnetMode() bool                     { return false }
+func (pgw *PublicGateway) ShowOnSubnetMode() bool         { return true }
+func (sgw *ServiceNetworkGateway) ShowOnSubnetMode() bool { return false }
+func (fip *FloatingIP) ShowOnSubnetMode() bool            { return false }
+func (tgw *TransitGateway) ShowOnSubnetMode() bool        { return true }
+func (lb *LoadBalancer) ShowOnSubnetMode() bool           { return true }
+func (pip *PrivateIP) ShowOnSubnetMode() bool             { return false }
 
 func (n *IKSNode) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
 	return drawio.NewNITreeNode(
@@ -47,6 +48,10 @@ func (pgw *PublicGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) 
 	zone, _ := pgw.Zone()
 	zoneTn := gen.TreeNode(zone).(*drawio.ZoneTreeNode)
 	return drawio.NewGatewayTreeNode(zoneTn, pgw.Name())
+}
+
+func (sgw *ServiceNetworkGateway) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {
+	return nil
 }
 
 func (fip *FloatingIP) GenerateDrawioTreeNode(gen *vpcmodel.DrawioGenerator) drawio.TreeNodeInterface {

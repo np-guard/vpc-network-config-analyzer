@@ -47,6 +47,7 @@ const (
 	ResourceTypeLoadBalancer     = "LoadBalancer"
 	ResourceTypePrivateIP        = "PrivateIP"
 	ResourceTypeRoutingTable     = "RoutingTable"
+	ResourceTypeServiceNetwork   = "ServiceNetwork"
 )
 
 // Implemented by AWSresourcesContainer and IBMresourcesContainer

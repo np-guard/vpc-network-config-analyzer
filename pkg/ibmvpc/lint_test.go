@@ -102,7 +102,7 @@ func TestLintWithComparsion(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range lintTests {
 		tt := lintTests[testIdx]
-		tt.Mode = commonvpc.OutputGeneration
+		tt.Mode = testfunc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 			rc := &IBMresourcesContainer{}

@@ -406,11 +406,12 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.I
 	errType int, err error) {
 	// 1.
 	_, publicInternet, err1 := GetPublicInternetIPblocksList()
-	if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
+	_, serviceNetwork, err2 := GetServiceNetworkIPblocksList()
+	if err1 != nil || err2 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, fatalErr, err1
 	}
-	isExternal := inputIPBlock.Overlap(publicInternet)
-	isInternal := !inputIPBlock.ContainedIn(publicInternet)
+	isExternal := inputIPBlock.Overlap(publicInternet.Union(serviceNetwork))
+	isInternal := !inputIPBlock.ContainedIn(publicInternet.Union(serviceNetwork))
 	if isInternal && isExternal {
 		return nil, fatalErr,
 			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
@@ -460,16 +461,25 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 	}
 	// 2.
 	disjointBlocks := ipblock.DisjointIPBlocks([]*ipblock.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
+
 	// 3.
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
 		if block.ContainedIn(inputIPBlock) {
-			node, err1 := newExternalNode(true, block)
+			externalType := publicInternetNodeName
+			isPublicInternet := true
+			ip, _ := ipblock.FromCidrList(getServiceNetworkAddressList())
+			if block.ContainedIn(ip) {
+				externalType = serviceNetworkNodeName
+				isPublicInternet = false
+			}
+			node, err1 := newExternalNode(isPublicInternet, block, externalType)
 			if err1 != nil {
 				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
 			}
 			cidrNodes = append(cidrNodes, node)
 		}
 	}
+
 	return cidrNodes, noErr, nil
 }
