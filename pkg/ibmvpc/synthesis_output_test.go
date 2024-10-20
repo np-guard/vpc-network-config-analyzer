@@ -54,14 +54,14 @@ var synthesisTests = []*testfunc.VpcAnalysisTest{
 			InputConfig: "acl_testing5",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
 			InputConfig: "subnet_grouping",
 			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllSubnets},
 		},
-		Grouping: true,
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
 }
 

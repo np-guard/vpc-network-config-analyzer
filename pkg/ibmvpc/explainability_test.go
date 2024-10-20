@@ -966,7 +966,7 @@ func TestMultiExplainSanity1(t *testing.T) {
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
 	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
 	for i, vpcConfig := range vpcsConfig.Configs() {
-		thisConn, err := vpcConfig.GetVPCNetworkConnectivity(false, false)
+		thisConn, err := vpcConfig.GetVPCNetworkConnectivity(false, vpcmodel.NoGroupingNoConsistencyEdges)
 		if err != nil {
 			fmt.Printf("%v. %s", i, err.Error())
 		}
@@ -990,7 +990,7 @@ func TestMultiExplainSanity2(t *testing.T) {
 	groupedConns := make(map[string]*vpcmodel.GroupConnLines)
 	nodesConn := make(map[string]*vpcmodel.VPCConnectivity)
 	for i, vpcConfig := range vpcsConfig.Configs() {
-		thisConn, err := vpcConfig.GetVPCNetworkConnectivity(false, false)
+		thisConn, err := vpcConfig.GetVPCNetworkConnectivity(false, vpcmodel.NoGroupingNoConsistencyEdges)
 		if err != nil {
 			fmt.Printf("%v. %s", i, err.Error())
 		}

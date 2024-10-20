@@ -19,6 +19,13 @@ import (
 
 const commaSeparator = ","
 
+const (
+	NoGroupingNoConsistencyEdges = iota
+	NoGroupingWithConsistencyEdges
+	GroupingNoConsistencyEdges
+	GroupingWithConsistencyEdges
+)
+
 // for each line here can group list of external nodes to cidrs list as of one element
 // groupedNodesInfo contains the list of nodes to be grouped and their common connection properties
 type groupingConnections map[EndpointElem]map[string]*groupedExternalNodesInfo
@@ -81,22 +88,22 @@ func newGroupingConnections() *groupingConnections {
 }
 
 func newGroupConnLines(c *VPCConfig, v *VPCConnectivity,
-	grouping bool) (res *GroupConnLines, err error) {
+	groupingType int) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, nodesConn: v,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(true, grouping)
+	err = res.computeGrouping(true, groupingType)
 	return res, err
 }
 
 func newGroupConnLinesSubnetConnectivity(c *VPCConfig, s *VPCsubnetConnectivity,
-	grouping bool) (res *GroupConnLines, err error) {
+	groupingType int) (res *GroupConnLines, err error) {
 	res = &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst:     newGroupingConnections(),
 		dstToSrc:     newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err = res.computeGrouping(false, grouping)
+	err = res.computeGrouping(false, groupingType)
 	return res, err
 }
 
@@ -334,7 +341,7 @@ func getSubnetOrVPCUID(ep EndpointElem) string {
 
 // group public internet ranges for vsis/subnets connectivity lines
 // internal (vsi/subnets) are added as is
-func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
+func (g *GroupConnLines) groupExternalAddresses(vsi, addConsistencyEdgesExternal bool) error {
 	res := []*groupedConnLine{}
 	var allowedConnsCombinedResponsive GeneralResponsiveConnectivityMap
 	if vsi {
@@ -367,6 +374,9 @@ func (g *GroupConnLines) groupExternalAddresses(vsi bool) error {
 		}
 	}
 	g.appendGrouped(res)
+	if addConsistencyEdgesExternal {
+		g.consistencyEdgesExternal()
+	}
 	return nil
 }
 
@@ -573,8 +583,11 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 // computeGrouping does the grouping; for vsis (all_endpoints analysis)
 // if vsi = true otherwise for subnets (all_subnets analysis)
 // external endpoints are always grouped; vsis/subnets are grouped iff grouping is true
-func (g *GroupConnLines) computeGrouping(vsi, grouping bool) (err error) {
-	err = g.groupExternalAddresses(vsi)
+func (g *GroupConnLines) computeGrouping(vsi bool, groupingType int) (err error) {
+	addConsistencyEdgesExternal := groupingType == NoGroupingWithConsistencyEdges ||
+		groupingType == GroupingWithConsistencyEdges
+	grouping := groupingType == GroupingNoConsistencyEdges || groupingType == GroupingWithConsistencyEdges
+	err = g.groupExternalAddresses(vsi, addConsistencyEdgesExternal)
 	if err != nil {
 		return err
 	}
