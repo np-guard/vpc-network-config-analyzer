@@ -318,7 +318,8 @@ func (g *groupedExternalNodes) UID() string {
 }
 
 func (g *groupingConnections) addPublicConnectivity(ep EndpointElem, commonProps *groupedCommonProperties, targetNode *ExternalNetwork) {
-	connKey := commonProps.groupingStrKey + targetNode.ResourceType // added resource type to group service network and public internet each alone
+	// add resource type to group service network and public internet each alone
+	connKey := commonProps.groupingStrKey + targetNode.ResourceType
 	if _, ok := (*g)[ep]; !ok {
 		(*g)[ep] = map[string]*groupedExternalNodesInfo{}
 	}

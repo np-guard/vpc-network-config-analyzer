@@ -70,14 +70,16 @@ func getPublicInternetAddressList() []string {
 	}
 }
 
-func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock,
+	allInternetRagnes *ipblock.IPBlock, err error) {
 	if n.publicInternetAddressList == nil {
 		return ipStringsToIPblocks(getPublicInternetAddressList())
 	}
 	return ipStringsToIPblocks(*n.publicInternetAddressList)
 }
 
-func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock, serviceNetworkRagnes *ipblock.IPBlock, err error) {
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock,
+	serviceNetworkRagnes *ipblock.IPBlock, err error) {
 	if n.serviceNetworkAddressList == nil {
 		return ipStringsToIPblocks([]string{})
 	}
