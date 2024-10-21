@@ -1,7 +1,8 @@
 {
     "externals": {
-        "external-0": "0.0.0.0/0",
-        "external-1": "172.217.22.46/32"
+        "external-0": "161.26.0.0/16,166.8.0.0/14",
+        "external-1": "0.0.0.0/0",
+        "external-2": "172.217.22.46/32"
     },
     "required-connections": [
         {
@@ -123,6 +124,21 @@
             ],
             "dst": {
                 "name": "external-1",
+                "type": "external"
+            },
+            "src": {
+                "name": "test-vpc1/vsi2",
+                "type": "instance"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-2",
                 "type": "external"
             },
             "src": {

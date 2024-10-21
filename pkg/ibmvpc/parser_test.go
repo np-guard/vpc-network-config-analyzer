@@ -21,6 +21,7 @@ import (
 )
 
 func TestVPCResourceModelRegion(t *testing.T) {
+	vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
 	rc := IBMresourcesContainer{}
 	err := rc.ParseResourcesFromFile(filepath.Join(testfunc.GetTestsDirInput(), "input_multi_regions.json"))
 	require.Nilf(t, err, "err: %s", err)
