@@ -755,19 +755,21 @@ var tests = []*testfunc.VpcAnalysisTest{
 
 // uncomment the function below to run for updating the expected output
 
-/*func TestReportWithGeneration(t *testing.T) {
+func TestReportWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
+		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
 		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
-}*/
+}
 
 func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
+		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
 		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")

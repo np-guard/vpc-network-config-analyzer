@@ -4,9 +4,11 @@ ky-vpc1/ky-vpc1-vsi[10.240.0.5] => ky-vpc2/ky-vpc2-vsi[10.240.64.5] : protocol: 
 
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections
+Service Network (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections
 ky-vpc1-vsi[10.240.0.5] => Public Internet (all ranges) : All Connections
+ky-vpc1-vsi[10.240.0.5] => Service Network (all ranges) : All Connections
 
 Endpoint connectivity for VPC ky-vpc2
-<nothing to report>
+ky-vpc2-vsi[10.240.64.5] => Service Network (all ranges) : All Connections
 
 TCP connections for which response is not permitted are marked with * 
