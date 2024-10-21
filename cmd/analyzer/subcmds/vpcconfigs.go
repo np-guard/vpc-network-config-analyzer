@@ -58,8 +58,10 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	var rc commonvpc.ResourcesContainer
 	switch provider {
 	case common.IBM:
+		vpcmodel.InitNetworkAddressLists(ibmvpc.GetPublicInternetAddressList(), ibmvpc.GetServiceNetworkAddressList())
 		rc = &ibmvpc.IBMresourcesContainer{}
 	case common.AWS:
+		vpcmodel.InitNetworkAddressLists(awsvpc.GetPublicInternetAddressList(), nil)
 		rc = &awsvpc.AWSresourcesContainer{}
 	default:
 		return nil, fmt.Errorf(notSupportedYet, provider)

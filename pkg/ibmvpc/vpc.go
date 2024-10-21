@@ -284,6 +284,60 @@ func (fip *FloatingIP) IsMultipleVPCs() bool {
 	return false
 }
 
+// ServiceNetworkGateway is a virtual gateway
+// we add it for convenience - it is not a resource that appears in the input configuration file.
+type ServiceNetworkGateway struct {
+	vpcmodel.VPCResource
+	cidr *ipblock.IPBlock
+}
+
+func (sgw *ServiceNetworkGateway) Cidr() *ipblock.IPBlock {
+	return sgw.cidr
+}
+func (sgw *ServiceNetworkGateway) Sources() []vpcmodel.Node {
+	return nil
+}
+func (sgw *ServiceNetworkGateway) SourcesSubnets() []vpcmodel.Subnet {
+	return nil
+}
+
+func (sgw *ServiceNetworkGateway) Destinations() []vpcmodel.Node {
+	return nil
+}
+func (sgw *ServiceNetworkGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
+}
+
+func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+	if areNodes, _, dst1 := isNodesPair(src, dst); areNodes {
+		if dst1.IsExternal() && !dst1.IsPublicInternet() {
+			return connection.All(), nil
+		}
+		return connection.None(), nil
+	}
+	return nil, errors.New("ServiceNetworkGateway.AllowedConnectivity unexpected src/dst types")
+}
+
+func (sgw *ServiceNetworkGateway) RouterDefined(src, dst vpcmodel.Node) bool {
+	return dst.IsExternal() && !dst.IsPublicInternet()
+}
+
+func (sgw *ServiceNetworkGateway) ExternalIP() string {
+	return ""
+}
+
+func (sgw *ServiceNetworkGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {
+	return nil
+}
+
+func (sgw *ServiceNetworkGateway) StringOfRouterRules(listRulesInFilter []vpcmodel.RulesInTable,
+	verbose bool) (string, error) {
+	return "", nil
+}
+
+func (sgw *ServiceNetworkGateway) IsMultipleVPCs() bool {
+	return false
+}
+
 type PublicGateway struct {
 	vpcmodel.VPCResource
 	cidr         string
@@ -325,7 +379,7 @@ func (pgw *PublicGateway) ExternalIP() string {
 
 func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
-		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
+		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() && dst1.IsPublicInternet() {
 			return connection.All(), nil
 		}
 		return connection.None(), nil
@@ -333,7 +387,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
-			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
+			if dstNode.IsExternal() && dstNode.IsPublicInternet() && hasSubnet(pgw.srcSubnets, srcSubnet) {
 				return connection.All(), nil
 			}
 			return connection.None(), nil
@@ -343,7 +397,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 }
 
 func (pgw *PublicGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	return vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal()
+	return vpcmodel.HasNode(pgw.Sources(), src) && dst.IsExternal() && dst.IsPublicInternet()
 }
 
 func (pgw *PublicGateway) RulesInConnectivity(src, dst vpcmodel.Node) []vpcmodel.RulesInTable {

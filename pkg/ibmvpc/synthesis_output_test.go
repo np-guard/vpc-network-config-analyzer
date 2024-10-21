@@ -71,7 +71,8 @@ var synthesisTests = []*testfunc.VpcAnalysisTest{
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
-		tt.TestAnalysisSingleTest(t, commonvpc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
+		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
+		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -81,6 +82,7 @@ func TestSynthesisWithComparison(t *testing.T) {
 	for testIdx := range synthesisTests {
 		tt := synthesisTests[testIdx]
 		tt.Format = vpcmodel.Synthesis
+		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
 		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, synthesisOut, tt.InputConfig)
 	}
 	fmt.Println("done")

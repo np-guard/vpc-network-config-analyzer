@@ -3,13 +3,13 @@ Interpreted source(s): vsi1-ky[10.240.10.4]
 Interpreted destination(s): 161.26.0.0/16 (external)
 ===============================================================================================
 
-Connections are allowed from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16 using "protocol: UDP src-ports: 1-600 dst-ports: 1-50"
+Connections are allowed from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/16 using "protocol: UDP src-ports: 1-600 dst-ports: 1-50"
 (note that not all queried protocols/ports are allowed)
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
-	PublicGateway public-gw-ky -> 
-	Public Internet 161.26.0.0/16
+	ServiceNetwork serviceNetwork -> 
+	Service Network 161.26.0.0/16
 
 
 Details:

@@ -26,6 +26,7 @@ Subnet connectivity for VPC ete-storage-project
 sn-20221205-01 => sn-20221205-02 : All Connections
 sn-20221205-01 => sn-20221205-03 : All Connections
 sn-20221205-02 => Public Internet (all ranges) : All Connections
+sn-20221205-02 => Service Network (all ranges) : All Connections
 sn-20221205-02 => sn-20221205-01 : All Connections
 sn-20221205-02 => sn-20221205-03 : All Connections
 sn-20221205-03 => sn-20221205-01 : All Connections

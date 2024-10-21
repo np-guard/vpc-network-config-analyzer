@@ -17,9 +17,11 @@ import (
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 func TestGetRules(t *testing.T) {
+	vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
 	rc := IBMresourcesContainer{}
 	err := rc.ParseResourcesFromFile(filepath.Join(testfunc.GetTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)

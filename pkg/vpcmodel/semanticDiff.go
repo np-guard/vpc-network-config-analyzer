@@ -416,7 +416,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 			if disjointIPBlock.ContainedIn(oldNode.IPBlock()) {
 				disjointContained = true
 				for _, thisCidr := range disjointIPBlock.ToCidrList() {
-					newNode, err := newExternalNodeForCidr(thisCidr)
+					newNode, err := newExternalNodeForCidr(thisCidr, publicInternetNodeName)
 					if err != nil {
 						return nil, err
 					}
