@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
@@ -32,12 +31,11 @@ type NetworkAddressLists struct {
 
 var networkAddressList *NetworkAddressLists
 
-func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList *[]string) error {
+func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList *[]string) {
 	if networkAddressList == nil {
 		networkAddressList = &NetworkAddressLists{publicInternetAddressList, serviceNetworkAddressList}
-		return nil
 	} else {
-		return fmt.Errorf("vpcmodel NetworkAddressLists already initialized, can not be initialized twice")
+		logging.Warnf("vpcmodel NetworkAddressLists already initialized, can not be initialized twice")
 	}
 }
 
@@ -178,7 +176,7 @@ func newExternalNode(isPublicInternet bool, ipb *ipblock.IPBlock, resourceType s
 		ipblock:          ipb}, nil
 }
 
-func newExternalNodeForCidr(cidr string, resourceType string) (Node, error) {
+func newExternalNodeForCidr(cidr, resourceType string) (Node, error) {
 	cidrIPBlodk, err := ipblock.FromCidr(cidr)
 	if err != nil {
 		return nil, err

@@ -465,20 +465,21 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 	// 3.
 	cidrNodes = []Node{}
 	for _, block := range disjointBlocks {
-		if block.ContainedIn(inputIPBlock) {
-			externalType := publicInternetNodeName
-			isPublicInternet := true
-			_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
-			if block.ContainedIn(ip) {
-				externalType = serviceNetworkNodeName
-				isPublicInternet = false
-			}
-			node, err1 := newExternalNode(isPublicInternet, block, externalType)
-			if err1 != nil {
-				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
-			}
-			cidrNodes = append(cidrNodes, node)
+		if !block.ContainedIn(inputIPBlock) {
+			continue
 		}
+		externalType := publicInternetNodeName
+		isPublicInternet := true
+		_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
+		if block.ContainedIn(ip) {
+			externalType = serviceNetworkNodeName
+			isPublicInternet = false
+		}
+		node, err1 := newExternalNode(isPublicInternet, block, externalType)
+		if err1 != nil {
+			return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
+		}
+		cidrNodes = append(cidrNodes, node)
 	}
 
 	return cidrNodes, noErr, nil
