@@ -90,12 +90,12 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 }
 
 func isDestPublicInternet(dest *ipblock.IPBlock) bool {
-	_, publicRange, _ := vpcmodel.GetPublicInternetIPblocksList()
+	_, publicRange, _ := vpcmodel.GetNetworkAddressList().GetPublicInternetIPblocksList()
 	return dest.ContainedIn(publicRange)
 }
 
 func isDestServiceNetwork(dest *ipblock.IPBlock) bool {
-	_, serviceNetworkRange, _ := vpcmodel.GetServiceNetworkIPblocksList()
+	_, serviceNetworkRange, _ := vpcmodel.GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	return dest.ContainedIn(serviceNetworkRange)
 }
 

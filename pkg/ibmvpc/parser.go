@@ -30,6 +30,35 @@ type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
 
+// All public IP addresses belong to one of the following public IP address ranges:
+func GetPublicInternetAddressList() *[]string {
+	return &[]string{
+		"1.0.0.0-9.255.255.255",
+		"11.0.0.0-100.63.255.255",
+		"100.128.0.0-126.255.255.255",
+		"128.0.0.0-161.25.255.255",
+		"161.27.0.0-166.7.255.255",
+		"166.12.0.0-169.253.255.255",
+		"169.255.0.0-172.15.255.255",
+		"172.32.0.0-191.255.255.255",
+		"192.0.1.0/24",
+		"192.0.3.0-192.88.98.255",
+		"192.88.100.0-192.167.255.255",
+		"192.169.0.0-198.17.255.255",
+		"198.20.0.0-198.51.99.255",
+		"198.51.101.0-203.0.112.255",
+		"203.0.114.0-223.255.255.255",
+	}
+}
+
+// All service network IP addresses belong to one of the following service network IP address ranges:
+func GetServiceNetworkAddressList() *[]string {
+	return &[]string{
+		"161.26.0.0/16",
+		"166.8.0.0/14",
+	}
+}
+
 func NewIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
 	ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
 	if !ok {
@@ -541,7 +570,7 @@ func newSGW(sgwName string, cidr *ipblock.IPBlock) *ServiceNetworkGateway {
 func (rc *IBMresourcesContainer) addSgwToConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 ) {
-	_, serviceNetworkIPblock, _ := vpcmodel.GetServiceNetworkIPblocksList()
+	_, serviceNetworkIPblock, _ := vpcmodel.GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	routerSgw := newSGW("serviceNetwork", serviceNetworkIPblock)
 	for _, vpcConfig := range res.Configs() {
 		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)

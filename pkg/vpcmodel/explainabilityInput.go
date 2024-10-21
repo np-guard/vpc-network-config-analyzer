@@ -405,8 +405,8 @@ func getResourceAndVpcNames(name string) (resource, vpc string) {
 func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *ipblock.IPBlock) (nodes []Node,
 	errType int, err error) {
 	// 1.
-	_, publicInternet, err1 := GetPublicInternetIPblocksList()
-	_, serviceNetwork, err2 := GetServiceNetworkIPblocksList()
+	_, publicInternet, err1 := GetNetworkAddressList().GetPublicInternetIPblocksList()
+	_, serviceNetwork, err2 := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	if err1 != nil || err2 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, fatalErr, err1
 	}
@@ -468,7 +468,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *ipblock.IPBlock) (cidrNod
 		if block.ContainedIn(inputIPBlock) {
 			externalType := publicInternetNodeName
 			isPublicInternet := true
-			ip, _ := ipblock.FromCidrList(getServiceNetworkAddressList())
+			_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 			if block.ContainedIn(ip) {
 				externalType = serviceNetworkNodeName
 				isPublicInternet = false

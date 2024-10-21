@@ -8,9 +8,11 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 const (
@@ -23,6 +25,30 @@ const (
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
+type NetworkAddressLists struct {
+	publicInternetAddressList *[]string
+	serviceNetworkAddressList *[]string
+}
+
+var networkAddressList *NetworkAddressLists
+
+func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList *[]string) error {
+	if networkAddressList == nil {
+		networkAddressList = &NetworkAddressLists{publicInternetAddressList, serviceNetworkAddressList}
+		return nil
+	} else {
+		return fmt.Errorf("vpcmodel NetworkAddressLists already initialized, can not be initialized twice")
+	}
+}
+
+func GetNetworkAddressList() *NetworkAddressLists {
+	if networkAddressList == nil {
+		logging.Warnf("vpcmodel NetworkAddressLists not initialized")
+		networkAddressList = &NetworkAddressLists{}
+	}
+	return networkAddressList
+}
+
 // TODO: move getPublicInternetAddressList to pkg IPBlock ?
 
 // All public IP addresses belong to one of the following public IP address ranges:
@@ -31,9 +57,7 @@ func getPublicInternetAddressList() []string {
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
 		"100.128.0.0-126.255.255.255",
-		"128.0.0.0-161.25.255.255",
-		"161.27.0.0-166.7.255.255",
-		"166.12.0.0-169.253.255.255",
+		"128.0.0.0-169.253.255.255",
 		"169.255.0.0-172.15.255.255",
 		"172.32.0.0-191.255.255.255",
 		"192.0.1.0/24",
@@ -46,12 +70,18 @@ func getPublicInternetAddressList() []string {
 	}
 }
 
-// All service network IP addresses belong to one of the following service network IP address ranges:
-func getServiceNetworkAddressList() []string {
-	return []string{
-		"161.26.0.0/16",
-		"166.8.0.0/14",
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
+	if n.publicInternetAddressList == nil {
+		return ipStringsToIPblocks(getPublicInternetAddressList())
 	}
+	return ipStringsToIPblocks(*n.publicInternetAddressList)
+}
+
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock, serviceNetworkRagnes *ipblock.IPBlock, err error) {
+	if n.serviceNetworkAddressList == nil {
+		return ipStringsToIPblocks([]string{})
+	}
+	return ipStringsToIPblocks(*n.serviceNetworkAddressList)
 }
 
 // ExternalNetwork implements Node interface
@@ -133,16 +163,6 @@ func ipStringsToIPblocks(ipList []string) (ipbList []*ipblock.IPBlock, unionIPbl
 	return ipbList, unionIPblock, nil
 }
 
-func GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock, allInternetRagnes *ipblock.IPBlock, err error) {
-	publicInternetAddressList := getPublicInternetAddressList()
-	return ipStringsToIPblocks(publicInternetAddressList)
-}
-
-func GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock, serviceNetworkRagnes *ipblock.IPBlock, err error) {
-	serviceNetworkAddressList := getServiceNetworkAddressList()
-	return ipStringsToIPblocks(serviceNetworkAddressList)
-}
-
 func newExternalNode(isPublicInternet bool, ipb *ipblock.IPBlock, resourceType string) (Node, error) {
 	cidrsList := ipb.ToCidrList()
 	if len(cidrsList) > 1 {
@@ -171,11 +191,11 @@ func newExternalNodeForCidr(cidr string, resourceType string) (Node, error) {
 
 func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*ipblock.IPBlock) ([]Node, error) {
 	res := []Node{}
-	internetIPblocks, allInternetRagnes, err := GetPublicInternetIPblocksList()
+	internetIPblocks, allInternetRagnes, err := GetNetworkAddressList().GetPublicInternetIPblocksList()
 	if err != nil {
 		return nil, err
 	}
-	serviceNetworkIPblocks, serviceNetworkRagnes, err := GetServiceNetworkIPblocksList()
+	serviceNetworkIPblocks, serviceNetworkRagnes, err := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +255,7 @@ func isEntireServiceNetworkRange(nodes []*ExternalNetwork) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, allServiceNetworkRagnes, err := GetServiceNetworkIPblocksList()
+	_, allServiceNetworkRagnes, err := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	if err != nil {
 		return false, err
 	}
@@ -252,7 +272,7 @@ func isEntirePublicInternetRange(nodes []*ExternalNetwork) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, allInternetRagnes, err := GetPublicInternetIPblocksList()
+	_, allInternetRagnes, err := GetNetworkAddressList().GetPublicInternetIPblocksList()
 	if err != nil {
 		return false, err
 	}
