@@ -184,7 +184,7 @@ func newExternalNodeForCidr(cidr, resourceType string) (Node, error) { //nolint:
 	return &ExternalNetwork{
 		ResourceType:     resourceType,
 		CidrStr:          cidr,
-		isPublicInternet: true,
+		isPublicInternet: resourceType == publicInternetNodeName,
 		ipblock:          cidrIPBlodk,
 	}, nil
 }
