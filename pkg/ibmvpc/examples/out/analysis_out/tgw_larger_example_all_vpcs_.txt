@@ -34,23 +34,31 @@ vsi1-ky[10.240.1.4] => Public Internet 172.217.22.46/32 : All Connections
 vsi1-ky[10.240.1.4] => vsi3a-ky[10.240.3.5] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 vsi1-ky[10.240.1.4] => vsi3b-ky[10.240.3.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 vsi2-ky[10.240.2.4] => Public Internet (all ranges) : All Connections
+vsi2-ky[10.240.2.4] => Service Network (all ranges) : All Connections
 vsi3a-ky[10.240.3.5] => vsi1-ky[10.240.1.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 vsi3a-ky[10.240.3.5] => vsi3b-ky[10.240.3.4] : All Connections
 vsi3b-ky[10.240.3.4] => vsi1-ky[10.240.1.4] : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 vsi3b-ky[10.240.3.4] => vsi3a-ky[10.240.3.5] : All Connections
 
 Endpoint connectivity for VPC test-vpc1-ky
+vsi11-ky[10.240.11.4] => Service Network (all ranges) : All Connections
 vsi11-ky[10.240.11.4] => vsi12-ky[10.240.12.4] : All Connections
+vsi12-ky[10.240.12.4] => Service Network (all ranges) : All Connections
 vsi12-ky[10.240.12.4] => vsi11-ky[10.240.11.4] : All Connections
 
 Endpoint connectivity for VPC test-vpc2-ky
+vsi21a-ky[10.240.64.4] => Service Network (all ranges) : All Connections
 vsi21a-ky[10.240.64.4] => vsi21b-ky[10.240.64.5] : All Connections
+vsi21b-ky[10.240.64.5] => Service Network (all ranges) : All Connections
 vsi21b-ky[10.240.64.5] => vsi21a-ky[10.240.64.4] : All Connections
 
 Endpoint connectivity for VPC test-vpc3-ky
 Public Internet (all ranges) => vsi32-ky[10.240.128.4] : All Connections
+Service Network (all ranges) => vsi32-ky[10.240.128.4] : All Connections
+vsi31-ky[10.240.31.4] => Service Network (all ranges) : All Connections
 vsi31-ky[10.240.31.4] => vsi32-ky[10.240.128.4] : All Connections
 vsi32-ky[10.240.128.4] => Public Internet (all ranges) : All Connections
+vsi32-ky[10.240.128.4] => Service Network (all ranges) : All Connections
 vsi32-ky[10.240.128.4] => vsi31-ky[10.240.31.4] : All Connections
 
 Endpoint connectivity for VPC zn-vpc1

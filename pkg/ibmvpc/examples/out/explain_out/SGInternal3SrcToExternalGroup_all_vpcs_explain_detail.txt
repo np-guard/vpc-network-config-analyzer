@@ -3,7 +3,59 @@ Interpreted source(s): vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint
 Interpreted destination(s): 161.26.0.0/8 (external)
 ===============================================================================
 
-No connectivity from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0/8;
+Connections from db-endpoint-gateway-ky[10.240.30.6] to Service Network 161.26.0.0/16: All Connections
+
+Path:
+	db-endpoint-gateway-ky[10.240.30.6] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
+	ServiceNetwork serviceNetwork -> 
+	Service Network 161.26.0.0/16
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Egress:
+		security group sg3-ky allows connection with the following allow rules
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 100-200
+		network ACL acl3-ky allows connection with the following allow rules
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
+TCP response is enabled; The relevant rules are:
+	Ingress:
+		network ACL acl3-ky allows connection with the following allow rules
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
+------------------------------------------------------------------------------------------------------------------------
+
+Connections from vsi3a-ky[10.240.30.5] to Service Network 161.26.0.0/16: All Connections
+
+Path:
+	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
+	ServiceNetwork serviceNetwork -> 
+	Service Network 161.26.0.0/16
+
+
+Details:
+~~~~~~~~
+Path is enabled; The relevant rules are:
+	Egress:
+		security group sg3-ky allows connection with the following allow rules
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: all
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 1-65535
+			id: id:125, direction: outbound, local: 0.0.0.0/0, remote: 0.0.0.0/0, protocol: tcp,  dstPorts: 100-200
+		network ACL acl3-ky allows connection with the following allow rules
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
+TCP response is enabled; The relevant rules are:
+	Ingress:
+		network ACL acl3-ky allows connection with the following allow rules
+			name: inbound, priority: 1, action: allow, direction: inbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
+------------------------------------------------------------------------------------------------------------------------
+
+No connectivity from db-endpoint-gateway-ky[10.240.30.6] to Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255;
 	connection is blocked because there is no resource for external connectivity
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
@@ -26,7 +78,7 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connectivity from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0/8;
+No connectivity from vsi3a-ky[10.240.30.5] to Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255;
 	connection is blocked because there is no resource for external connectivity
 
 Egress: security group sg3-ky allows connection; network ACL acl3-ky allows connection
@@ -49,9 +101,29 @@ Path is disabled; The relevant rules are:
 
 ------------------------------------------------------------------------------------------------------------------------
 
-No connectivity from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0/8;
+No connectivity from vsi3b-ky[10.240.30.4] to Public Internet 161.0.0.0-161.25.255.255,161.27.0.0-161.255.255.255;
 	connection is blocked at egress and because there is no resource for external connectivity
 
+Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
+
+Path:
+	vsi3b-ky[10.240.30.4] -> | security group sg2-ky |
+
+
+Details:
+~~~~~~~~
+Path is disabled; The relevant rules are:
+	Egress:
+		security group sg2-ky has no relevant rules
+		network ACL acl3-ky allows connection with the following allow rules
+			name: outbound, priority: 1, action: allow, direction: outbound, source: 0.0.0.0/0, destination: 0.0.0.0/0, protocol: all
+
+------------------------------------------------------------------------------------------------------------------------
+
+No connectivity from vsi3b-ky[10.240.30.4] to Service Network 161.26.0.0/16;
+	connection is blocked at egress
+
+External traffic via ServiceNetwork: serviceNetwork
 Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
 
 Path:

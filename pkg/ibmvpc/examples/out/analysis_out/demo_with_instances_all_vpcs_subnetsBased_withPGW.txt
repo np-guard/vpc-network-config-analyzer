@@ -1,5 +1,6 @@
 Subnet connectivity for VPC ky-testenv-vpc
 ky-testenv-edge-subnet-1 => Public Internet (all ranges) : All Connections
+ky-testenv-edge-subnet-1 => Service Network (all ranges) : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-2 : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-edge-subnet-3 : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-private-subnet-1 : protocol: TCP src-ports: 443
@@ -9,6 +10,7 @@ ky-testenv-edge-subnet-1 => ky-testenv-transit-subnet-1 : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-transit-subnet-2 : All Connections
 ky-testenv-edge-subnet-1 => ky-testenv-transit-subnet-3 : All Connections
 ky-testenv-edge-subnet-2 => Public Internet (all ranges) : All Connections
+ky-testenv-edge-subnet-2 => Service Network (all ranges) : All Connections
 ky-testenv-edge-subnet-2 => ky-testenv-edge-subnet-1 : All Connections
 ky-testenv-edge-subnet-2 => ky-testenv-edge-subnet-3 : All Connections
 ky-testenv-edge-subnet-2 => ky-testenv-private-subnet-1 : protocol: TCP src-ports: 443
@@ -18,6 +20,7 @@ ky-testenv-edge-subnet-2 => ky-testenv-transit-subnet-1 : All Connections
 ky-testenv-edge-subnet-2 => ky-testenv-transit-subnet-2 : All Connections
 ky-testenv-edge-subnet-2 => ky-testenv-transit-subnet-3 : All Connections
 ky-testenv-edge-subnet-3 => Public Internet (all ranges) : All Connections
+ky-testenv-edge-subnet-3 => Service Network (all ranges) : All Connections
 ky-testenv-edge-subnet-3 => ky-testenv-edge-subnet-1 : All Connections
 ky-testenv-edge-subnet-3 => ky-testenv-edge-subnet-2 : All Connections
 ky-testenv-edge-subnet-3 => ky-testenv-private-subnet-1 : protocol: TCP src-ports: 443

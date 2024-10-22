@@ -3,9 +3,10 @@ Interpreted source(s): vsi3b-ky[10.240.30.4]
 Interpreted destination(s): 161.26.0.0/32 (external)
 ==========================================================================
 
-No connectivity from vsi3b-ky[10.240.30.4] to Public Internet 161.26.0.0/32;
-	connection is blocked at egress and because there is no resource for external connectivity
+No connectivity from vsi3b-ky[10.240.30.4] to Service Network 161.26.0.0/32;
+	connection is blocked at egress
 
+External traffic via ServiceNetwork: serviceNetwork
 Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
 
 Path:

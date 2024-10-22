@@ -64,15 +64,15 @@ func TestAbstraction(t *testing.T) {
 ///////////////////////////////////////////////////////////////////////////////
 
 func createNodes() (NodeSet, []VPCResourceIntf) {
-	node0, _ := newExternalNodeForCidr("0.0.0.0/32")
-	node1, _ := newExternalNodeForCidr("0.0.0.1/32")
-	node2, _ := newExternalNodeForCidr("0.0.0.2/32")
-	node3, _ := newExternalNodeForCidr("0.0.0.3/32")
+	node0, _ := newExternalNodeForCidr("0.0.0.0/32", publicInternetNodeName)
+	node1, _ := newExternalNodeForCidr("0.0.0.1/32", publicInternetNodeName)
+	node2, _ := newExternalNodeForCidr("0.0.0.2/32", publicInternetNodeName)
+	node3, _ := newExternalNodeForCidr("0.0.0.3/32", publicInternetNodeName)
 	nodeSet := mockSubnet{name: "nodeSet", nodes: []Node{node0, node1, node2, node3}}
 
-	outNode0, _ := newExternalNodeForCidr("0.0.1.0/32")
-	outNode1, _ := newExternalNodeForCidr("0.0.1.1/32")
-	outNode2, _ := newExternalNodeForCidr("0.0.1.2/32")
+	outNode0, _ := newExternalNodeForCidr("0.0.1.0/32", publicInternetNodeName)
+	outNode1, _ := newExternalNodeForCidr("0.0.1.1/32", publicInternetNodeName)
+	outNode2, _ := newExternalNodeForCidr("0.0.1.2/32", publicInternetNodeName)
 
 	outNodes := []VPCResourceIntf{outNode0, outNode1, outNode2}
 	return &nodeSet, outNodes

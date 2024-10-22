@@ -47,7 +47,7 @@ func TestLintWithComparsion(t *testing.T) {
 		tt.Mode = testfunc.OutputComparison
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			rc := &AWSresourcesContainer{}
+			rc := NewAWSresourcesContainer()
 			tt.TestSingleLint(t, rc)
 		})
 	}
@@ -63,7 +63,7 @@ func TestLintWithComparsion(t *testing.T) {
 		tt.Mode = testfunc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			rc := &AWSresourcesContainer{}
+			rc := NewAWSresourcesContainer()
 			tt.TestSingleLint(t, rc)
 		})
 	}
