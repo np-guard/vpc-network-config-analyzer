@@ -31,26 +31,15 @@ type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
 
-// All public IP addresses belong to one of the following public IP address ranges:
-func GetPublicInternetAddressList() *[]string {
-	return &[]string{
-		"1.0.0.0-9.255.255.255",
-		"11.0.0.0-100.63.255.255",
-		"100.128.0.0-126.255.255.255",
-		"128.0.0.0-169.253.255.255",
-		"169.255.0.0-172.15.255.255",
-		"172.32.0.0-191.255.255.255",
-		"192.0.1.0/24",
-		"192.0.3.0-192.88.98.255",
-		"192.88.100.0-192.167.255.255",
-		"192.169.0.0-198.17.255.255",
-		"198.20.0.0-198.51.99.255",
-		"198.51.101.0-203.0.112.255",
-		"203.0.114.0-223.255.255.255",
-	}
+// NewAWSresourcesContainer is used to return empty NewAWSresourcesContainer and also initialize
+// vpcmodel.NetworkAddressLists with aws Public internet and service network
+// if you do not use this function, you need to initialize vpcmodel.NetworkAddressLists
+func NewAWSresourcesContainer() *AWSresourcesContainer {
+	vpcmodel.InitNetworkAddressLists(vpcmodel.GetDefaultPublicInternetAddressList(), []string{})
+	return &AWSresourcesContainer{}
 }
 
-func NewAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
+func CopyAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
 	awsResources, ok := rc.GetResources().(*aws.ResourcesContainer)
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *aws.ResourcesContainerModel type")
@@ -98,7 +87,7 @@ func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesCon
 func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
-		mergedRC := &AWSresourcesContainer{}
+		mergedRC := NewAWSresourcesContainer()
 		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)

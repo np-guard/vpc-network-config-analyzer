@@ -759,8 +759,7 @@ var tests = []*testfunc.VpcAnalysisTest{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, NewIBMresourcesContainer(), analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -769,8 +768,7 @@ func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, NewIBMresourcesContainer(), analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -809,8 +807,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestAnalysisSingleTest(t, tt.Mode, &IBMresourcesContainer{}, analysisOut, tt.Name)
+		tt.TestAnalysisSingleTest(t, tt.Mode, NewIBMresourcesContainer(), analysisOut, tt.Name)
 	}
 	fmt.Println("done")
 }

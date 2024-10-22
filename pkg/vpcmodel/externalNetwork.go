@@ -8,10 +8,10 @@ package vpcmodel
 
 import (
 	"errors"
+	"sync"
 
 	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/spec"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
 
 const (
@@ -24,33 +24,31 @@ const (
 	externalNetworkNodeKind = "ExternalNetwork"
 )
 
+var once sync.Once
+
+// singleton struct
 type NetworkAddressLists struct {
-	publicInternetAddressList *[]string
-	serviceNetworkAddressList *[]string
+	publicInternetAddressList []string
+	serviceNetworkAddressList []string
 }
 
-var networkAddressList *NetworkAddressLists
+var networkAddressList = &NetworkAddressLists{}
 
-func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList *[]string) {
-	if networkAddressList == nil {
+func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList []string) {
+	once.Do(func() {
 		networkAddressList = &NetworkAddressLists{publicInternetAddressList, serviceNetworkAddressList}
-	} else {
-		logging.Warnf("vpcmodel NetworkAddressLists already initialized, can not be initialized twice")
-	}
+	})
 }
 
 func GetNetworkAddressList() *NetworkAddressLists {
-	if networkAddressList == nil {
-		logging.Warnf("vpcmodel NetworkAddressLists not initialized")
-		networkAddressList = &NetworkAddressLists{}
-	}
 	return networkAddressList
 }
 
 // TODO: move getPublicInternetAddressList to pkg IPBlock ?
 
+// Default public IP addresses
 // All public IP addresses belong to one of the following public IP address ranges:
-func getPublicInternetAddressList() []string {
+func GetDefaultPublicInternetAddressList() []string {
 	return []string{
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
@@ -70,18 +68,15 @@ func getPublicInternetAddressList() []string {
 
 func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock,
 	allInternetRagnes *ipblock.IPBlock, err error) {
-	if n.publicInternetAddressList == nil {
-		return ipStringsToIPblocks(getPublicInternetAddressList())
+	if len(n.publicInternetAddressList) == 0 {
+		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
 	}
-	return ipStringsToIPblocks(*n.publicInternetAddressList)
+	return ipStringsToIPblocks(n.publicInternetAddressList)
 }
 
 func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock,
 	serviceNetworkRagnes *ipblock.IPBlock, err error) {
-	if n.serviceNetworkAddressList == nil {
-		return ipStringsToIPblocks([]string{})
-	}
-	return ipStringsToIPblocks(*n.serviceNetworkAddressList)
+	return ipStringsToIPblocks(n.serviceNetworkAddressList)
 }
 
 // ExternalNetwork implements Node interface

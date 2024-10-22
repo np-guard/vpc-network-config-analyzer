@@ -99,8 +99,7 @@ var diffTests = []*testfunc.VpcDiffTest{
 		// tests is the list of tests to run
 		for testIdx := range diffTests {
 			tt := diffTests[testIdx]
-			vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-			tt.TestDiffSingle(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
+			tt.TestDiffSingle(t, testfunc.OutputGeneration, NewIBMresourcesContainer(), diffOut, tt.InputConfig)
 		}
 		fmt.Println("done")
 	}
@@ -112,8 +111,7 @@ func TestDiffWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range diffTests {
 		tt := diffTests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestDiffSingle(t, testfunc.OutputComparison, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
+		tt.TestDiffSingle(t, testfunc.OutputComparison, NewIBMresourcesContainer(), diffOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

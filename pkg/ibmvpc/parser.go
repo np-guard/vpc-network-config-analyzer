@@ -30,9 +30,17 @@ type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
 
-// All public IP addresses belong to one of the following public IP address ranges:
-func GetPublicInternetAddressList() *[]string {
-	return &[]string{
+// NewIBMresourcesContainer is used to return empty IBMresourcesContainer and also initialize
+// vpcmodel.NetworkAddressLists with ibm Public internet and service network
+// if you do not use this function, you need to initialize vpcmodel.NetworkAddressLists
+func NewIBMresourcesContainer() *IBMresourcesContainer {
+	vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
+	return &IBMresourcesContainer{}
+}
+
+// IBM All public IP addresses belong to one of the following public IP address ranges:
+func GetPublicInternetAddressList() []string {
+	return []string{
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
 		"100.128.0.0-126.255.255.255",
@@ -51,15 +59,15 @@ func GetPublicInternetAddressList() *[]string {
 	}
 }
 
-// All service network IP addresses belong to one of the following service network IP address ranges:
-func GetServiceNetworkAddressList() *[]string {
-	return &[]string{
+// IBM All service network IP addresses belong to one of the following service network IP address ranges:
+func GetServiceNetworkAddressList() []string {
+	return []string{
 		"161.26.0.0/16",
 		"166.8.0.0/14",
 	}
 }
 
-func NewIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
+func CopyIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
 	ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
@@ -99,7 +107,7 @@ func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesCon
 func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
-		mergedRC := &IBMresourcesContainer{}
+		mergedRC := NewIBMresourcesContainer()
 		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)

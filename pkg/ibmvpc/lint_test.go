@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
-	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 var lintTests = []*testfunc.VpcLintTest{
@@ -90,8 +89,7 @@ func TestLintWithComparsion(t *testing.T) {
 		tt.Mode = testfunc.OutputComparison
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-			rc := &IBMresourcesContainer{}
+			rc := NewIBMresourcesContainer()
 			tt.TestSingleLint(t, rc)
 		})
 	}
@@ -107,8 +105,7 @@ func TestLintWithComparsion(t *testing.T) {
 		tt.Mode = testfunc.OutputGeneration
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
-			vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-			rc := &IBMresourcesContainer{}
+			rc := NewIBMresourcesContainer()
 			tt.TestSingleLint(t, rc)
 		})
 	}

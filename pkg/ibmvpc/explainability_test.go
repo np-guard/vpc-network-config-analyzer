@@ -24,8 +24,7 @@ import (
 func getConfig(t *testing.T, fileName string) *vpcmodel.MultipleVPCConfigs {
 	inputConfigFile := filepath.Join(testfunc.GetTestsDirInput(),
 		testfunc.InputFilePrefix+fileName+testfunc.JSONOutSuffix)
-	vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-	rc := IBMresourcesContainer{}
+	rc := NewIBMresourcesContainer()
 	err := rc.ParseResourcesFromFile(inputConfigFile)
 	if err != nil {
 		t.Fatalf("err: %s", err)
@@ -780,8 +779,7 @@ func TestExplainWithComparsion(t *testing.T) {
 	// explainTests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestSingleExplain(t, testfunc.OutputComparison, &IBMresourcesContainer{}, tt.Name)
+		tt.TestSingleExplain(t, testfunc.OutputComparison, NewIBMresourcesContainer(), tt.Name)
 	}
 	fmt.Println("done")
 }
@@ -793,8 +791,7 @@ func TestExplainWithGeneration(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range explainTests {
 		tt := explainTests[testIdx]
-		vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-		tt.TestSingleExplain(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, tt.Name)
+		tt.TestSingleExplain(t, testfunc.OutputGeneration, NewIBMresourcesContainer(), tt.Name)
 	}
 	fmt.Println("done")
 }*/
