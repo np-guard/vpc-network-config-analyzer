@@ -65,9 +65,8 @@ func (gen *DrawioGenerator) TreeNode(res FormattableResource) drawio.TreeNodeInt
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
 	if exn.IsPublicInternet() {
 		return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
-	} else {
-		return drawio.NewServiceNetworkTreeNode(gen.PublicNetwork(), exn.CidrStr)
 	}
+	return drawio.NewServiceNetworkTreeNode(gen.PublicNetwork(), exn.CidrStr)
 }
 func (exn *ExternalNetwork) ShowOnSubnetMode() bool     { return true }
 func (g *groupedEndpointsElems) ShowOnSubnetMode() bool { return true }
