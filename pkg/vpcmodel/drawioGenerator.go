@@ -63,7 +63,11 @@ func (gen *DrawioGenerator) TreeNode(res FormattableResource) drawio.TreeNodeInt
 // implementations of the GenerateDrawioTreeNode() for resource defined in vpcmodel:
 
 func (exn *ExternalNetwork) GenerateDrawioTreeNode(gen *DrawioGenerator) drawio.TreeNodeInterface {
-	return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
+	if exn.IsPublicInternet() {
+		return drawio.NewInternetTreeNode(gen.PublicNetwork(), exn.CidrStr)
+	} else {
+		return drawio.NewServiceNetworkTreeNode(gen.PublicNetwork(), exn.CidrStr)
+	}
 }
 func (exn *ExternalNetwork) ShowOnSubnetMode() bool     { return true }
 func (g *groupedEndpointsElems) ShowOnSubnetMode() bool { return true }
@@ -106,13 +110,20 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	name := "Various IP ranges"
 	if all, _ := isEntirePublicInternetRange(*g); all {
 		name = publicInternetNodeName
+	} else if all, _ := isEntireServiceNetworkRange(*g); all {
+		name = serviceNetworkNodeName
 	} else {
 		ipBlock := g.toIPBlock()
 		if len(ipBlock.ListToPrint()) == 1 {
 			name = ipBlock.String()
 		}
 	}
-	tn := drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
+	var tn drawio.IconTreeNodeInterface
+	if (*g)[0].IsPublicInternet() {
+		tn = drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
+	} else {
+		tn = drawio.NewServiceNetworkTreeNode(gen.PublicNetwork(), name)
+	}
 	tn.SetTooltip(tooltip)
 	return tn
 }

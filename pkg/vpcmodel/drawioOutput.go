@@ -183,9 +183,9 @@ func (d *DrawioOutputFormatter) lineRouter(line *groupedConnLine, vpcResourceID 
 	}
 	var routeredEP EndpointElem
 	switch {
-	case line.Dst.IsExternal():
+	case line.Dst.IsExternal() && endpointElemResources(line.Dst)[0].(Node).IsPublicInternet():
 		routeredEP = line.Src
-	case line.Src.IsExternal():
+	case line.Src.IsExternal() && endpointElemResources(line.Src)[0].(Node).IsPublicInternet():
 		routeredEP = line.Dst
 	default:
 		return nil
