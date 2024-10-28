@@ -167,8 +167,8 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWb
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/np-guard/cloud-resource-collector v0.15.0 h1:jkmxql6D1uBr/qmSOsBzUgeDxlUXSCe7dBKfqfK+QZ4=
 github.com/np-guard/cloud-resource-collector v0.15.0/go.mod h1:klCHnNnuuVcCtGQHA7R1a8fqnvfMCk/5Jdld6V7sN2A=
-github.com/np-guard/models v0.4.0 h1:lU9XymcjwOJ5RQdVpziurqBmcLtlKVIQxVUwm+qMczk=
-github.com/np-guard/models v0.4.0/go.mod h1:mqE2Irf8r+7HWh8fII0fWbWyQRMHGEo2SgSLN/6VKs8=
+github.com/np-guard/models v0.5.2 h1:lty+shExffJpMQyu36a/NBYEky/rjEddQid4GOVHnhs=
+github.com/np-guard/models v0.5.2/go.mod h1:dqRdt5EQID1GmHuYsMOJzg4sS104om6NwEZ6sVO55z8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
