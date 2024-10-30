@@ -753,6 +753,13 @@ var tests = []*testfunc.VpcAnalysisTest{
 		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
 		NoLbAbstract: true,
 	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "service_network_test",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+	},
 }
 
 // uncomment the function below to run for updating the expected output
