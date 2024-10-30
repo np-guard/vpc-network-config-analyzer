@@ -513,13 +513,15 @@ var tests = []*testfunc.VpcAnalysisTest{
 		},
 		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
 	},
-	// commented until https://github.com/np-guard/vpc-network-config-analyzer/issues/847 is fixed
-	// {
-	//	InputConfig: "iks_workers_large",
-	//	UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
-	//	Grouping:    true,
-	//	Format:      vpcmodel.DRAWIO,
-	// },
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "iks_workers_large",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.DRAWIO,
+		},
+		GroupingType: vpcmodel.GroupingNoConsistencyEdges,
+	},
+
 	// Grouping test of identical names different resources and thus different UIDs that should not be merged
 	{
 		VpcTestCommon: testfunc.VpcTestCommon{
