@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -79,7 +80,7 @@ func (finding *blockedTCPResponseConn) string() string {
 		vpcSrcName, finding.src.NameForAnalyzerOut(nil), vpcDstName, finding.dst.NameForAnalyzerOut(nil))
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
-		strings.ReplaceAll(finding.tcpRspDisable.String(), "protocol: ", ""))
+		strings.ReplaceAll(common.LongString(finding.tcpRspDisable), "protocol: ", ""))
 }
 
 func (finding *blockedTCPResponseConn) getVpcName(i int) string {

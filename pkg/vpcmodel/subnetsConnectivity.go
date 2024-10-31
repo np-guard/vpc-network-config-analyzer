@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -43,7 +44,7 @@ const (
 )
 
 func subnetConnLine(subnet string, conn *netset.TransportSet) string {
-	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
+	return fmt.Sprintf("%s : %s\n", subnet, common.LongString(conn))
 }
 
 func (c *ConfigBasedConnectivityResults) string(config *VPCConfig) string {

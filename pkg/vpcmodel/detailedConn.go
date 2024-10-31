@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
+	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 const asterisk = " * "
@@ -113,18 +114,18 @@ func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *netset.TransportSet {
 
 // string adds * to non-responsive TCP components of the connection
 // for cosmetic reasons remove the protocol word from cubes prints
-func (d *detailedConn) string() string {
+func (d *detailedConn) string() string { ////////////////////olaaaaaaaaaaaaaa
 	if d.allConn.IsEmpty() {
-		return d.allConn.String()
+		return common.LongString(d.allConn)
 	}
 	resStrSlice := []string{}
 	if !d.TCPRspDisable.IsEmpty() {
-		tcpNonResponsive := d.TCPRspDisable.String()
+		tcpNonResponsive := common.LongString(d.TCPRspDisable)
 		tcpNonResponsive = strings.ReplaceAll(tcpNonResponsive, ";", asterisk+";")
 		resStrSlice = append(resStrSlice, tcpNonResponsive+asterisk)
 	}
 	if !d.nonTCPAndResponsiveTCPComponent().IsEmpty() {
-		resStrSlice = append(resStrSlice, d.nonTCPAndResponsiveTCPComponent().String())
+		resStrSlice = append(resStrSlice, common.LongString(d.nonTCPAndResponsiveTCPComponent()))
 	}
 	// todo: remove "protocol" from the original cube printing funcs
 	return strings.ReplaceAll(strings.Join(resStrSlice, "; "), "protocol: ", "")
@@ -136,9 +137,9 @@ func (d *detailedConn) string() string {
 // this separation is done here: the former is returned for bidirectional and the latter for false
 func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsiveTCP bool) string {
 	if nonTCPAndResponsiveTCP {
-		return d.nonTCPAndResponsiveTCPComponent().String()
+		return common.LongString(d.nonTCPAndResponsiveTCPComponent())
 	}
-	return d.TCPRspDisable.String() + asterisk
+	return common.LongString(d.TCPRspDisable) + asterisk
 }
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`

@@ -14,6 +14,7 @@ import (
 
 	"github.com/np-guard/models/pkg/netset"
 
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -74,7 +75,7 @@ type NACLRule struct {
 
 func (rule *NACLRule) dumpRule() string {
 	return fmt.Sprintf("index: %d, src: %s, dst: %s, conn: %s, action: %s",
-		rule.Index, rule.Src.ToIPRanges(), rule.Dst.ToIPRanges(), rule.Connections.String(), rule.Action)
+		rule.Index, rule.Src.ToIPRanges(), rule.Dst.ToIPRanges(), common.LongString(rule.Connections), rule.Action)
 }
 
 var _ = (*NACLAnalyzer).dumpNACLrules // avoiding "unused" warning
@@ -272,7 +273,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *netset.IPBlo
 		for _, src := range disjointSrcPeers {
 			allowedIngressConns, _, allowRules, _ := GetAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
 			for dst, conn := range allowedIngressConns {
-				res = append(res, getConnStr(src.ToIPRanges(), dst, conn.String()))
+				res = append(res, getConnStr(src.ToIPRanges(), dst, common.LongString(conn)))
 				dstIP, err := netset.IPBlockFromIPRangeStr(dst)
 				if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.IsSubset(dstIP) {
 					connResult.AllowedConns[src] = conn
@@ -288,7 +289,7 @@ func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *netset.IPBlo
 	for _, dst := range disjointDstPeers {
 		allowedEgressConns, _, allowRules, _ := GetAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
 		for src, conn := range allowedEgressConns {
-			res = append(res, getConnStr(src, dst.ToIPRanges(), conn.String()))
+			res = append(res, getConnStr(src, dst.ToIPRanges(), common.LongString(conn)))
 			srcIP, err := netset.IPBlockFromIPRangeStr(src)
 			if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.IsSubset(srcIP) {
 				connResult.AllowedConns[dst] = conn

@@ -13,6 +13,7 @@ import (
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
@@ -172,7 +173,7 @@ func (sga *IBMSGAnalyzer) getProtocolICMPRule(ruleObj *vpc1.SecurityGroupRuleSec
 		return
 	}
 	conns := commonvpc.GetICMPconn(ruleObj.Type, ruleObj.Code)
-	ruleStr = getRuleStr(*ruleObj.Direction, *ruleObj.ID, conns.String(), remoteCidr, remoteSGName, localCidr)
+	ruleStr = getRuleStr(*ruleObj.Direction, *ruleObj.ID, common.LongString(conns), remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		Connections: conns,
 		Remote:      commonvpc.NewRuleTarget(remote, remoteSGName),

@@ -1,5 +1,5 @@
 Connectivity diff between VPC test-vpc1-ky and VPC test-vpc1-ky
-diff-type: changed, source: vsi2-ky[10.240.20.4], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-21,301-65535 * ; ICMP,UDP; TCP src-ports: 22-300
+diff-type: changed, source: vsi2-ky[10.240.20.4], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-21,301-65535 * ; ICMP,TCP src-ports: 22-300; UDP
 diff-type: changed, source: vsi2-ky[10.240.20.4], destination: vsi3b-ky[10.240.30.4], config1: TCP, config2: TCP src-ports: 1-21,301-65535 * ; TCP src-ports: 22-300
 diff-type: changed, source: vsi3b-ky[10.240.30.4], destination: vsi2-ky[10.240.20.4], config1: TCP, config2: TCP dst-ports: 22-300
 

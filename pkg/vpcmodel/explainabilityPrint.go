@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
+	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 const arrow = " -> "
@@ -52,7 +53,7 @@ func explainHeader(explanation *Explanation) string {
 // 2) the actual allowed connection from the queried one in the 2nd header
 func connHeader(connQuery *netset.TransportSet) string {
 	if connQuery != nil {
-		return " using \"" + connQuery.String() + "\""
+		return " using \"" + common.LongString(connQuery) + "\""
 	}
 	return ""
 }
@@ -212,7 +213,7 @@ func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressCon
 	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
 		return fmt.Sprintf("\tconnectivity is blocked since traffic patterns allowed at ingress are disjoint "+
 			"from the traffic patterns allowed at egress.\n\t"+
-			"allowed egress traffic: %v, allowed ingress traffic: %v", egressConn, ingressConn)
+			"allowed egress traffic: %v, allowed ingress traffic: %v", common.LongString(egressConn), common.LongString(ingressConn))
 	}
 	return ""
 }
@@ -314,7 +315,7 @@ func existingConnectionStr(c *VPCConfig, connQuery *netset.TransportSet, src, ds
 	if connQuery == nil {
 		resComponents = append(resComponents, fmt.Sprintf("Connections from %v to %v: %v%v\n",
 			src.NameForAnalyzerOut(c), dst.NameForAnalyzerOut(c),
-			conn.allConn.String(), respondConnStr))
+			common.LongString(conn.allConn), respondConnStr))
 	} else {
 		properSubsetConn := ""
 		if !conn.allConn.Equal(connQuery) {
@@ -633,7 +634,7 @@ func respondString(d *detailedConn) string {
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
 	default:
-		disabledToPrint := strings.ReplaceAll(d.TCPRspDisable.String(),
+		disabledToPrint := strings.ReplaceAll(common.LongString(d.TCPRspDisable),
 			"protocol: ", "")
 		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
 		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint

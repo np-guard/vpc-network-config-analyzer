@@ -13,6 +13,7 @@ import (
 
 	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
@@ -139,7 +140,7 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 		return "", nil, err
 	}
 	conns := netset.NewICMPTransport(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
-	connStr := fmt.Sprintf("protocol: %s, icmpType: %s", *ruleObj.IpProtocol, conns)
+	connStr := fmt.Sprintf("protocol: %s, icmpType: %s", *ruleObj.IpProtocol, common.LongString(conns))
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
 		return "", nil, err

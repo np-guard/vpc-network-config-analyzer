@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // ConnectivityResultMap is a map from IPBlock to ConnectivityResult, used to map disjointLocals IPBlocks to ConnectivityResult
@@ -116,7 +117,7 @@ func (cr ConnectivityResultMap) Equal(other ConnectivityResultMap) bool {
 func (cr *ConnectivityResult) String() string {
 	res := []string{}
 	for t, conn := range cr.AllowedConns {
-		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), conn.String()))
+		res = append(res, fmt.Sprintf("remote: %s, conn: %s", t.ToIPRanges(), common.LongString(conn)))
 	}
 	sort.Strings(res)
 	return strings.Join(res, "\n")

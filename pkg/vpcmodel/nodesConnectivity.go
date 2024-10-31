@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
+	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 // Functions for the computation of VPC connectivity between nodes elements
@@ -349,7 +350,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getCombinedConnsStr(on
 			var connsStr string
 			if onlyBidirectional {
 				bidirectional := extConns.tcpRspEnable.Union(extConns.nonTCP)
-				connsStr = bidirectional.String()
+				connsStr = common.LongString(bidirectional)
 			} else {
 				connsStr = extConns.string()
 			}
