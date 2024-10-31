@@ -211,7 +211,8 @@ func (sga *SGAnalyzer) allowedConnectivity(target, local *netset.IPBlock, isIngr
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *netset.IPBlock, connQuery *netset.TransportSet, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *netset.IPBlock,
+	connQuery *netset.TransportSet, isIngress bool) ([]int, error) {
 	analyzedConnsMap := sga.ingressOrEgressConnectivity(isIngress)
 	for definedLocal, analyzedConns := range analyzedConnsMap {
 		if local.IsSubset(definedLocal) {

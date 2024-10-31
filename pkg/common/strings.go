@@ -1,5 +1,6 @@
 /*
 Copyright 2023- IBM Inc. All Rights Reserved.
+
 SPDX-License-Identifier: Apache-2.0
 */
 
@@ -21,9 +22,8 @@ const (
 	NoConnections  = "No Connections"
 )
 const (
-	spaceString    = " "
-	protocolString = "protocol: "
-	// commaString     = ", "
+	spaceString     = " "
+	protocolString  = "protocol: "
 	semicolonString = "; "
 )
 
@@ -61,7 +61,6 @@ func getTCPUDPCubeStr(cube ds.Triple[*netset.ProtocolSet, *netset.PortSet, *nets
 }
 
 func getICMPCubeStr(cube ds.Pair[*netset.TypeSet, *netset.CodeSet]) string {
-	// tc := cube.ICMPTypeCode()
 	if cube.Left.Equal(netset.AllICMPTypes()) && cube.Right.Equal(netset.AllICMPCodes()) {
 		return ""
 	}
