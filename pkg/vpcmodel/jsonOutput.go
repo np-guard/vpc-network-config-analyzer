@@ -11,7 +11,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type JSONoutputFormatter struct {
@@ -45,21 +45,21 @@ func (j *JSONoutputFormatter) WriteOutput(c1, c2 *VPCConfig,
 }
 
 type connLine struct {
-	Src                EndpointElem       `json:"src"`
-	Dst                EndpointElem       `json:"dst"`
-	Conn               connection.Details `json:"conn"`
-	UnidirectionalConn connection.Details `json:"unidirectional_conn,omitempty"`
+	Src                EndpointElem   `json:"src"`
+	Dst                EndpointElem   `json:"dst"`
+	Conn               netset.Details `json:"conn"`
+	UnidirectionalConn netset.Details `json:"unidirectional_conn,omitempty"`
 }
 
 type diffLine struct {
-	SrcChange           string             `json:"src_change"`
-	DstChange           string             `json:"dst_change"`
-	Src                 EndpointElem       `json:"src"`
-	Dst                 EndpointElem       `json:"dst"`
-	Conn1               connection.Details `json:"conn1"`
-	UnidirectionalConn1 connection.Details `json:"unidirectional_conn1"`
-	Conn2               connection.Details `json:"conn2"`
-	UnidirectionalConn2 connection.Details `json:"unidirectional_conn2"`
+	SrcChange           string         `json:"src_change"`
+	DstChange           string         `json:"dst_change"`
+	Src                 EndpointElem   `json:"src"`
+	Dst                 EndpointElem   `json:"dst"`
+	Conn1               netset.Details `json:"conn1"`
+	UnidirectionalConn1 netset.Details `json:"unidirectional_conn1"`
+	Conn2               netset.Details `json:"conn2"`
+	UnidirectionalConn2 netset.Details `json:"unidirectional_conn2"`
 }
 
 func sortConnLines(connLines []connLine) {
@@ -85,10 +85,10 @@ func getConnLines(conn *VPCConnectivity) []connLine {
 			}
 			responsiveAndOther := extConn.tcpRspEnable.Union(extConn.nonTCP)
 			if !extConn.TCPRspDisable.IsEmpty() {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(responsiveAndOther),
-					UnidirectionalConn: connection.ToJSON(extConn.TCPRspDisable)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: netset.ToJSON(responsiveAndOther),
+					UnidirectionalConn: netset.ToJSON(extConn.TCPRspDisable)})
 			} else {
-				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: connection.ToJSON(extConn.allConn)})
+				connLines = append(connLines, connLine{Src: src, Dst: dst, Conn: netset.ToJSON(extConn.allConn)})
 			}
 		}
 	}
@@ -122,8 +122,8 @@ func getConnLinesForSubnetsConnectivity(conn *VPCsubnetConnectivity) []connLine 
 			connLines = append(connLines, connLine{
 				Src:                src,
 				Dst:                dst,
-				Conn:               connection.ToJSON(extConns.tcpRspEnable.Union(extConns.nonTCP)),
-				UnidirectionalConn: connection.ToJSON(extConns.TCPRspDisable),
+				Conn:               netset.ToJSON(extConns.tcpRspEnable.Union(extConns.nonTCP)),
+				UnidirectionalConn: netset.ToJSON(extConns.TCPRspDisable),
 			})
 		}
 	}
@@ -170,10 +170,10 @@ func getDirectionalDiffLines(connectDiff connectivityDiff) []diffLine {
 				diffDstStr = getDiffDstOther(connDiff.diff)
 			}
 			diffLines = append(diffLines, diffLine{diffSrcStr, diffDstStr,
-				src, dst, connection.ToJSON(connDiff.conn1.nonTCPAndResponsiveTCPComponent()),
-				connection.ToJSON(connDiff.conn1.TCPRspDisable),
-				connection.ToJSON(connDiff.conn2.nonTCPAndResponsiveTCPComponent()),
-				connection.ToJSON(connDiff.conn2.TCPRspDisable)})
+				src, dst, netset.ToJSON(connDiff.conn1.nonTCPAndResponsiveTCPComponent()),
+				netset.ToJSON(connDiff.conn1.TCPRspDisable),
+				netset.ToJSON(connDiff.conn2.nonTCPAndResponsiveTCPComponent()),
+				netset.ToJSON(connDiff.conn2.TCPRspDisable)})
 		}
 	}
 

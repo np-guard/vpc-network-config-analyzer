@@ -11,8 +11,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
@@ -26,7 +26,7 @@ const (
 // AWSSGAnalyzer implements commonvpc.SpecificSGAnalyzer
 type AWSSGAnalyzer struct {
 	sgResource         *types.SecurityGroup
-	referencedIPblocks []*ipblock.IPBlock
+	referencedIPblocks []*netset.IPBlock
 	sgMap              map[string]*commonvpc.SecurityGroup
 }
 
@@ -40,8 +40,8 @@ func (sga *AWSSGAnalyzer) Name() *string {
 }
 
 func (sga *AWSSGAnalyzer) getRemoteCidr(ipRanges []types.IpRange, userIDGroupPairs []types.UserIdGroupPair) (
-	remote *ipblock.IPBlock, err error) {
-	remote = ipblock.New()
+	remote *netset.IPBlock, err error) {
+	remote = netset.NewIPBlock()
 	for i := range ipRanges {
 		target, _, err := commonvpc.GetIPBlockResult(ipRanges[i].CidrIp, nil, nil, sga.sgMap)
 		if err != nil {
@@ -75,7 +75,7 @@ func (sga *AWSSGAnalyzer) getProtocolAllRule(ruleObj *types.IpPermission, direct
 	}
 	ruleRes.Remote = commonvpc.NewRuleTarget(remote, "")
 	ruleStr = getRuleStr(direction, connStr, ruleRes.Remote.Cidr.String())
-	ruleRes.Connections = connection.All()
+	ruleRes.Connections = netset.AllTransports()
 	return ruleStr, ruleRes, nil
 }
 
@@ -92,8 +92,8 @@ func (sga *AWSSGAnalyzer) getProtocolTCPUDPRule(ruleObj *types.IpPermission, dir
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
 		Connections: commonvpc.GetTCPUDPConns(protocol,
-			connection.MinPort,
-			connection.MaxPort,
+			netp.MinPort,
+			netp.MaxPort,
 			minPort,
 			maxPort,
 		),
@@ -118,12 +118,12 @@ func handleIcmpTypeCode(icmpType, icmpCode *int32) (newIcmpTypeMin, newIcmpTypeM
 	newIcmpCodeMax = int64(*icmpCode)
 
 	if newIcmpCodeMin == -1 {
-		newIcmpCodeMin = connection.MinICMPCode
-		newIcmpCodeMax = connection.MaxICMPCode
+		newIcmpCodeMin = int64(netp.MinICMPCode)
+		newIcmpCodeMax = int64(netp.MaxICMPCode)
 	}
 	if newIcmpTypeMin == -1 {
-		newIcmpTypeMin = connection.MinICMPType
-		newIcmpTypeMax = connection.MaxICMPType
+		newIcmpTypeMin = int64(netp.MinICMPType)
+		newIcmpTypeMax = int64(netp.MaxICMPType)
 	}
 
 	return
@@ -138,7 +138,7 @@ func (sga *AWSSGAnalyzer) getProtocolICMPRule(ruleObj *types.IpPermission, direc
 	if err != nil {
 		return "", nil, err
 	}
-	conns := connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
+	conns := netset.NewICMPTransport(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	connStr := fmt.Sprintf("protocol: %s, icmpType: %s", *ruleObj.IpProtocol, conns)
 	remote, err := sga.getRemoteCidr(ruleObj.IpRanges, ruleObj.UserIdGroupPairs)
 	if err != nil {
@@ -200,7 +200,7 @@ func (sga *AWSSGAnalyzer) GetSGRule(index int) (
 	if err != nil {
 		return "", nil, false, err
 	}
-	ruleRes.Local = ipblock.GetCidrAll()
+	ruleRes.Local = netset.GetCidrAll()
 	ruleRes.Index = index
 	tableName := "Inbound"
 	if !isIngress {
@@ -220,7 +220,7 @@ func (sga *AWSSGAnalyzer) SetSGmap(sgMap map[string]*commonvpc.SecurityGroup) {
 }
 
 // ReferencedIPblocks returns referencedIPblocks filed
-func (sga *AWSSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (sga *AWSSGAnalyzer) ReferencedIPblocks() []*netset.IPBlock {
 	return sga.referencedIPblocks
 }
 

@@ -10,8 +10,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCsubnetConnectivity captures allowed connectivity for subnets, considering nacl and pgw resources
@@ -43,7 +42,7 @@ const (
 	errUnexpectedTypePeerNode = "unexpected type for peerNode in computeAllowedConnsCombined"
 )
 
-func subnetConnLine(subnet string, conn *connection.Set) string {
+func subnetConnLine(subnet string, conn *netset.TransportSet) string {
 	return fmt.Sprintf("%s : %s\n", subnet, conn.String())
 }
 
@@ -71,16 +70,16 @@ func (v *VPCsubnetConnectivity) printAllowedConns(c *VPCConfig) {
 	}
 }
 
-func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
+func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *netset.IPBlock, excludeExternalNodes bool) ([]VPCResourceIntf, error) {
 	res := []VPCResourceIntf{}
 
 	// consider subnets
 	for _, subnet := range c.Subnets {
-		var subnetCidrIPB *ipblock.IPBlock
+		var subnetCidrIPB *netset.IPBlock
 		if subnetCidrIPB = subnet.AddressRange(); subnetCidrIPB == nil {
 			return nil, errors.New("missing AddressRange for subnet")
 		}
-		if subnetCidrIPB.ContainedIn(ipb) {
+		if subnetCidrIPB.IsSubset(ipb) {
 			res = append(res, subnet)
 		} else if subnetCidrIPB.Overlap(ipb) {
 			// the ACL splits connectivity to part of that subnet,
@@ -100,7 +99,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *ipblock.IPBlock, exclud
 			continue
 		}
 		nodeCidrIPB := exn.IPBlock()
-		if nodeCidrIPB.ContainedIn(ipb) {
+		if nodeCidrIPB.IsSubset(ipb) {
 			res = append(res, exn)
 		}
 	}
@@ -237,9 +236,9 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW bool, groupingType int) (*
 // updateSubnetsConnectivityByTransitGateway checks if subnets pair (src,dst) cross-vpc connection is enabled by tgw,
 // and if yes - returns the original computed combinedConns, else returns no-conns object
 func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
-	combinedConns *connection.Set,
+	combinedConns *netset.TransportSet,
 	c *VPCConfig) (
-	*connection.Set, error) {
+	*netset.TransportSet, error) {
 	// assuming a single router representing the tgw for a "MultipleVPCsConfig"
 	if len(c.RoutingResources) != 1 {
 		return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only TGW")
@@ -268,7 +267,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 			if !considerPair {
 				continue
 			}
-			var combinedConns *connection.Set
+			var combinedConns *netset.TransportSet
 			// peerNode kind is expected to be Subnet or External
 			peerNodeObj := v.VPCConfig.UIDToResource[peerNode.UID()]
 			switch concPeerNode := peerNodeObj.(type) {
@@ -329,7 +328,7 @@ func (v *VPCsubnetConnectivity) computeResponsiveConnections(allowedConnsCombine
 				continue
 			}
 			dstObj := v.VPCConfig.UIDToResource[dst.UID()]
-			var otherDirectionConn *connection.Set
+			var otherDirectionConn *netset.TransportSet
 			switch dstObj.(type) {
 			case NodeSet:
 				otherDirectionConn = allowedConnsCombined[dst][src]

@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 const arrow = " -> "
@@ -50,7 +50,7 @@ func explainHeader(explanation *Explanation) string {
 
 // connHeader is used to print 1) the query in the first header
 // 2) the actual allowed connection from the queried one in the 2nd header
-func connHeader(connQuery *connection.Set) string {
+func connHeader(connQuery *netset.TransportSet) string {
 	if connQuery != nil {
 		return " using \"" + connQuery.String() + "\""
 	}
@@ -91,7 +91,7 @@ func (explanation *Explanation) String(verbose bool) string {
 
 // missing cross vpc router
 // in this case there is no *VPCConfig we can work with, so this case is treated separately
-func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) string {
+func explainMissingCrossVpcRouter(src, dst string, connQuery *netset.TransportSet) string {
 	return fmt.Sprintf("%vAll connections will be blocked since source and destination are in different VPCs with no transit gateway to "+
 		"connect them", noConnectionHeader(src, dst, connQuery)+newLine)
 }
@@ -120,7 +120,7 @@ func explainMissingCrossVpcRouter(src, dst string, connQuery *connection.Set) st
 // the connection is blocked and only part of the path is printed then 2 is printed so that the relevant information
 // is provided regardless of where the is blocking
 // 4 is printed only in detailed mode
-func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connection.Set, allRulesDetails *rulesDetails,
+func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *netset.TransportSet, allRulesDetails *rulesDetails,
 	verbose bool) string {
 	expDetails := g.CommonProperties.expDetails
 	filtersRelevant := g.CommonProperties.expDetails.filtersRelevant
@@ -145,7 +145,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *connect
 		loadBalancerHeader = "Load Balancer: " + loadBalancerRule.String(true)
 		loadBalancerDetails = "\tLoad Balancer:\n" + doubleTab + loadBalancerRule.String(false) + newLine
 	}
-	var crossVpcConnection *connection.Set
+	var crossVpcConnection *netset.TransportSet
 	crossVpcConnection, crossRouterFilterHeader, crossRouterFilterDetails = crossRouterDetails(c, crossVpcRouter,
 		crossVpcRules, src, dst)
 	// noConnection is the 1 above when no connectivity
@@ -208,7 +208,7 @@ func (g *groupedConnLine) explainabilityLineDetailStr(verbose bool, loadBalancer
 	return details
 }
 
-func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *connection.Set) string {
+func egressIngressIntersectBlockStr(ingressEnable, egressEnable bool, ingressConn, egressConn *netset.TransportSet) string {
 	if ingressEnable && egressEnable && ingressConn.Intersect(egressConn).IsEmpty() {
 		return fmt.Sprintf("\tconnectivity is blocked since traffic patterns allowed at ingress are disjoint "+
 			"from the traffic patterns allowed at egress.\n\t"+
@@ -231,7 +231,7 @@ func respondDetailsHeader(d *detailedConn) string {
 
 // after all data is gathered, generates the actual string to be printed
 func (g *groupedConnLine) explainPerCaseStr(c *VPCConfig, src, dst EndpointElem,
-	connQuery, crossVpcConnection *connection.Set, ingressBlocking, egressBlocking, loadBalancerBlocking,
+	connQuery, crossVpcConnection *netset.TransportSet, ingressBlocking, egressBlocking, loadBalancerBlocking,
 	missingExternalRouter bool, egressIngressIntersectBlock, noConnection, resourceEffectHeader, path, details string) string {
 	conn := g.CommonProperties.Conn
 	crossVpcRouter := g.CommonProperties.expDetails.crossVpcRouter
@@ -277,7 +277,7 @@ func blockSummary(ingressBlocking, egressBlocking, loadBalancerBlocking, missing
 }
 
 func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRules []RulesInTable,
-	src, dst EndpointElem) (crossVpcConnection *connection.Set,
+	src, dst EndpointElem) (crossVpcConnection *netset.TransportSet,
 	crossVpcRouterFilterHeader, crossVpcFilterDetails string) {
 	if crossVpcRouter != nil {
 		// an error here will pop up earlier, when computing connections
@@ -300,13 +300,13 @@ func crossVpcRouterRequired(src, dst EndpointElem) bool {
 }
 
 // returns string of header in case a connection fails to exist
-func noConnectionHeader(src, dst string, connQuery *connection.Set) string {
+func noConnectionHeader(src, dst string, connQuery *netset.TransportSet) string {
 	return fmt.Sprintf("No connectivity from %s to %s%s;", src, dst, connHeader(connQuery))
 }
 
 // printing when connection exists.
 // computing "1" when there is a connection and adding to it already computed "2" and "3" as described in explainabilityLineStr
-func existingConnectionStr(c *VPCConfig, connQuery *connection.Set, src, dst EndpointElem,
+func existingConnectionStr(c *VPCConfig, connQuery *netset.TransportSet, src, dst EndpointElem,
 	conn *detailedConn, path, details string) string {
 	resComponents := []string{}
 	// Computing the header, "1" described in explainabilityLineStr
@@ -421,7 +421,7 @@ func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, t
 // e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
 func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter bool,
-	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *connection.Set,
+	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *netset.TransportSet,
 	rules *rulesConnection, privateSubnetRule PrivateSubnetRule) string {
 	var pathSlice []string
 	pathSlice = append(pathSlice, "\t"+src.NameForAnalyzerOut(nil))

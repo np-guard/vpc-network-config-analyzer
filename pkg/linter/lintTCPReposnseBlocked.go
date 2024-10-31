@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -38,7 +38,7 @@ func newTCPResponseBlocked(name string, configs map[string]*vpcmodel.VPCConfig,
 type blockedTCPResponseConn struct {
 	src           vpcmodel.EndpointElem
 	dst           vpcmodel.EndpointElem
-	tcpRspDisable *connection.Set
+	tcpRspDisable *netset.TransportSet
 }
 
 // /////////////////////////////////////////////////////////
@@ -91,15 +91,15 @@ func (finding *blockedTCPResponseConn) getVpcName(i int) string {
 
 // TCP connection with no response
 type blockedTCPResponseConnJSON struct {
-	Src           string             `json:"source"`
-	Dst           string             `json:"destination"`
-	TCPRspDisable connection.Details `json:"tcp_non_responsive"`
+	Src           string         `json:"source"`
+	Dst           string         `json:"destination"`
+	TCPRspDisable netset.Details `json:"tcp_non_responsive"`
 }
 
 func (finding *blockedTCPResponseConn) toJSON() any {
 	vpcSrcName := finding.vpc()[0].Name()
 	vpcDstName := finding.vpc()[1].Name()
 	res := blockedTCPResponseConnJSON{Src: vpcSrcName + deliminator + finding.src.NameForAnalyzerOut(nil),
-		Dst: vpcDstName + deliminator + finding.dst.NameForAnalyzerOut(nil), TCPRspDisable: connection.ToJSON(finding.tcpRspDisable)}
+		Dst: vpcDstName + deliminator + finding.dst.NameForAnalyzerOut(nil), TCPRspDisable: netset.ToJSON(finding.tcpRspDisable)}
 	return res
 }

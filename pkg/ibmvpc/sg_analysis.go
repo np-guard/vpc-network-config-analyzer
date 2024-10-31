@@ -11,8 +11,8 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
 
@@ -20,7 +20,7 @@ import (
 type IBMSGAnalyzer struct {
 	SgResource         *vpc1.SecurityGroup
 	sgMap              map[string]*commonvpc.SecurityGroup
-	referencedIPblocks []*ipblock.IPBlock
+	referencedIPblocks []*netset.IPBlock
 }
 
 func NewIBMSGAnalyzer(sg *vpc1.SecurityGroup) *IBMSGAnalyzer {
@@ -43,7 +43,7 @@ func (sga *IBMSGAnalyzer) Name() *string {
 }
 
 // getRemoteCidr gets remote rule object interface and returns it's IPBlock
-func (sga *IBMSGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *ipblock.IPBlock,
+func (sga *IBMSGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf) (target *netset.IPBlock,
 	cidrRes string, remoteSGName string, err error) {
 	// TODO: on actual run from SG example, the type of remoteObj is SecurityGroupRuleRemote and not SecurityGroupRuleRemoteCIDR,
 	// even if cidr is defined
@@ -70,13 +70,13 @@ func (sga *IBMSGAnalyzer) getRemoteCidr(remote vpc1.SecurityGroupRuleRemoteIntf)
 	return target, cidrRes, remoteSGName, nil
 }
 
-func getDefaultLocal() (ipb *ipblock.IPBlock, cidr string) {
-	return ipblock.GetCidrAll(), ipblock.CidrAll
+func getDefaultLocal() (ipb *netset.IPBlock, cidr string) {
+	return netset.GetCidrAll(), netset.CidrAll
 }
 
 // getRemoteCidr gets local rule object interface and returns it's IPBlock
-func (sga *IBMSGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*ipblock.IPBlock, string, error) {
-	var localIP *ipblock.IPBlock
+func (sga *IBMSGAnalyzer) getLocalCidr(local vpc1.SecurityGroupRuleLocalIntf) (*netset.IPBlock, string, error) {
+	var localIP *netset.IPBlock
 	var cidrRes string
 	var err error
 	if localObj, ok := local.(*vpc1.SecurityGroupRuleLocal); ok {
@@ -104,7 +104,7 @@ func (sga *IBMSGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	isIngress = isIngressRule(ruleObj.Direction)
 	protocol := *ruleObj.Protocol
 	remoteCidr, localCidr, remoteSGName := "", "", ""
-	var remote, local *ipblock.IPBlock
+	var remote, local *netset.IPBlock
 	remote, remoteCidr, remoteSGName, err = sga.getRemoteCidr(ruleObj.Remote)
 	if err != nil {
 		return "", nil, false, err
@@ -117,7 +117,7 @@ func (sga *IBMSGAnalyzer) getProtocolAllRule(ruleObj *vpc1.SecurityGroupRuleSecu
 	ruleStr = getRuleStr(direction, *ruleObj.ID, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes.Remote = commonvpc.NewRuleTarget(remote, remoteSGName)
 	ruleRes.Local = local
-	ruleRes.Connections = connection.All()
+	ruleRes.Connections = netset.AllTransports()
 	return ruleStr, ruleRes, isIngress, nil
 }
 
@@ -133,16 +133,16 @@ func (sga *IBMSGAnalyzer) getProtocolTCPUDPRule(ruleObj *vpc1.SecurityGroupRuleS
 	if err != nil {
 		return "", nil, false, err
 	}
-	dstPortMin := commonvpc.GetProperty(ruleObj.PortMin, connection.MinPort)
-	dstPortMax := commonvpc.GetProperty(ruleObj.PortMax, connection.MaxPort)
+	dstPortMin := commonvpc.GetProperty(ruleObj.PortMin, netp.MinPort)
+	dstPortMax := commonvpc.GetProperty(ruleObj.PortMax, netp.MaxPort)
 	dstPorts := fmt.Sprintf("%d-%d", dstPortMin, dstPortMax)
 	connStr := fmt.Sprintf("protocol: %s,  dstPorts: %s", *ruleObj.Protocol, dstPorts)
 	ruleStr = getRuleStr(direction, *ruleObj.ID, connStr, remoteCidr, remoteSGName, localCidr)
 	ruleRes = &commonvpc.SGRule{
 		// TODO: src ports can be considered here?
 		Connections: commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
-			connection.MinPort,
-			connection.MaxPort,
+			netp.MinPort,
+			netp.MaxPort,
 			dstPortMin,
 			dstPortMax,
 		),
@@ -209,7 +209,7 @@ func (sga *IBMSGAnalyzer) GetSGRules() (ingressRules, egressRules []*commonvpc.S
 }
 
 // ReferencedIPblocks returns referencedIPblocks filed
-func (sga *IBMSGAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (sga *IBMSGAnalyzer) ReferencedIPblocks() []*netset.IPBlock {
 	return sga.referencedIPblocks
 }
 

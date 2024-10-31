@@ -11,7 +11,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -64,7 +63,7 @@ func NewExplainCommand(args *inArgs) *cobra.Command {
 }
 
 func portInRange(port int64) bool {
-	if port > connection.MaxPort || port < connection.MinPort {
+	if port > netp.MaxPort || port < netp.MinPort {
 		return false
 	}
 
@@ -112,7 +111,7 @@ func validateExplainFlags(cmd *cobra.Command, args *inArgs) error {
 	if !portInRange(args.eSrcMinPort) || !portInRange(args.eSrcMaxPort) ||
 		!portInRange(args.eDstMinPort) || !portInRange(args.eDstMaxPort) {
 		return fmt.Errorf("port number must be in between %d, %d, inclusive",
-			connection.MinPort, connection.MaxPort)
+			netp.MinPort, netp.MaxPort)
 	}
 
 	return nil

@@ -7,8 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCConnectivity holds detailed representation of allowed connectivity considering all resources in a vpc config1 instance
@@ -34,11 +33,11 @@ type VPCConnectivity struct {
 // The ConnectivityResult holds the allowed ingress and egress connections (to/from the associated node)
 // with other Node objects and the connection attributes for each such node
 type ConnectivityResult struct {
-	IngressAllowedConns map[Node]*connection.Set
-	EgressAllowedConns  map[Node]*connection.Set
+	IngressAllowedConns map[Node]*netset.TransportSet
+	EgressAllowedConns  map[Node]*netset.TransportSet
 }
 
-func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*connection.Set {
+func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[Node]*netset.TransportSet {
 	if isIngress {
 		return cr.IngressAllowedConns
 	}
@@ -49,20 +48,20 @@ func (cr *ConnectivityResult) ingressOrEgressAllowedConns(isIngress bool) map[No
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 // (see func (nl *NaclLayer) ConnectivityMap() )
 type IPbasedConnectivityResult struct {
-	IngressAllowedConns map[*ipblock.IPBlock]*connection.Set
-	EgressAllowedConns  map[*ipblock.IPBlock]*connection.Set
+	IngressAllowedConns map[*netset.IPBlock]*netset.TransportSet
+	EgressAllowedConns  map[*netset.IPBlock]*netset.TransportSet
 }
 
 // ConfigBasedConnectivityResults is used to capture allowed connectivity to/from elements in the vpc config1 (subnets / external ip-blocks)
 // It is associated with a subnet when analyzing connectivity of subnets based on NACL resources
 type ConfigBasedConnectivityResults struct {
-	IngressAllowedConns map[VPCResourceIntf]*connection.Set
-	EgressAllowedConns  map[VPCResourceIntf]*connection.Set
+	IngressAllowedConns map[VPCResourceIntf]*netset.TransportSet
+	EgressAllowedConns  map[VPCResourceIntf]*netset.TransportSet
 }
 
 func NewConfigBasedConnectivityResults() *ConfigBasedConnectivityResults {
 	return &ConfigBasedConnectivityResults{
-		IngressAllowedConns: map[VPCResourceIntf]*connection.Set{},
-		EgressAllowedConns:  map[VPCResourceIntf]*connection.Set{},
+		IngressAllowedConns: map[VPCResourceIntf]*netset.TransportSet{},
+		EgressAllowedConns:  map[VPCResourceIntf]*netset.TransportSet{},
 	}
 }

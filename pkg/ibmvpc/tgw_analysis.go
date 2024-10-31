@@ -10,7 +10,7 @@ import (
 	"errors"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -38,7 +38,7 @@ func isSubnetTGWDestination(tg *TransitGateway, subnet *commonvpc.Subnet) bool {
 	// overlapping address prefixes the TGW may choose available route from a different VPC
 	routesListPerVPC := tg.availableRoutes[subnet.VPCRef.UID()]
 	for _, routeCIDR := range routesListPerVPC {
-		if dstIPB.ContainedIn(routeCIDR) {
+		if dstIPB.IsSubset(routeCIDR) {
 			return true
 		}
 	}
@@ -52,15 +52,15 @@ func isSubnetTGWDestination(tg *TransitGateway, subnet *commonvpc.Subnet) bool {
 // Note that there is always a single prefix filter that determines the route (allow/deny) for each address prefix
 // (could be the default); this is since each atomic src/dst is an endpoint and since
 // prefix filter rules do not include protocol or ports (unlike nacls and sgs)
-func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *commonvpc.VPC) (advertisedRoutesRes []*ipblock.IPBlock,
-	vpcAPToPrefixRules map[*ipblock.IPBlock]vpcmodel.RulesInTable, err error) {
-	vpcAPToPrefixRules = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
+func getVPCAdvertisedRoutes(tc *datamodel.TransitConnection, tcIndex int, vpc *commonvpc.VPC) (advertisedRoutesRes []*netset.IPBlock,
+	vpcAPToPrefixRules map[*netset.IPBlock]vpcmodel.RulesInTable, err error) {
+	vpcAPToPrefixRules = map[*netset.IPBlock]vpcmodel.RulesInTable{}
 	for _, ap := range vpc.AddressPrefixesList {
 		filterIndex, isPermitAction, err := getMatchedFilterIndexAndAction(ap, tc)
 		if err != nil {
 			return nil, nil, err
 		}
-		apIPBlock, err := ipblock.FromCidr(ap)
+		apIPBlock, err := netset.IPBlockFromCidr(ap)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -125,7 +125,7 @@ func parseActionString(action *string) (bool, error) {
 
 // prefixLeGeMatch checks if a vpc's address-prefix cidr is matched by a given rule's prefix with le/ge attributes
 func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
-	prefixIPBlock, cidrBlock, err := ipblock.PairCIDRsToIPBlocks(*prefix, cidr)
+	prefixIPBlock, cidrBlock, err := netset.PairCIDRsToIPBlocks(*prefix, cidr)
 	if err != nil {
 		return false, err
 	}
@@ -137,10 +137,10 @@ func prefixLeGeMatch(prefix *string, le, ge *int64, cidr string) (bool, error) {
 	case ge == nil && le == nil:
 		return cidrBlock.Equal(prefixIPBlock), nil
 	case ge == nil:
-		return cidrBlock.ContainedIn(prefixIPBlock) && subnetCIDRLen <= *le, nil
+		return cidrBlock.IsSubset(prefixIPBlock) && subnetCIDRLen <= *le, nil
 	case le == nil:
-		return cidrBlock.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge, nil
+		return cidrBlock.IsSubset(prefixIPBlock) && subnetCIDRLen >= *ge, nil
 	default:
-		return cidrBlock.ContainedIn(prefixIPBlock) && subnetCIDRLen >= *ge && subnetCIDRLen <= *le, nil
+		return cidrBlock.IsSubset(prefixIPBlock) && subnetCIDRLen >= *ge && subnetCIDRLen <= *le, nil
 	}
 }

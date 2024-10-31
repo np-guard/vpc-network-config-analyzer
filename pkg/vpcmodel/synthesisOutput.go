@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 )
 
@@ -95,7 +95,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine, grouping bool) *spec.Spec
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
-			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(netset.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
 			Bidirectional:    bidirectional})
 	}
 	s.Externals = externals

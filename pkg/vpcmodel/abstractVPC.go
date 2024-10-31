@@ -7,8 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 )
 
@@ -109,7 +108,7 @@ type Node interface {
 	// CidrOrAddress returns the string of the Node's IP-address (for internal node) or CIDR (for external node)
 	CidrOrAddress() string
 	// IPBlock returns the IPBlock object of the IP addresses associated with this node
-	IPBlock() *ipblock.IPBlock
+	IPBlock() *netset.IPBlock
 	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
 	// IsPublicInternet returns true if the node is external,
@@ -129,7 +128,7 @@ type InternalNodeIntf interface {
 	// an InternalNodeIntf has an exact one IP Address
 	Address() string
 	// IPBlock returns the IPBlock object representing the node's IP Address
-	IPBlock() *ipblock.IPBlock
+	IPBlock() *netset.IPBlock
 	// Subnet returns the subnet of the internal node
 	Subnet() Subnet
 	// AppliedFiltersKinds returns relevant filters for connectivity between internal nodes
@@ -145,7 +144,7 @@ type InternalNode struct {
 	// This field is skipped in the JSON output (nodes connectivity output in JSON format),
 	// since it is sufficient to have the AddressStr, and no need to represent IPBlockObj as another
 	// attribute in the JSON output.
-	IPBlockObj *ipblock.IPBlock `json:"-"`
+	IPBlockObj *netset.IPBlock `json:"-"`
 	// SubnetResource is the subnet on which this node resides in
 	SubnetResource Subnet `json:"-"`
 }
@@ -154,7 +153,7 @@ func (n *InternalNode) Address() string {
 	return n.AddressStr
 }
 
-func (n *InternalNode) IPBlock() *ipblock.IPBlock {
+func (n *InternalNode) IPBlock() *netset.IPBlock {
 	return n.IPBlockObj
 }
 
@@ -174,7 +173,7 @@ func (n *InternalNode) AppliedFiltersKinds(otherNode InternalNodeIntf) map[strin
 // SetIPBlockFromAddress sets the node's IPBlockObj field from its AddressStr field.
 // Assumes its AddressStr field is assigned with valid IPv4 string value.
 func (n *InternalNode) SetIPBlockFromAddress() (err error) {
-	n.IPBlockObj, err = ipblock.FromIPAddress(n.AddressStr)
+	n.IPBlockObj, err = netset.IPBlockFromIPAddress(n.AddressStr)
 	return err
 }
 
@@ -203,12 +202,12 @@ func (n *InternalNode) RepresentedByAddress() bool {
 type NodeSet interface {
 	VPCResourceIntf
 	Nodes() []Node
-	AddressRange() *ipblock.IPBlock
+	AddressRange() *netset.IPBlock
 }
 
 type VPC interface {
 	NodeSet
-	AddressPrefixes() *ipblock.IPBlock
+	AddressPrefixes() *netset.IPBlock
 }
 
 type Subnet interface {
@@ -273,19 +272,19 @@ type RulesInTable struct {
 	TableIndex     int   // sg/nacl/transit connection index in sgList/naclList/tgwConnList
 	Rules          []int // list of indexes of rules in the sg/nacl/transit connection
 	RulesOfType    RulesType
-	TableConn      *connection.Set // connection of the table w.r.t. queried src, dst and query
-	TableHasEffect TableEffect     // effect of the table w.r.t. queried src, dst and query
+	TableConn      *netset.TransportSet // connection of the table w.r.t. queried src, dst and query
+	TableHasEffect TableEffect          // effect of the table w.r.t. queried src, dst and query
 }
 
 // RuleOfFilter a single rule in filter given the layer (SGLayer/NACLLayer)
 type RuleOfFilter struct {
 	Filter    Filter
-	RuleIndex int              `json:"rule_index"`
-	IsIngress bool             `json:"inbound_rule"`
-	SrcCidr   *ipblock.IPBlock `json:"src_cidr"`
-	DstCidr   *ipblock.IPBlock `json:"dst_cidr"`
-	Conn      *connection.Set  `json:"rule_connection"`
-	RuleDesc  string           `json:"rule_description"`
+	RuleIndex int                  `json:"rule_index"`
+	IsIngress bool                 `json:"inbound_rule"`
+	SrcCidr   *netset.IPBlock      `json:"src_cidr"`
+	DstCidr   *netset.IPBlock      `json:"dst_cidr"`
+	Conn      *netset.TransportSet `json:"rule_connection"`
+	RuleDesc  string               `json:"rule_description"`
 }
 
 type Filter struct {
@@ -295,7 +294,7 @@ type Filter struct {
 }
 
 func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex int,
-	isIngress bool, srcBlock, dstBlock *ipblock.IPBlock, conn *connection.Set) *RuleOfFilter {
+	isIngress bool, srcBlock, dstBlock *netset.IPBlock, conn *netset.TransportSet) *RuleOfFilter {
 	table := Filter{LayerName: layerName, FilterIndex: filterIndex, FilterName: filterName}
 	srcBlock = getCidrAllIfNil(srcBlock)
 	dstBlock = getCidrAllIfNil(dstBlock)
@@ -303,9 +302,9 @@ func NewRuleOfFilter(layerName, filterName, desc string, filterIndex, ruleIndex 
 		SrcCidr: srcBlock, DstCidr: dstBlock, Conn: conn}
 }
 
-func getCidrAllIfNil(block *ipblock.IPBlock) *ipblock.IPBlock {
+func getCidrAllIfNil(block *netset.IPBlock) *netset.IPBlock {
 	if block == nil {
-		return ipblock.GetCidrAll()
+		return netset.GetCidrAll()
 	}
 	return block
 }
@@ -317,15 +316,15 @@ type FiltersAttachedResources map[Filter][]VPCResourceIntf
 type FilterTrafficResource interface {
 	VPCResourceIntf
 	// AllowedConnectivity computes the connectivity from src Node to dst Node considering this filterTraffic resource
-	AllowedConnectivity(src, dst Node, isIngress bool) (*connection.Set, error)
+	AllowedConnectivity(src, dst Node, isIngress bool) (*netset.TransportSet, error)
 	// RulesInConnectivity computes the list of rules of a given filter that contributes to the connection between src and dst
 	// if conn is also given the above is per connection
-	RulesInConnectivity(src, dst Node, conn *connection.Set, isIngress bool) ([]RulesInTable, []RulesInTable, error)
+	RulesInConnectivity(src, dst Node, conn *netset.TransportSet, isIngress bool) ([]RulesInTable, []RulesInTable, error)
 	// GetRules gets a list of all rules with description
 	GetRules() ([]RuleOfFilter, error)
 	// GetFiltersAttachedResources gets a map from each filter to the resources attached to it; e.g. from NACL to subnets
 	GetFiltersAttachedResources() FiltersAttachedResources
-	ReferencedIPblocks() []*ipblock.IPBlock
+	ReferencedIPblocks() []*netset.IPBlock
 	ConnectivityMap() (map[string]*IPbasedConnectivityResult, error)
 	GetConnectivityOutputPerEachElemSeparately() string
 }
@@ -338,7 +337,7 @@ type RoutingResource interface {
 	SourcesSubnets() []Subnet
 	Destinations() []Node
 	SetExternalDestinations([]Node)
-	AllowedConnectivity(src, dst VPCResourceIntf) (*connection.Set, error)
+	AllowedConnectivity(src, dst VPCResourceIntf) (*netset.TransportSet, error)
 	RulesInConnectivity(src, dst Node) []RulesInTable
 	ExternalIP() string // ExternalIP of fip, empty string for other resources
 	// RouterDefined is this router defined for src and dst? while fip, pgw are defined for src, dst iff they enable traffic

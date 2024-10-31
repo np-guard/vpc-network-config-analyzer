@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // routing_paths: this file contains types for representing routing paths and their endpoints
@@ -24,15 +24,15 @@ type Path []*Endpoint
 // Endpoint captures possible types for elements within routing paths: concrete vpc resource, IP Address, and nextHopEntry
 type Endpoint struct {
 	VpcResource VPCResourceIntf
-	IPBlock     *ipblock.IPBlock
+	IPBlock     *netset.IPBlock
 	NextHop     *NextHopEntry
 	TargetVPC   string // if the VpcResource is tgw, the targetVPC is also assigned
 }
 
 // NextHopEntry captures an endpoint within a routing path, which redirects traffic to its nextHop instead of the original dest
 type NextHopEntry struct {
-	NextHop  *ipblock.IPBlock // the next hop address
-	OrigDest *ipblock.IPBlock // the original destination
+	NextHop  *netset.IPBlock // the next hop address
+	OrigDest *netset.IPBlock // the original destination
 	// rt       *routingTable    // the routing table from which this next hop was determined
 }
 
@@ -59,7 +59,7 @@ func PathFromResource(resource VPCResourceIntf) Path {
 	return Path{{VpcResource: resource}}
 }
 
-func PathFromIPBlock(ipb *ipblock.IPBlock) Path {
+func PathFromIPBlock(ipb *netset.IPBlock) Path {
 	return Path{{IPBlock: ipb}}
 }
 

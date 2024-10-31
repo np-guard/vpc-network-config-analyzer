@@ -11,9 +11,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 )
@@ -34,7 +33,7 @@ type SGAnalyzer struct {
 // interface to be implemented by aws and ibm sg analyzer
 type SpecificSGAnalyzer interface {
 	GetSGRules() (ingressRules, egressRules []*SGRule, err error)
-	ReferencedIPblocks() []*ipblock.IPBlock
+	ReferencedIPblocks() []*netset.IPBlock
 	SetSGmap(sgMap map[string]*SecurityGroup)
 	GetNumberOfRules() int
 	GetSGRule(index int) (ruleStr string, ruleRes *SGRule, isIngress bool, err error)
@@ -56,54 +55,54 @@ func GetProperty(p *int64, defaultP int64) int64 {
 }
 
 // GetTCPUDPConns returns TCP or UDP connection
-func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *connection.Set {
+func GetTCPUDPConns(p string, srcPortMin, srcPortMax, dstPortMin, dstPortMax int64) *netset.TransportSet {
 	protocol := netp.ProtocolStringUDP
 	if p == protocolTCP {
 		protocol = netp.ProtocolStringTCP
 	}
-	return connection.TCPorUDPConnection(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
+	return netset.NewTCPorUDPTransport(protocol, srcPortMin, srcPortMax, dstPortMin, dstPortMax)
 }
 
 // GetICMPconn returns ICMP connection
-func GetICMPconn(icmpType, icmpCode *int64) *connection.Set {
-	typeMin := GetProperty(icmpType, connection.MinICMPType)
-	typeMax := GetProperty(icmpType, connection.MaxICMPType)
-	codeMin := GetProperty(icmpCode, connection.MinICMPCode)
-	codeMax := GetProperty(icmpCode, connection.MaxICMPCode)
-	return connection.ICMPConnection(typeMin, typeMax, codeMin, codeMax)
+func GetICMPconn(icmpType, icmpCode *int64) *netset.TransportSet {
+	typeMin := GetProperty(icmpType, int64(netp.MinICMPType))
+	typeMax := GetProperty(icmpType, int64(netp.MaxICMPType))
+	codeMin := GetProperty(icmpCode, int64(netp.MinICMPCode))
+	codeMax := GetProperty(icmpCode, int64(netp.MaxICMPCode))
+	return netset.NewICMPTransport(typeMin, typeMax, codeMin, codeMax)
 }
 
 // RuleTarget represents a securityGroup rule target, used in ibm and aws
 type RuleTarget struct {
-	Cidr   *ipblock.IPBlock
+	Cidr   *netset.IPBlock
 	SgName string // target specified is SG
 }
 
-func NewRuleTarget(cidr *ipblock.IPBlock, sgName string) *RuleTarget {
+func NewRuleTarget(cidr *netset.IPBlock, sgName string) *RuleTarget {
 	res := &RuleTarget{Cidr: cidr, SgName: sgName}
 	return res
 }
 
 type SGRule struct {
 	Remote      *RuleTarget
-	Connections *connection.Set
+	Connections *netset.TransportSet
 	Index       int // index of original rule in *vpc1.SecurityGroup.Rules
-	Local       *ipblock.IPBlock
+	Local       *netset.IPBlock
 }
 
 // analyzeSGRules gets security group rules and returns it's connectivity results
 func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
-	remotes := []*ipblock.IPBlock{}
+	remotes := []*netset.IPBlock{}
 	for i := range rules {
 		if rules[i].Remote.Cidr != nil && !rules[i].Remote.Cidr.IsEmpty() {
 			remotes = append(remotes, rules[i].Remote.Cidr)
 		}
 	}
-	disjointTargets := ipblock.DisjointIPBlocks(remotes, []*ipblock.IPBlock{ipblock.GetCidrAll()})
-	res := &ConnectivityResult{IsIngress: isIngress, AllowedConns: map[*ipblock.IPBlock]*connection.Set{},
-		AllowRules: map[*ipblock.IPBlock][]int{}}
+	disjointTargets := netset.DisjointIPBlocks(remotes, []*netset.IPBlock{netset.GetCidrAll()})
+	res := &ConnectivityResult{IsIngress: isIngress, AllowedConns: map[*netset.IPBlock]*netset.TransportSet{},
+		AllowRules: map[*netset.IPBlock][]int{}}
 	for i := range disjointTargets {
-		res.AllowedConns[disjointTargets[i]] = connection.None()
+		res.AllowedConns[disjointTargets[i]] = netset.NoTransports()
 		res.AllowRules[disjointTargets[i]] = []int{}
 	}
 	for i := range rules {
@@ -111,7 +110,7 @@ func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 		remote := rule.Remote
 		conn := rule.Connections
 		for disjointTarget := range res.AllowedConns {
-			if disjointTarget.ContainedIn(remote.Cidr) {
+			if disjointTarget.IsSubset(remote.Cidr) {
 				res.AllowedConns[disjointTarget] = res.AllowedConns[disjointTarget].Union(conn)
 				res.AllowRules[disjointTarget] = append(res.AllowRules[disjointTarget], rule.Index)
 			}
@@ -124,13 +123,13 @@ func analyzeSGRules(rules []*SGRule, isIngress bool) *ConnectivityResult {
 // analyzeSGRules gets security group rules and returns a map from local ip block intervals to it's connectivity results
 func MapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGroup) (connectivityMap ConnectivityResultMap) {
 	connectivityMap = make(ConnectivityResultMap)
-	locals := []*ipblock.IPBlock{}
+	locals := []*netset.IPBlock{}
 	for i := range rules {
 		if rules[i].Local != nil {
 			locals = append(locals, rules[i].Local)
 		}
 	}
-	disjointLocals := ipblock.DisjointIPBlocks(locals, []*ipblock.IPBlock{ipblock.GetCidrAll()})
+	disjointLocals := netset.DisjointIPBlocks(locals, []*netset.IPBlock{netset.GetCidrAll()})
 	keysToConnectivityResult := map[common.SetAsKey]*ConnectivityResult{}
 	unifiedMembersIPBlock := currentSg.unifiedMembersIPBlock()
 	for i := range disjointLocals {
@@ -140,7 +139,7 @@ func MapAndAnalyzeSGRules(rules []*SGRule, isIngress bool, currentSg *SecurityGr
 		}
 		relevantRules := []*SGRule{}
 		for j := range rules {
-			if disjointLocals[i].ContainedIn(rules[j].Local) {
+			if disjointLocals[i].IsSubset(rules[j].Local) {
 				relevantRules = append(relevantRules, rules[j])
 			}
 		}
@@ -186,25 +185,25 @@ func (sga *SGAnalyzer) areSGRulesDefault() bool {
 	if len(egressRuleCidrs) != 1 {
 		return false
 	}
-	if egressRuleCidrs[0] == ipblock.CidrAll && egressRule.Connections.IsAll() {
+	if egressRuleCidrs[0] == netset.CidrAll && egressRule.Connections.IsAll() {
 		return true
 	}
 	return false
 }
 
-func (sga *SGAnalyzer) allowedConnectivity(target, local *ipblock.IPBlock, isIngress bool) *connection.Set {
+func (sga *SGAnalyzer) allowedConnectivity(target, local *netset.IPBlock, isIngress bool) *netset.TransportSet {
 	analyzedConnsMap := sga.ingressOrEgressConnectivity(isIngress)
 	for definedLocal, analyzedConns := range analyzedConnsMap {
-		if local.ContainedIn(definedLocal) {
+		if local.IsSubset(definedLocal) {
 			for definedTarget, conn := range analyzedConns.AllowedConns {
-				if target.ContainedIn(definedTarget) {
+				if target.IsSubset(definedTarget) {
 					return conn
 				}
 			}
 		}
 	}
 
-	return connection.None()
+	return netset.NoTransports()
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity, if the required connection exists
@@ -212,12 +211,12 @@ func (sga *SGAnalyzer) allowedConnectivity(target, local *ipblock.IPBlock, isIng
 //  2. If connection is part of the query: is the required connection contained in the existing connection?
 //     if it does, then the contributing rules are detected: rules that intersect the required connection
 //     otherwise, the answer to the query is "no" and nil is returned
-func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *ipblock.IPBlock, connQuery *connection.Set, isIngress bool) ([]int, error) {
+func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *netset.IPBlock, connQuery *netset.TransportSet, isIngress bool) ([]int, error) {
 	analyzedConnsMap := sga.ingressOrEgressConnectivity(isIngress)
 	for definedLocal, analyzedConns := range analyzedConnsMap {
-		if local.ContainedIn(definedLocal) {
+		if local.IsSubset(definedLocal) {
 			for definedTarget, rules := range analyzedConns.AllowRules {
-				if target.ContainedIn(definedTarget) {
+				if target.IsSubset(definedTarget) {
 					if connQuery == nil {
 						return rules, nil // connection not part of query - all rules are relevant
 					}
@@ -238,7 +237,7 @@ func (sga *SGAnalyzer) rulesFilterInConnectivity(target, local *ipblock.IPBlock,
 }
 
 // given a list of rules and a connection, return the sublist of rules that contributes to the connection
-func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *connection.Set) ([]int, error) {
+func (sga *SGAnalyzer) getRulesRelevantConn(rules []int, conn *netset.TransportSet) ([]int, error) {
 	relevantRules := []int{}
 	for _, rule := range append(sga.ingressRules, sga.egressRules...) {
 		if slices.Contains(rules, rule.Index) && !conn.Intersect(rule.Connections).IsEmpty() {
@@ -257,28 +256,28 @@ func (sga *SGAnalyzer) ingressOrEgressConnectivity(isIngress bool) ConnectivityR
 
 // GetIPBlockResult gets an cidr, address or name of the remote/local rule object, and returns it's IPBlock
 func GetIPBlockResult(cidr, address, name *string,
-	sgMap map[string]*SecurityGroup) (*ipblock.IPBlock, string, error) {
-	var ipBlock *ipblock.IPBlock
+	sgMap map[string]*SecurityGroup) (*netset.IPBlock, string, error) {
+	var ipBlock *netset.IPBlock
 	var cidrRes string
 	var err error
 	switch {
 	case cidr != nil:
-		ipBlock, err = ipblock.FromCidr(*cidr)
+		ipBlock, err = netset.IPBlockFromCidr(*cidr)
 		if err != nil {
 			return nil, "", err
 		}
 		cidrRes = ipBlock.ToCidrList()[0]
 	case address != nil:
-		ipBlock, err = ipblock.FromIPAddress(*address)
+		ipBlock, err = netset.IPBlockFromIPAddress(*address)
 		if err != nil {
 			return nil, "", err
 		}
 		cidrRes = ipBlock.ToCidrList()[0]
 	case name != nil:
-		ipBlock = ipblock.New()
+		ipBlock = netset.NewIPBlock()
 		if sg, ok := sgMap[*name]; ok {
 			for member := range sg.Members {
-				memberIPBlock, err := ipblock.FromIPAddress(member)
+				memberIPBlock, err := netset.IPBlockFromIPAddress(member)
 				if err != nil {
 					return nil, "", err
 				}

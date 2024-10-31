@@ -9,7 +9,7 @@ package linter
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -32,7 +32,7 @@ func newSubnetCIDROverlap(name string, configs map[string]*vpcmodel.VPCConfig,
 // a couple of overlapping subnets
 type overlapSubnets struct {
 	overlapSubnets  [2]vpcmodel.Subnet
-	overlapIPBlocks *ipblock.IPBlock
+	overlapIPBlocks *netset.IPBlock
 }
 
 // /////////////////////////////////////////////////////////

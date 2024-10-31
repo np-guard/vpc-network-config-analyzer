@@ -7,15 +7,15 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
-func AllConns() *connection.Set {
-	return connection.All()
+func AllConns() *netset.TransportSet {
+	return netset.AllTransports()
 }
 
-func NoConns() *connection.Set {
-	return connection.None()
+func NoConns() *netset.TransportSet {
+	return netset.NoTransports()
 }
 
 func HasNode(listNodes []Node, node Node) bool {

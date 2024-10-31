@@ -11,14 +11,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // Functions for the computation of VPC connectivity between nodes elements
 
 // GetVPCNetworkConnectivity computes VPCConnectivity in few steps
 // (1) compute AllowedConns (map[Node]*ConnectivityResult) : ingress or egress allowed conns separately
-// (2) compute AllowedConnsCombined (map[Node]map[Node]*connection.Set) : allowed conns considering both ingress and egress directions
+// (2) compute AllowedConnsCombined (map[Node]map[Node]*netset.TransportSet) : allowed conns considering both ingress and egress directions
 // (3) compute AllowedConnsCombinedResponsive extension of AllowedConnsCombined to contain accurate responsive info
 // (4) if lbAbstraction required - abstract each lb separately
 // (5) if grouping required - compute grouping of connectivity results
@@ -89,7 +89,7 @@ func (c *VPCConfig) getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 }
 
 // getNonFilterNonRouterRulesConn() return the connectivity of all rules that are not part of the filters and routers.
-func (c *VPCConfig) getNonFilterNonRouterRulesConn(src, dst Node, isIngress bool) *connection.Set {
+func (c *VPCConfig) getNonFilterNonRouterRulesConn(src, dst Node, isIngress bool) *netset.TransportSet {
 	loadBalancerRule := c.getLoadBalancerRule(src, dst)
 	if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 		return NoConns()
@@ -104,7 +104,7 @@ func (c *VPCConfig) getNonFilterNonRouterRulesConn(src, dst Node, isIngress bool
 func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
-	layer string) (*connection.Set, error) {
+	layer string) (*netset.TransportSet, error) {
 	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return AllConns(), nil
@@ -112,9 +112,9 @@ func (c *VPCConfig) getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	return filter.AllowedConnectivity(src, dst, isIngress)
 }
 
-func updatePerLayerRes(res map[string]map[Node]*connection.Set, layer string, node Node, conn *connection.Set) {
+func updatePerLayerRes(res map[string]map[Node]*netset.TransportSet, layer string, node Node, conn *netset.TransportSet) {
 	if _, ok := res[layer]; !ok {
-		res[layer] = map[Node]*connection.Set{}
+		res[layer] = map[Node]*netset.TransportSet{}
 	}
 	res[layer][node] = conn
 }
@@ -122,12 +122,12 @@ func updatePerLayerRes(res map[string]map[Node]*connection.Set, layer string, no
 // getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
 // all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
 func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
-	allLayersRes map[Node]*connection.Set, // result considering all layers
-	perLayerRes map[string]map[Node]*connection.Set, // result separated per layer
+	allLayersRes map[Node]*netset.TransportSet, // result considering all layers
+	perLayerRes map[string]map[Node]*netset.TransportSet, // result separated per layer
 	err error,
 ) {
-	perLayerRes = map[string]map[Node]*connection.Set{}
-	allLayersRes = map[Node]*connection.Set{}
+	perLayerRes = map[string]map[Node]*netset.TransportSet{}
+	allLayersRes = map[Node]*netset.TransportSet{}
 
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
@@ -152,7 +152,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 		}
 
 		if peerNode.IsInternal() {
-			var allowedConnsBetweenCapturedAndPeerNode *connection.Set
+			var allowedConnsBetweenCapturedAndPeerNode *netset.TransportSet
 			if c.IsMultipleVPCsConfig {
 				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
 				_, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
@@ -259,7 +259,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 			dstNode := dst.(Node)
 			// get the allowed *responsive* conn result
 			// check allowed conns per NACL-layer from dst to src (dst->src) (since SG is stateful)
-			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *connection.Set
+			var DstAllowedEgressToSrc, SrcAllowedIngressFromDst *netset.TransportSet
 			// can dst egress to src?
 			DstAllowedEgressToSrc = v.getPerLayerConnectivity(statelessLayerName, dstNode, srcNode, false)
 			// can src ingress from dst?
@@ -281,12 +281,12 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 }
 
 // getPerLayerConnectivity currently used for "NaclLayer" - to compute stateful allowed conns
-func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *connection.Set {
+func (v *VPCConnectivity) getPerLayerConnectivity(layer string, src, dst Node, isIngress bool) *netset.TransportSet {
 	// if the analyzed input node is not internal- assume all conns allowed
 	if (isIngress && !dst.IsInternal()) || (!isIngress && !src.IsInternal()) {
-		return connection.All()
+		return netset.AllTransports()
 	}
-	var result *connection.Set
+	var result *netset.TransportSet
 	var connMap map[string]*ConnectivityResult
 	if isIngress {
 		connMap = v.AllowedConnsPerLayer[dst]

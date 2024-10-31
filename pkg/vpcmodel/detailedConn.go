@@ -9,7 +9,7 @@ package vpcmodel
 import (
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 const asterisk = " * "
@@ -25,10 +25,10 @@ const asterisk = " * "
 // note: TCPRspDisable is not independent and is calculated based on the other properties;
 // it is kept since it is widely used - to determine if the connection is responsive
 type detailedConn struct {
-	tcpRspEnable  *connection.Set // responsive TCP connection between <src, dst>
-	nonTCP        *connection.Set // non TCP connection (for which responsiveness is non-relevant)
-	allConn       *connection.Set // entire connection
-	TCPRspDisable *connection.Set // non-responsive TCP connection between <src, dst>; complementary of tcpRspEnable
+	tcpRspEnable  *netset.TransportSet // responsive TCP connection between <src, dst>
+	nonTCP        *netset.TransportSet // non TCP connection (for which responsiveness is non-relevant)
+	allConn       *netset.TransportSet // entire connection
+	TCPRspDisable *netset.TransportSet // non-responsive TCP connection between <src, dst>; complementary of tcpRspEnable
 	// connection is defined to be responsive if nonTCP is empty
 }
 
@@ -37,7 +37,7 @@ type detailedConn struct {
 // TCPRspDisable - the tcp complementary of tcpRspEnable w.r.t. allConn -
 // is computed as allConn minus (tcpRspEnable union nonTCP)
 
-func newDetailedConn(tspRspConn, otherConn, allConn *connection.Set) *detailedConn {
+func newDetailedConn(tspRspConn, otherConn, allConn *netset.TransportSet) *detailedConn {
 	return &detailedConn{
 		tcpRspEnable:  tspRspConn,
 		TCPRspDisable: (allConn.Subtract(otherConn)).Subtract(tspRspConn),
@@ -51,14 +51,14 @@ func emptyDetailedConn() *detailedConn {
 }
 
 // detailedConnForTCPRsp returns a new detailedConn from input TCP responsive connection and the entire connection objects
-func detailedConnForTCPRsp(tcpResponsive, allConn *connection.Set) *detailedConn {
+func detailedConnForTCPRsp(tcpResponsive, allConn *netset.TransportSet) *detailedConn {
 	_, nonTCPFraction := partitionTCPNonTCP(allConn)
 	return newDetailedConn(tcpResponsive, nonTCPFraction, allConn)
 }
 
 // detailedConnForResponsive: is given the tcp responsive conn, assuming there is only
 // a tcp responsive component in the connection
-func detailedConnForResponsive(tcpResponsive *connection.Set) *detailedConn {
+func detailedConnForResponsive(tcpResponsive *netset.TransportSet) *detailedConn {
 	return newDetailedConn(tcpResponsive, NoConns(), tcpResponsive)
 }
 
@@ -70,7 +70,7 @@ func detailedConnForAllRsp() *detailedConn {
 // isAllObliviousRsp: returns true iff detailedConn contains all the connection domain
 // (regardless of what part is responsive and what part isn't)
 func (d *detailedConn) isAllObliviousRsp() bool {
-	return d.allConn.Equal(connection.All())
+	return d.allConn.Equal(netset.AllTransports())
 }
 
 // isEmpty: return true iff the detailedConn is empty
@@ -107,7 +107,7 @@ func (d *detailedConn) hasTCPComponent() bool {
 }
 
 // returns the tcp responsive and non-tcp component
-func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *connection.Set {
+func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *netset.TransportSet {
 	return d.tcpRspEnable.Union(d.nonTCP)
 }
 
@@ -143,14 +143,14 @@ func (d *detailedConn) connStrPerConnectionType(nonTCPAndResponsiveTCP bool) str
 
 // computeDetailedConn computes the detailedConn object, given input `srcToDst`
 // that represents a src-to-dst connection, and `dstToSrc` that represents dst-to-src connection.
-func computeDetailedConn(srcToDst, dstToSrc *connection.Set) *detailedConn {
+func computeDetailedConn(srcToDst, dstToSrc *netset.TransportSet) *detailedConn {
 	connTCP := srcToDst.Intersect(allTCPconn())
 	if connTCP.IsEmpty() {
 		return detailedConnForTCPRsp(NoConns(), srcToDst)
 	}
 	tcpSecondDirection := dstToSrc.Intersect(allTCPconn())
 	// flip src/dst ports before intersection
-	tcpSecondDirectionFlipped := tcpSecondDirection.SwitchSrcDstPorts()
+	tcpSecondDirectionFlipped := tcpSecondDirection.SwapPorts()
 	// tcp connection responsive subset
 	return detailedConnForTCPRsp(connTCP.Intersect(tcpSecondDirectionFlipped), srcToDst)
 }

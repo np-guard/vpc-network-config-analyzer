@@ -11,8 +11,8 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
@@ -20,7 +20,7 @@ import (
 // IBMNACLAnalyzer implements commonvpc.SpecificNACLAnalyzer
 type IBMNACLAnalyzer struct {
 	naclResource       *vpc1.NetworkACL
-	referencedIPblocks []*ipblock.IPBlock
+	referencedIPblocks []*netset.IPBlock
 }
 
 func NewIBMNACLAnalyzer(nacl *vpc1.NetworkACL) *IBMNACLAnalyzer {
@@ -40,18 +40,18 @@ func (na *IBMNACLAnalyzer) Name() *string {
 	return na.naclResource.Name
 }
 
-func (na *IBMNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (na *IBMNACLAnalyzer) ReferencedIPblocks() []*netset.IPBlock {
 	return na.referencedIPblocks
 }
 
 // SetReferencedIPblocks updates referenced ip blocks
-func (na *IBMNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock) {
+func (na *IBMNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*netset.IPBlock) {
 	na.referencedIPblocks = referencedIPblocks
 }
 
 // GetNACLRule gets index of the rule and returns the rule results line and obj
 func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
-	var conns *connection.Set
+	var conns *netset.TransportSet
 	var direction, src, dst, action string
 	var name, connStr string
 	rule := na.naclResource.Rules[index]
@@ -59,7 +59,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	switch ruleObj := rule.(type) {
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolAll:
 		name = *ruleObj.Name
-		conns = connection.All()
+		conns = netset.AllTransports()
 		protocol = *ruleObj.Protocol
 		direction = *ruleObj.Direction
 		src = *ruleObj.Source
@@ -68,10 +68,10 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	case *vpc1.NetworkACLRuleItemNetworkACLRuleProtocolTcpudp:
 		name = *ruleObj.Name
 		conns = commonvpc.GetTCPUDPConns(*ruleObj.Protocol,
-			commonvpc.GetProperty(ruleObj.SourcePortMin, connection.MinPort),
-			commonvpc.GetProperty(ruleObj.SourcePortMax, connection.MaxPort),
-			commonvpc.GetProperty(ruleObj.DestinationPortMin, connection.MinPort),
-			commonvpc.GetProperty(ruleObj.DestinationPortMax, connection.MaxPort),
+			commonvpc.GetProperty(ruleObj.SourcePortMin, netp.MinPort),
+			commonvpc.GetProperty(ruleObj.SourcePortMax, netp.MaxPort),
+			commonvpc.GetProperty(ruleObj.DestinationPortMin, netp.MinPort),
+			commonvpc.GetProperty(ruleObj.DestinationPortMax, netp.MaxPort),
 		)
 		srcPorts := getPortsStr(*ruleObj.SourcePortMin, *ruleObj.SourcePortMax)
 		dstPorts := getPortsStr(*ruleObj.DestinationPortMin, *ruleObj.DestinationPortMax)
@@ -101,7 +101,7 @@ func (na *IBMNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	}
 	connStr = "protocol: " + protocol + portsStr
 
-	srcIP, dstIP, err := ipblock.PairCIDRsToIPBlocks(src, dst)
+	srcIP, dstIP, err := netset.PairCIDRsToIPBlocks(src, dst)
 	if err != nil {
 		return "", nil, false, err
 	}

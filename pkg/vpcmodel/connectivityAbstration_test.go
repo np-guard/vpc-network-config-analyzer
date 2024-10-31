@@ -10,12 +10,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 var allConn *detailedConn = detailedConnForAllRsp()
-var halfConn *detailedConn = detailedConnForResponsive(connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443))
+var halfConn *detailedConn = detailedConnForResponsive(netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 10, 100, 443, 443))
 var emptyConn *detailedConn = emptyDetailedConn()
 
 type abstractionTest struct {

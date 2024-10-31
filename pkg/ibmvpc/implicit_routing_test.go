@@ -11,14 +11,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
 type testImplicitRT struct {
 	name         string
-	dest         *ipblock.IPBlock
+	dest         *netset.IPBlock
 	expectedPath vpcmodel.Path
 }
 

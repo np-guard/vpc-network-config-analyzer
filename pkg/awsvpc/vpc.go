@@ -9,7 +9,7 @@ package awsvpc
 import (
 	"errors"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -47,30 +47,30 @@ func (igw *InternetGateway) ExternalIP() string {
 	return ""
 }
 
-func (igw *InternetGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (igw *InternetGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if areNodes, srcNode, dstNode := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(igw.Sources(), srcNode) && dstNode.IsExternal() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
 		if vpcmodel.HasNode(igw.Sources(), dstNode) && srcNode.IsExternal() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(igw.srcSubnets, srcSubnet) {
-				return connection.All(), nil
+				return netset.AllTransports(), nil
 			}
 		}
 		dstSubnet := src.(*commonvpc.Subnet)
 		if srcNode, ok := dst.(vpcmodel.Node); ok {
 			if srcNode.IsExternal() && hasSubnet(igw.srcSubnets, dstSubnet) {
-				return connection.All(), nil
+				return netset.AllTransports(), nil
 			}
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	return nil, errors.New("unexpected src/dst input types")
 }

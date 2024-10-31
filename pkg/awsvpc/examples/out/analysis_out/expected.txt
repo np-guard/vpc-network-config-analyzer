@@ -1,0 +1,29 @@
+Endpoint connectivity for VPC VpcId:42
+<nothing to report>
+
+Endpoint connectivity for VPC prod_vpc
+Public Internet (all ranges) => wl20[10.240.3.195] : All Connections
+Public Internet (all ranges) => wl21[10.240.3.176] : All Connections
+Public Internet 147.235.208.136/32 => proxy1[10.240.0.9] : All Connections
+Public Internet 147.235.208.136/32 => proxy2[10.240.2.24] : All Connections
+proxy1[10.240.0.9] => Public Internet 147.235.208.136/32 : All Connections
+proxy1[10.240.0.9] => proxy2[10.240.2.24] : protocol: TCP src-ports: 1-9079,9081-65535 * 
+proxy1[10.240.0.9] => proxy2[10.240.2.24] : protocol: TCP src-ports: 9080
+proxy1[10.240.0.9] => wl10[10.240.1.227] : All Connections
+proxy1[10.240.0.9] => wl11[10.240.1.114] : All Connections
+proxy2[10.240.2.24] => Public Internet 147.235.208.136/32 : All Connections
+proxy2[10.240.2.24] => proxy1[10.240.0.9] : protocol: TCP dst-ports: 9080
+proxy2[10.240.2.24] => wl20[10.240.3.195] : All Connections
+proxy2[10.240.2.24] => wl21[10.240.3.176] : All Connections
+wl10[10.240.1.227] => proxy1[10.240.0.9] : All Connections
+wl10[10.240.1.227] => wl11[10.240.1.114] : All Connections
+wl11[10.240.1.114] => proxy1[10.240.0.9] : All Connections
+wl11[10.240.1.114] => wl10[10.240.1.227] : All Connections
+wl20[10.240.3.195] => Public Internet (all ranges) : All Connections
+wl20[10.240.3.195] => proxy2[10.240.2.24] : All Connections
+wl20[10.240.3.195] => wl21[10.240.3.176] : All Connections
+wl21[10.240.3.176] => Public Internet (all ranges) : All Connections
+wl21[10.240.3.176] => proxy2[10.240.2.24] : All Connections
+wl21[10.240.3.176] => wl20[10.240.3.195] : All Connections
+
+TCP connections for which response is not permitted are marked with * 

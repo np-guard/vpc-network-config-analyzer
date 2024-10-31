@@ -14,8 +14,7 @@ import (
 	"strings"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
@@ -59,7 +58,7 @@ type PrivateIP struct {
 	// original - does the private IP was originally at the config file, or is it a potential one
 	original bool
 	// the potential block which the pip was created for:
-	block *ipblock.IPBlock
+	block *netset.IPBlock
 }
 
 func (pip *PrivateIP) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
@@ -109,7 +108,7 @@ func (v *Vpe) Nodes() []vpcmodel.Node {
 	return v.nodes
 }
 
-func (v *Vpe) AddressRange() *ipblock.IPBlock {
+func (v *Vpe) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(v.nodes)
 }
 
@@ -118,8 +117,8 @@ func (v *Vpe) Zone() (*commonvpc.Zone, error) {
 	return nil, nil
 }
 
-func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
-	var res *ipblock.IPBlock
+func nodesAddressRange(nodes []vpcmodel.Node) *netset.IPBlock {
+	var res *netset.IPBlock
 	for _, n := range nodes {
 		if res == nil {
 			res = n.IPBlock()
@@ -156,7 +155,7 @@ func (lb *LoadBalancer) NameForAnalyzerOut(c *vpcmodel.VPCConfig) string {
 func (lb *LoadBalancer) Nodes() []vpcmodel.Node {
 	return lb.nodes
 }
-func (lb *LoadBalancer) AddressRange() *ipblock.IPBlock {
+func (lb *LoadBalancer) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(lb.nodes)
 }
 
@@ -249,15 +248,15 @@ func (fip *FloatingIP) SetExternalDestinations(destinations []vpcmodel.Node) {
 	fip.destinations = destinations
 }
 
-func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
 		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	return nil, errors.New("FloatingIP.AllowedConnectivity unexpected src/dst types")
 }
@@ -323,20 +322,20 @@ func (pgw *PublicGateway) ExternalIP() string {
 	return ""
 }
 
-func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(pgw.Sources(), src1) && dst1.IsExternal() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	if src.Kind() == commonvpc.ResourceTypeSubnet {
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && hasSubnet(pgw.srcSubnets, srcSubnet) {
-				return connection.All(), nil
+				return netset.AllTransports(), nil
 			}
-			return connection.None(), nil
+			return netset.NoTransports(), nil
 		}
 	}
 	return nil, errors.New("unexpected src/dst input types")
@@ -370,7 +369,7 @@ type TransitGateway struct {
 
 	// availableRoutes are the published address prefixes from all connected vpcs that arrive at the TGW's table of available routes,
 	// as considered from prefix filters: map from vpc UID to its available routes in the routes table
-	availableRoutes map[string][]*ipblock.IPBlock
+	availableRoutes map[string][]*netset.IPBlock
 
 	// sourceSubnets are the subnets from the connected vpcs that can have connection to destination
 	// subnet from another vpc
@@ -389,7 +388,7 @@ type TransitGateway struct {
 	// these details includes map of each relevant IPBlock to the transit connection (its index in the tgwConnList)
 	// and the index of the matching filter in the transit connection if exists (index "-1" is for default )
 	// this struct can be though of as the "explain" parallel of availableRoutes; note that unlike availableRoutes it also lists deny prefixes
-	vpcsAPToPrefixRules map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable
+	vpcsAPToPrefixRules map[string]map[*netset.IPBlock]vpcmodel.RulesInTable
 }
 
 func (tgw *TransitGateway) addSourceAndDestNodes() {
@@ -431,24 +430,24 @@ func isPairRelevantToTGW(src, dst vpcmodel.VPCResourceIntf) bool {
 	return !(src.IsExternal() || dst.IsExternal()) && src.VPC().UID() != dst.VPC().UID()
 }
 
-func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if !isPairRelevantToTGW(src, dst) {
 		logging.Debugf("pair not relevant to TGW")
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
 		if vpcmodel.HasNode(tgw.sourceNodes, src1) && vpcmodel.HasNode(tgw.destNodes, dst1) {
 			logging.Debugf("tgw enables this connectivity")
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
 		logging.Debugf("tgw disables this connectivity")
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	if areSubnets, src1, dst1 := isSubnetsPair(src, dst); areSubnets {
 		if hasSubnet(tgw.sourceSubnets, src1) && hasSubnet(tgw.destSubnets, dst1) {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 
 	logging.Debugf("err")
