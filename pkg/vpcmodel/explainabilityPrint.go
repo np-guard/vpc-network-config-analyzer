@@ -281,7 +281,7 @@ func crossRouterDetails(c *VPCConfig, crossVpcRouter RoutingResource, crossVpcRu
 	crossVpcRouterFilterHeader, crossVpcFilterDetails string) {
 	if crossVpcRouter != nil {
 		// an error here will pop up earlier, when computing connections
-		_, crossVpcConnection, _ := getRoutingResource(c, src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
+		_, crossVpcConnection, _ := c.getRoutingResource(src.(Node), dst.(Node)) // crossVpc Router (tgw) exists - src, dst are internal
 		// if there is a non nil transit gateway then src and dst are vsis, and implement Node
 		crossVpcFilterHeader, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, false)
 		crossVpcFilterDetails, _ := crossVpcRouter.StringOfRouterRules(crossVpcRules, true)

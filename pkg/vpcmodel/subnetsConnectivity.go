@@ -192,7 +192,7 @@ func GetSubnetsConnectivity(c *VPCConfig, includePGW bool, groupingType int) (*V
 	// convert to subnet-based connectivity result
 	subnetsConnectivity := map[VPCResourceIntf]*ConfigBasedConnectivityResults{}
 	for subnetCidrStr, ipBasedConnectivity := range subnetsConnectivityFromACLresources {
-		subnet, err1 := SubnetCidrToSubnetElem(c, subnetCidrStr)
+		subnet, err1 := c.SubnetCidrToSubnetElem(subnetCidrStr)
 		if err1 != nil {
 			return nil, err1
 		}
@@ -261,7 +261,7 @@ func (v *VPCsubnetConnectivity) computeAllowedConnsCombined() (GeneralConnectivi
 		for peerNode, conns := range connsRes.IngressAllowedConns {
 			src := peerNode
 			dst := subnetNodeSet
-			considerPair, err := shouldConsiderPairForConnectivity(v.VPCConfig, src, dst)
+			considerPair, err := v.VPCConfig.shouldConsiderPairForConnectivity(src, dst)
 			if err != nil {
 				return nil, err
 			}

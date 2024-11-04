@@ -361,7 +361,7 @@ func getNodesOfEndpoint(c *VPCConfig, name string) ([]Node, int, error) {
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
 	// endpoint name may be prefixed by vpc name
 	endpoint, vpc := getResourceAndVpcNames(name)
-	for _, nodeSet := range append(c.NodeSets, loadBalancersAsNodeSets(c)...) {
+	for _, nodeSet := range append(c.NodeSets, c.loadBalancersAsNodeSets()...) {
 		if (vpc == "" || nodeSet.VPC().Name() == vpc) &&
 			nodeSet.Name() == endpoint || // if vpc of endpoint specified, equality must hold
 			nodeSet.UID() == uid {
@@ -433,7 +433,7 @@ func getNodesFromAddress(c *VPCConfig, ipOrCidr string, inputIPBlock *ipblock.IP
 }
 
 func getNodesWithinInternalAddressFilterNonRelevant(c *VPCConfig, inputIPBlock *ipblock.IPBlock) []Node {
-	networkInterfaces := GetNodesWithinInternalAddress(c, inputIPBlock)
+	networkInterfaces := c.GetNodesWithinInternalAddress(inputIPBlock)
 	// filtering out the nodes which are not represented by their address (currently only LB private IPs):
 	networkInterfaces = slices.DeleteFunc(networkInterfaces, func(n Node) bool { return !n.RepresentedByAddress() })
 	return networkInterfaces

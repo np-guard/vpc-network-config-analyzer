@@ -44,15 +44,15 @@ type VPCConfig struct {
 	IsMultipleVPCsConfig bool
 }
 
-// MultipleVPCsConfigPrefix returns the vpcName of the passed resource when config is multi-vpc
-func MultipleVPCsConfigPrefix(c *VPCConfig, resource *VPCResource) string {
-	if c != nil && resource.VPC() != nil && c.IsMultipleVPCsConfig {
-		return resource.VPC().Name() + Deliminator
+// MultipleVPCsConfigPrefix returns the passed vpcName when config is multi-vpc
+func (c *VPCConfig) MultipleVPCsConfigPrefix(vpcName string) string {
+	if c.IsMultipleVPCsConfig {
+		return vpcName + Deliminator
 	}
 	return ""
 }
 
-func SubnetCidrToSubnetElem(c *VPCConfig, cidr string) (Subnet, error) {
+func (c *VPCConfig) SubnetCidrToSubnetElem(cidr string) (Subnet, error) {
 	for _, subnet := range c.Subnets {
 		if subnet.CIDR() == cidr {
 			return subnet, nil
@@ -61,7 +61,7 @@ func SubnetCidrToSubnetElem(c *VPCConfig, cidr string) (Subnet, error) {
 	return nil, fmt.Errorf("could not find subnet with CIDR %s in VPC %s", cidr, c.VPC.Name())
 }
 
-func GetFilterTrafficResourceOfKind(c *VPCConfig, kind string) FilterTrafficResource {
+func (c *VPCConfig) GetFilterTrafficResourceOfKind(kind string) FilterTrafficResource {
 	for _, filter := range c.FilterResources {
 		if filter.Kind() == kind {
 			return filter
@@ -75,7 +75,7 @@ func GetFilterTrafficResourceOfKind(c *VPCConfig, kind string) FilterTrafficReso
 // pairs are discarded when both r1,r2 are the same, or when analysis is cross-vpc connectivity,
 // and both r1,r2 are from the same vpc
 // the types of r1,r2 should be the same - either both are a Node or a NodeSet
-func shouldConsiderPairForConnectivity(c *VPCConfig, r1, r2 VPCResourceIntf) (bool, error) {
+func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (bool, error) {
 	if r1.UID() == r2.UID() {
 		return false, nil
 	}
@@ -94,7 +94,7 @@ func shouldConsiderPairForConnectivity(c *VPCConfig, r1, r2 VPCResourceIntf) (bo
 // may refer to external routing or to routing between vpcs
 // node is associated with either a pgw or a fip for external router;
 // if the relevant network interface has both the parser will keep only the fip.
-func getRoutingResource(c *VPCConfig, src, dst Node) (RoutingResource, *connection.Set, error) {
+func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connection.Set, error) {
 	for _, router := range c.RoutingResources {
 		routerConnRes, err := router.AllowedConnectivity(src, dst)
 		if err != nil {
@@ -115,7 +115,7 @@ func getRoutingResource(c *VPCConfig, src, dst Node) (RoutingResource, *connecti
 
 // GetNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes (should be VSI) within address
-func GetNodesWithinInternalAddress(c *VPCConfig, inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
 	for _, node := range c.Nodes {
 		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
@@ -124,12 +124,12 @@ func GetNodesWithinInternalAddress(c *VPCConfig, inputIPBlock *ipblock.IPBlock) 
 	return networkInterfaceNodes
 }
 
-func AddRoutingTable(c *VPCConfig, rt VPCResourceIntf) {
+func (c *VPCConfig) AddRoutingTable(rt VPCResourceIntf) {
 	c.RoutingTables = append(c.RoutingTables, rt)
 }
 
 // down casting a slice of LBs to slice of NodeSets
-func loadBalancersAsNodeSets(c *VPCConfig) []NodeSet {
+func (c *VPCConfig) loadBalancersAsNodeSets() []NodeSet {
 	nodeSet := make([]NodeSet, len(c.LoadBalancers))
 	for i, lb := range c.LoadBalancers {
 		nodeSet[i] = lb

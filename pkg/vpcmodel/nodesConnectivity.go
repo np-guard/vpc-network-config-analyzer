@@ -106,7 +106,7 @@ func getFiltersAllowedConnsBetweenNodesPerDirectionAndLayer(
 	src, dst Node,
 	isIngress bool,
 	layer string) (*connection.Set, error) {
-	filter := GetFilterTrafficResourceOfKind(c, layer)
+	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return AllConns(), nil
 	}
@@ -133,7 +133,7 @@ func getAllowedConnsPerDirection(c *VPCConfig, isIngress bool, capturedNode Node
 	// iterate pairs (capturedNode, peerNode) to analyze their allowed ingress/egress conns
 	for _, peerNode := range c.Nodes {
 		// skip analysis between certain pairs of nodes
-		considerPair, err := shouldConsiderPairForConnectivity(c, capturedNode, peerNode)
+		considerPair, err := c.shouldConsiderPairForConnectivity(capturedNode, peerNode)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -156,7 +156,7 @@ func getAllowedConnsPerDirection(c *VPCConfig, isIngress bool, capturedNode Node
 			var allowedConnsBetweenCapturedAndPeerNode *connection.Set
 			if c.IsMultipleVPCsConfig {
 				// in case of cross-vpc connectivity, do need a router (tgw) enabling this connection
-				_, allowedConnsBetweenCapturedAndPeerNode, err = getRoutingResource(c, src, dst)
+				_, allowedConnsBetweenCapturedAndPeerNode, err = c.getRoutingResource(src, dst)
 				if err != nil {
 					return nil, nil, err
 				}
@@ -171,7 +171,7 @@ func getAllowedConnsPerDirection(c *VPCConfig, isIngress bool, capturedNode Node
 			allLayersRes[peerNode] = allowedConnsBetweenCapturedAndPeerNode
 		} else {
 			// else : external node -> needs external router, which considers both NACL and SG
-			appliedRouter, routerConnRes, err := getRoutingResource(c, src, dst)
+			appliedRouter, routerConnRes, err := c.getRoutingResource(src, dst)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -268,7 +268,7 @@ func (v *VPCConnectivity) computeAllowedResponsiveConnections(c *VPCConfig,
 			combinedDstToSrc := DstAllowedEgressToSrc.Intersect(SrcAllowedIngressFromDst)
 			// in case the connection is multi-vpc: does the tgw enable respond?
 			if c.IsMultipleVPCsConfig {
-				_, allowedConnsBetweenCapturedAndPeerNode, err := getRoutingResource(c, dstNode, srcNode)
+				_, allowedConnsBetweenCapturedAndPeerNode, err := c.getRoutingResource(dstNode, srcNode)
 				if err != nil {
 					return err
 				}

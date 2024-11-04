@@ -149,7 +149,7 @@ func (test *testRTAnalyzer) run(t *testing.T) {
 	// build config and routing tables from test
 	config1, egressRT1 := newBasicConfig(test.rps)
 	for _, rt := range egressRT1 {
-		vpcmodel.AddRoutingTable(config1, rt)
+		config1.AddRoutingTable(rt)
 	}
 
 	rtAnalyzer1 := newRTAnalyzer(config1)

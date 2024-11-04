@@ -251,7 +251,7 @@ func (rc *IBMresourcesContainer) getRoutingTables(
 		}
 		logging.Debugf("add rt %s for vpc %s\n", rtObj.Name(), vpcUID)
 
-		vpcmodel.AddRoutingTable(vpcConfig, rtObj)
+		vpcConfig.AddRoutingTable(rtObj)
 		res.SetConfig(vpcUID, vpcConfig)
 	}
 	return nil
@@ -1135,7 +1135,7 @@ func (rc *IBMresourcesContainer) getVPEconfig(
 
 func getSubnetByCidr(res *vpcmodel.MultipleVPCConfigs, cidr string) (*commonvpc.Subnet, error) {
 	for _, config := range res.Configs() {
-		if subnet, err := vpcmodel.SubnetCidrToSubnetElem(config, cidr); err == nil {
+		if subnet, err := config.SubnetCidrToSubnetElem(cidr); err == nil {
 			return subnet.(*commonvpc.Subnet), nil
 		}
 	}

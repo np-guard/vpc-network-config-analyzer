@@ -187,7 +187,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		singleSrcDstDetails.loadBalancerRule = getLoadBalancerRule(c, src, dst)
 		singleSrcDstDetails.privateSubnetRule = getPrivateSubnetRule(src, dst)
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
-			singleSrcDstDetails.crossVpcRouter, _, err = getRoutingResource(c, src, dst)
+			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
 			}
@@ -197,7 +197,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 			singleSrcDstDetails.filtersRelevant = src.(InternalNodeIntf).AppliedFiltersKinds(dst.(InternalNodeIntf))
 		} else { // external
 			singleSrcDstDetails.filtersRelevant = map[string]bool{NaclLayer: true, SecurityGroupLayer: true}
-			externalRouter, _, err := getRoutingResource(c, src, dst)
+			externalRouter, _, err := c.getRoutingResource(src, dst)
 			if err != nil {
 				return err
 			}
@@ -332,7 +332,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 func getFiltersRulesBetweenNodesPerDirectionAndLayer(
 	c *VPCConfig, src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInTable,
 	denyRules *[]RulesInTable, err error) {
-	filter := GetFilterTrafficResourceOfKind(c, layer)
+	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
 		return nil, nil, fmt.Errorf("layer %v not found in configuration", layer)
 	}
