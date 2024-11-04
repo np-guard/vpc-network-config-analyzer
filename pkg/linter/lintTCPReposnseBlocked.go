@@ -8,7 +8,6 @@ package linter
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/common"
@@ -80,7 +79,7 @@ func (finding *blockedTCPResponseConn) string() string {
 		vpcSrcName, finding.src.NameForAnalyzerOut(nil), vpcDstName, finding.dst.NameForAnalyzerOut(nil))
 
 	return fmt.Sprintf("In the connection %s %s response is blocked", srcToDstStr,
-		strings.ReplaceAll(common.LongString(finding.tcpRspDisable), "protocol: ", ""))
+		common.ShortString(finding.tcpRspDisable))
 }
 
 func (finding *blockedTCPResponseConn) getVpcName(i int) string {

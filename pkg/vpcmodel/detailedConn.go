@@ -114,7 +114,7 @@ func (d *detailedConn) nonTCPAndResponsiveTCPComponent() *netset.TransportSet {
 
 // string adds * to non-responsive TCP components of the connection
 // for cosmetic reasons remove the protocol word from cubes prints
-func (d *detailedConn) string() string { ////////////////////olaaaaaaaaaaaaaa
+func (d *detailedConn) string() string {
 	if d.allConn.IsEmpty() {
 		return common.LongString(d.allConn)
 	}

@@ -634,8 +634,7 @@ func respondString(d *detailedConn) string {
 		// no tcp responsive component
 		return "\n\tTCP response is blocked"
 	default:
-		disabledToPrint := strings.ReplaceAll(common.LongString(d.TCPRspDisable),
-			"protocol: ", "")
+		disabledToPrint := common.ShortString(d.TCPRspDisable)
 		disabledToPrint = strings.ReplaceAll(disabledToPrint, "TCP ", "")
 		return "\n\tHowever, TCP response is blocked for: " + disabledToPrint
 	}
