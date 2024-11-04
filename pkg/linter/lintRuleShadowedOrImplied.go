@@ -12,8 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -112,14 +111,14 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 				containRules := map[int]*vpcmodel.RuleOfFilter{}
 				for _, srcAtomicBlock := range srcBlocks {
 					for _, dstAtomicBlock := range dstBlocks {
-						connOfOthers := connection.None()
+						connOfOthers := netset.NoTransports()
 						// computes the connection of other/higher priority rules in this atomic point in the 3-dimension space
 						for _, otherRule := range rulesToIterate {
 							// otherRule contributes to the shadowing/implication?
 							// namely, it contains src, dst and has a relevant connection?
 							if redundantRule.IsIngress == otherRule.IsIngress &&
-								srcAtomicBlock.ContainedIn(otherRule.SrcCidr) &&
-								dstAtomicBlock.ContainedIn(otherRule.DstCidr) &&
+								srcAtomicBlock.IsSubset(otherRule.SrcCidr) &&
+								dstAtomicBlock.IsSubset(otherRule.DstCidr) &&
 								!redundantRule.Conn.Intersect(otherRule.Conn).IsEmpty() {
 								connOfOthers = connOfOthers.Union(otherRule.Conn)
 								if _, ok := containRules[otherRule.RuleIndex]; !ok {
@@ -128,7 +127,7 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 							}
 						}
 						// is <src, dst> shadowed/implied by other rules?
-						if !redundantRule.Conn.ContainedIn(connOfOthers) {
+						if !redundantRule.Conn.IsSubset(connOfOthers) {
 							ruleIsRedundant = false
 							break
 						}
@@ -143,10 +142,10 @@ func findRuleSyntacticRedundant(configs map[string]*vpcmodel.VPCConfig,
 	return res, nil
 }
 
-func getAtomicBlocks(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock) []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
+func getAtomicBlocks(atomicBlocks []*netset.IPBlock, srcOrdst *netset.IPBlock) []*netset.IPBlock {
+	res := []*netset.IPBlock{}
 	for _, block := range atomicBlocks {
-		if block.ContainedIn(srcOrdst) {
+		if block.IsSubset(srcOrdst) {
 			res = append(res, block)
 		}
 	}
@@ -157,14 +156,14 @@ func getAtomicBlocks(atomicBlocks []*ipblock.IPBlock, srcOrdst *ipblock.IPBlock)
 // 1. To a slice of its rules, where the location in the slice is the index of the rule
 // 2. To slice of the atomic blocks of the table
 func getTablesRulesAndAtomicBlocks(config *vpcmodel.VPCConfig, filterLayerName string) (tableToRules map[int][]*vpcmodel.RuleOfFilter,
-	tableToAtomicBlocks map[int][]*ipblock.IPBlock, err error) {
+	tableToAtomicBlocks map[int][]*netset.IPBlock, err error) {
 	filterLayer := config.GetFilterTrafficResourceOfKind(filterLayerName)
 	rules, err := filterLayer.GetRules()
 	if err != nil {
 		return nil, nil, err
 	}
 	tableToRules = map[int][]*vpcmodel.RuleOfFilter{}
-	tableToAtomicBlocks = map[int][]*ipblock.IPBlock{}
+	tableToAtomicBlocks = map[int][]*netset.IPBlock{}
 	for i := range rules {
 		filterIndex := rules[i].Filter.FilterIndex
 		tableToRules[filterIndex] = append(tableToRules[filterIndex], &rules[i])
@@ -175,7 +174,7 @@ func getTablesRulesAndAtomicBlocks(config *vpcmodel.VPCConfig, filterLayerName s
 		slices.SortFunc(tableToRules[tableIndex], func(r1, r2 *vpcmodel.RuleOfFilter) int {
 			return r1.RuleIndex - r2.RuleIndex
 		})
-		tableToAtomicBlocks[tableIndex] = ipblock.DisjointIPBlocks(tableToAtomicBlocks[tableIndex], nil)
+		tableToAtomicBlocks[tableIndex] = netset.DisjointIPBlocks(tableToAtomicBlocks[tableIndex], nil)
 	}
 	return tableToRules, tableToAtomicBlocks, err
 }

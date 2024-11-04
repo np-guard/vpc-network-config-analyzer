@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // for the graphical (html, drawio, svg) representation. In the graph presentation, each node must have all relevant edges.
@@ -30,8 +30,8 @@ func (g *GroupConnLines) consistencyEdgesExternal() {
 }
 
 // gets []*groupedConnLine and returns a map from the string presentation of each endpoint to its ipBlock
-func getMapToIps(grouped []*groupedConnLine) map[string]*ipblock.IPBlock {
-	eeToIPBlock := map[string]*ipblock.IPBlock{}
+func getMapToIps(grouped []*groupedConnLine) map[string]*netset.IPBlock {
+	eeToIPBlock := map[string]*netset.IPBlock{}
 	for _, line := range grouped {
 		addExternalEndpointToMap(line.Src, eeToIPBlock)
 		addExternalEndpointToMap(line.Dst, eeToIPBlock)
@@ -52,7 +52,7 @@ func getMapToEPEs(grouped []*groupedConnLine) map[string]EndpointElem {
 	return eeNameToEE
 }
 
-func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipblock.IPBlock) {
+func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*netset.IPBlock) {
 	if !ee.IsExternal() {
 		return
 	}
@@ -63,8 +63,8 @@ func addExternalEndpointToMap(ee EndpointElem, endpointsIPBlocks map[string]*ipb
 	endpointsIPBlocks[ee.Name()] = groupedExternalToIPBlock(ee.(*groupedExternalNodes))
 }
 
-func groupedExternalToIPBlock(ee *groupedExternalNodes) *ipblock.IPBlock {
-	var res = ipblock.New()
+func groupedExternalToIPBlock(ee *groupedExternalNodes) *netset.IPBlock {
+	var res = netset.NewIPBlock()
 	for _, e := range *ee {
 		res = res.Union(e.ipblock)
 	}
@@ -73,7 +73,7 @@ func groupedExternalToIPBlock(ee *groupedExternalNodes) *ipblock.IPBlock {
 
 // given a map from external endpoints to their IPs returns a map from each endpoint to the endpoints that
 // it contained (if any)
-func getContainedEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock,
+func getContainedEndpointMap(endpointsIPBlocks map[string]*netset.IPBlock,
 	eeNameToEE map[string]EndpointElem) map[string][]EndpointElem {
 	containedMap := map[string][]EndpointElem{}
 	for containingEP, containingIP := range endpointsIPBlocks {
@@ -82,7 +82,7 @@ func getContainedEndpointMap(endpointsIPBlocks map[string]*ipblock.IPBlock,
 			if containedEP == containingEP {
 				continue
 			}
-			if containedIP.ContainedIn(containingIP) {
+			if containedIP.IsSubset(containingIP) {
 				containedEPs = append(containedEPs, eeNameToEE[containedEP])
 			}
 		}

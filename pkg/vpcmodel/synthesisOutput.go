@@ -12,8 +12,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
+	common "github.com/np-guard/vpc-network-config-analyzer/pkg/common"
 )
 
 type SynthesisOutputFormatter struct {
@@ -95,7 +96,7 @@ func getSynthesisSpec(groupedLines []*groupedConnLine, grouping bool) *spec.Spec
 		connLines = append(connLines, spec.SpecRequiredConnectionsElem{
 			Src:              spec.Resource{Name: srcName, Type: srcType},
 			Dst:              spec.Resource{Name: dstName, Type: dstType},
-			AllowedProtocols: sortProtocolList(spec.ProtocolList(connection.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
+			AllowedProtocols: sortProtocolList(spec.ProtocolList(netset.ToJSON(groupedLine.CommonProperties.Conn.allConn))),
 			Bidirectional:    bidirectional})
 	}
 	s.Externals = externals
@@ -112,11 +113,11 @@ func getBidirectionalMapKeyByConnLine(groupedLine *groupedConnLine, flip bool) s
 	if flip {
 		return getBidirectionalMapKeyByNames(groupedLine.Dst.SynthesisResourceName(),
 			groupedLine.Src.SynthesisResourceName(),
-			groupedLine.CommonProperties.Conn.allConn.String())
+			common.LongString(groupedLine.CommonProperties.Conn.allConn))
 	}
 	return getBidirectionalMapKeyByNames(groupedLine.Src.SynthesisResourceName(),
 		groupedLine.Dst.SynthesisResourceName(),
-		groupedLine.CommonProperties.Conn.allConn.String())
+		common.LongString(groupedLine.CommonProperties.Conn.allConn))
 }
 
 // Returns a map from string(src+dst+conn) to whether the connection is bidirectional.

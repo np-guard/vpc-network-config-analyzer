@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/drawio"
@@ -38,8 +38,8 @@ type mockNetIntf struct {
 func (m *mockNetIntf) CidrOrAddress() string {
 	return m.cidr
 }
-func (m *mockNetIntf) IPBlock() *ipblock.IPBlock {
-	res, _ := ipblock.FromCidrOrAddress(m.cidr)
+func (m *mockNetIntf) IPBlock() *netset.IPBlock {
+	res, _ := netset.IPBlockFromCidrOrAddress(m.cidr)
 	return res
 }
 func (m *mockNetIntf) Address() string {
@@ -124,7 +124,7 @@ func (m *mockSubnet) NameForAnalyzerOut(c *VPCConfig) string {
 func (m *mockSubnet) Nodes() []Node {
 	return m.nodes
 }
-func (m *mockSubnet) AddressRange() *ipblock.IPBlock {
+func (m *mockSubnet) AddressRange() *netset.IPBlock {
 	return nil
 }
 func (m *mockSubnet) CIDR() string {

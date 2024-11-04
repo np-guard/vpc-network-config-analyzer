@@ -16,7 +16,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -67,8 +67,8 @@ func addTGWConfig(tgwObj *TransitGateway, configs *vpcmodel.MultipleVPCConfigs) 
 
 //nolint:unparam // currently `nextHop` always receives `"10.1.15.197", due to current test
 func pathFromNextHopValues(nextHop, origDest string) vpcmodel.Path {
-	n, _ := ipblock.FromCidrOrAddress(nextHop)
-	o, _ := ipblock.FromCidrOrAddress(origDest)
+	n, _ := netset.IPBlockFromCidrOrAddress(nextHop)
+	o, _ := netset.IPBlockFromCidrOrAddress(origDest)
 	return []*vpcmodel.Endpoint{{NextHop: &vpcmodel.NextHopEntry{NextHop: n, OrigDest: o}}}
 }
 
@@ -463,7 +463,7 @@ var config4Tests = []*testGlobalAnalyzer{
 
 func (tga *testGlobalAnalyzer) run(t *testing.T, globalAnalyzer *GlobalRTAnalyzer, configs *vpcmodel.MultipleVPCConfigs) {
 	srcNode, _ := configs.GetInternalNodeFromAddress(tga.src)
-	dstIPBlock, _ := ipblock.FromIPAddress(tga.dst)
+	dstIPBlock, _ := netset.IPBlockFromIPAddress(tga.dst)
 	path, err := globalAnalyzer.GetRoutingPath(srcNode, dstIPBlock)
 	fmt.Printf("path: %s\n", path.String())
 	require.Nil(t, err)

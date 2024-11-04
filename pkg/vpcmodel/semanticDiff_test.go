@@ -14,8 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // simple diff:
@@ -65,8 +65,8 @@ func configSimpleSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *configConne
 		&mockSubnet{nil, "10.4.20.0/22", "subnet4", []Node{cfg2.Nodes[2]}},
 		&mockSubnet{nil, "11.4.20.0/22", "subnet5", []Node{cfg2.Nodes[3]}})
 
-	connResponsiveAll := detailedConnForResponsive(connection.All())
-	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
+	connResponsiveAll := detailedConnForResponsive(netset.AllTransports())
+	connectionTCP := netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 10, 100, 443, 443)
 	connResponsiveTCP := detailedConnForResponsive(connectionTCP)
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Subnets[0], cfg1.Subnets[1], connResponsiveAll)
@@ -175,7 +175,7 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	// <public1-2, subnet2> 			 and 		<public2-2, subnet2> are comparable
 	// <public1-1, subnet2> 			 and 		<public2-1, subnet2> are comparable
 	// <public1-1, subnet1> 			 and 		<public2-1, subnet1> are comparable
-	connResponsive := detailedConnForResponsive(connection.All())
+	connResponsive := detailedConnForResponsive(netset.AllTransports())
 	subnetConnMap1 := &VPCsubnetConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Subnets[0], connResponsive)
 	subnetConnMap1.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Subnets[1], connResponsive)
@@ -188,7 +188,7 @@ func configSimpleIPAndSubnetDiff() (subnetConfigConn1, subnetConfigConn2 *config
 	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[0], cfg2.Subnets[1], connResponsive)
 	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Nodes[1], cfg2.Subnets[1], connResponsive)
 	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Nodes[0], connResponsive)
-	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 0, 1000, 0, 443)
+	connectionTCP := netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 0, 1000, 0, 443)
 	connTCP := detailedConnForResponsive(connectionTCP)
 	subnetConnMap2.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg2.Subnets[1], cfg2.Nodes[2], connTCP)
 
@@ -292,8 +292,8 @@ func configSimpleVsisDiff() (configConn1, configConn2 *configConnectivity) {
 	cfg2.Subnets = append(cfg2.Subnets, &mockSubnet{nil, "10.0.20.0/22", "subnet0", []Node{cfg2.Nodes[0], cfg2.Nodes[1],
 		cfg2.Nodes[2], cfg2.Nodes[3]}})
 
-	connAll := detailedConnForResponsive(connection.All())
-	connectionTCP := connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
+	connAll := detailedConnForResponsive(netset.AllTransports())
+	connectionTCP := netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 10, 100, 443, 443)
 	connTCP := detailedConnForResponsive(connectionTCP)
 	cfg1Conn := &VPCConnectivity{AllowedConnsCombinedResponsive: GeneralResponsiveConnectivityMap{}}
 	cfg1Conn.AllowedConnsCombinedResponsive.updateAllowedResponsiveConnsMap(cfg1.Nodes[0], cfg1.Nodes[1], connAll)

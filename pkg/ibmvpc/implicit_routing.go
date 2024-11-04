@@ -9,7 +9,7 @@ package ibmvpc
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -63,7 +63,7 @@ type systemRTConfig struct {
 	sgw     *ServiceNetworkGateway
 }
 
-func (rt *systemImplicitRT) destAsPath(dest *ipblock.IPBlock) vpcmodel.Path {
+func (rt *systemImplicitRT) destAsPath(dest *netset.IPBlock) vpcmodel.Path {
 	internalNodes := rt.vpcConfig.GetNodesWithinInternalAddress(dest)
 	if len(internalNodes) != 1 {
 		// TODO: add error handling here?
@@ -89,9 +89,9 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 	return res
 }
 
-func isDestPublicInternet(dest *ipblock.IPBlock) bool {
+func isDestPublicInternet(dest *netset.IPBlock) bool {
 	_, publicRange, _ := vpcmodel.GetNetworkAddressList().GetPublicInternetIPblocksList()
-	return dest.ContainedIn(publicRange)
+	return dest.IsSubset(publicRange)
 }
 
 func isDestServiceNetwork(dest *ipblock.IPBlock) bool {
@@ -109,13 +109,13 @@ func fipHasSource(src vpcmodel.Node, fip *FloatingIP) bool {
 }
 
 func pgwHasSource(src vpcmodel.Node, pgw *PublicGateway) bool {
-	cidrs, _ := ipblock.FromCidrList(pgw.subnetCidr)
-	return src.IPBlock().ContainedIn(cidrs)
+	cidrs, _ := netset.IPBlockFromCidrList(pgw.subnetCidr)
+	return src.IPBlock().IsSubset(cidrs)
 	// another option: compare by nodes within pgw.src (currently breaks test)
 }
 
 // getIngressPath returns a path to dest
-func (rt *systemImplicitRT) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path, error) {
+func (rt *systemImplicitRT) getIngressPath(dest *netset.IPBlock) (vpcmodel.Path, error) {
 	// traffic from some source is by default simply routed to dest node
 	path := rt.destAsPath(dest)
 	if len(path) == 0 {
@@ -127,10 +127,10 @@ func (rt *systemImplicitRT) getIngressPath(dest *ipblock.IPBlock) (vpcmodel.Path
 
 // getEgressPath returns a path from src to dst if such exists, or nil otherwise
 // TODO: src should be InternalNodeIntf, but it does not implement VPCResourceIntf
-func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlock) vpcmodel.Path {
+func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *netset.IPBlock) vpcmodel.Path {
 	// TODO: split dest by disjoint ip-blocks of the vpc-config (the known destinations ip-blocks)
 
-	if dest.ContainedIn(rt.vpc.AddressPrefixes()) {
+	if dest.IsSubset(rt.vpc.AddressPrefixes()) {
 		// direct connection
 		return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), rt.destAsPath(dest))
 	}
@@ -173,7 +173,7 @@ func (rt *systemImplicitRT) getEgressPath(src vpcmodel.Node, dest *ipblock.IPBlo
 			// (the dest VPC could publish its AddressPrefix, but may not have the required dest subnet )
 			for _, prefix := range availablePrefixes {
 				logging.Debugf("check available prefix: %s", prefix.ToCidrListString())
-				if dest.ContainedIn(prefix) {
+				if dest.IsSubset(prefix) {
 					// path through tgw
 					// TODO: should be concatenated to path from tgw to dest by ingress routing table in the second vpc
 					return vpcmodel.ConcatPaths(vpcmodel.PathFromResource(src), vpcmodel.PathFromTGWResource(tgw, vpcUID))

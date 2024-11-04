@@ -12,8 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 )
 
@@ -46,8 +45,8 @@ type explainDetails struct {
 	privateSubnetRule    PrivateSubnetRule
 	filtersRelevant      map[string]bool
 	connEnabled          bool
-	ingressConn          *connection.Set
-	egressConn           *connection.Set
+	ingressConn          *netset.TransportSet
+	egressConn           *netset.TransportSet
 }
 
 type groupedCommonProperties struct {
@@ -306,7 +305,7 @@ func (g *groupedExternalNodes) SynthesisKind() spec.ResourceType {
 func (g *groupedExternalNodes) CidrOrAddress() string {
 	isAllInternetRange, err := isEntirePublicInternetRange(*g)
 	if err == nil && isAllInternetRange {
-		return ipblock.CidrAll
+		return netset.CidrAll
 	}
 	return g.String()
 }
@@ -668,7 +667,7 @@ func (g *groupedExternalNodes) String() string {
 	return strings.Join(unionBlock.ListToPrint(), commaSeparator)
 }
 
-func (g *groupedExternalNodes) toIPBlock() *ipblock.IPBlock {
+func (g *groupedExternalNodes) toIPBlock() *netset.IPBlock {
 	// 1. Created a list of IPBlocks
 	cidrList := make([]string, len(*g))
 	for i, n := range *g {
@@ -676,10 +675,10 @@ func (g *groupedExternalNodes) toIPBlock() *ipblock.IPBlock {
 	}
 	ipbList, _, err := ipStringsToIPblocks(cidrList)
 	if err != nil {
-		return ipblock.New()
+		return netset.NewIPBlock()
 	}
 	// 2. union all IPBlocks in a single one; its intervals will be the cidr blocks or ranges that should be printed, after all possible merges
-	unionBlock := ipblock.New()
+	unionBlock := netset.NewIPBlock()
 	for _, ipBlock := range ipbList {
 		unionBlock = unionBlock.Union(ipBlock)
 	}

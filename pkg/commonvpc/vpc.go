@@ -12,8 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/models/pkg/spec"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -37,7 +36,7 @@ func (r *Region) SynthesisKind() spec.ResourceType {
 type Zone struct {
 	Name    string
 	Cidrs   []string
-	IPblock *ipblock.IPBlock
+	IPblock *netset.IPBlock
 	Vpc     *VPC // TODO: extend: zone can span over multiple VPCs
 }
 
@@ -108,19 +107,19 @@ type VPC struct {
 	Zones     map[string]*Zone
 	VPCregion *Region
 	// internalAddressRange is the union of all the vpc's subnets' CIDRs
-	InternalAddressRange   *ipblock.IPBlock
+	InternalAddressRange   *netset.IPBlock
 	SubnetsList            []*Subnet
-	AddressPrefixesIPBlock *ipblock.IPBlock
+	AddressPrefixesIPBlock *netset.IPBlock
 	AddressPrefixesList    []string
 }
 
-func (v *VPC) AddressPrefixes() *ipblock.IPBlock {
+func (v *VPC) AddressPrefixes() *netset.IPBlock {
 	return v.AddressPrefixesIPBlock
 }
 
-func (v *VPC) GetZoneByIPBlock(ipb *ipblock.IPBlock) (string, error) {
+func (v *VPC) GetZoneByIPBlock(ipb *netset.IPBlock) (string, error) {
 	for _, z := range v.Zones {
-		if ipb.ContainedIn(z.IPblock) {
+		if ipb.IsSubset(z.IPblock) {
 			return z.Name, nil
 		}
 	}
@@ -138,7 +137,7 @@ func (v *VPC) Nodes() []vpcmodel.Node {
 	return v.VPCnodes
 }
 
-func (v *VPC) AddressRange() *ipblock.IPBlock {
+func (v *VPC) AddressRange() *netset.IPBlock {
 	return v.InternalAddressRange
 }
 
@@ -165,9 +164,9 @@ const (
 // Subnet implements vpcmodel.Subnet interface
 type Subnet struct {
 	vpcmodel.VPCResource
-	VPCnodes     []vpcmodel.Node  `json:"-"`
-	Cidr         string           `json:"-"`
-	IPblock      *ipblock.IPBlock `json:"-"`
+	VPCnodes     []vpcmodel.Node `json:"-"`
+	Cidr         string          `json:"-"`
+	IPblock      *netset.IPBlock `json:"-"`
 	subnetExpose SubnetExpose
 }
 
@@ -183,7 +182,7 @@ func (s *Subnet) Nodes() []vpcmodel.Node {
 	return s.VPCnodes
 }
 
-func (s *Subnet) AddressRange() *ipblock.IPBlock {
+func (s *Subnet) AddressRange() *netset.IPBlock {
 	return s.IPblock
 }
 func (s *Subnet) IsPrivate() bool {
@@ -278,12 +277,12 @@ func (v *Vsi) Nodes() []vpcmodel.Node {
 	return v.VPCnodes
 }
 
-func (v *Vsi) AddressRange() *ipblock.IPBlock {
+func (v *Vsi) AddressRange() *netset.IPBlock {
 	return nodesAddressRange(v.VPCnodes)
 }
 
-func nodesAddressRange(nodes []vpcmodel.Node) *ipblock.IPBlock {
-	var res *ipblock.IPBlock
+func nodesAddressRange(nodes []vpcmodel.Node) *netset.IPBlock {
+	var res *netset.IPBlock
 	for _, n := range nodes {
 		if res == nil {
 			res = n.IPBlock()
@@ -335,8 +334,8 @@ func (nl *NaclLayer) GetConnectivityOutputPerEachElemSeparately() string {
 	return strings.Join(res, "\n")
 }
 
-func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
-	res := connection.None()
+func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*netset.TransportSet, error) {
+	res := netset.NoTransports()
 	for _, nacl := range nl.NaclList {
 		naclConn, err := nacl.AllowedConnectivity(src, dst, isIngress)
 		if err != nil {
@@ -349,7 +348,7 @@ func (nl *NaclLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool)
 
 // RulesInConnectivity list of NACL rules contributing to the connectivity
 func (nl *NaclLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	connQuery *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	connQuery *netset.TransportSet, isIngress bool) (allowRes []vpcmodel.RulesInTable,
 	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, nacl := range nl.NaclList {
 		tableRelevant, allowRules, denyRules, err1 := nacl.rulesFilterInConnectivity(src, dst, connQuery, isIngress)
@@ -375,7 +374,7 @@ func (nl *NaclLayer) Name() string {
 }
 
 func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]int, filterIndex int,
-	tableConn *connection.Set, tableEffect vpcmodel.TableEffect, isAllow bool) {
+	tableConn *netset.TransportSet, tableEffect vpcmodel.TableEffect, isAllow bool) {
 	var rType vpcmodel.RulesType
 	switch {
 	case len(*rules) == 0:
@@ -395,8 +394,8 @@ func appendToRulesInFilter(resRulesInFilter *[]vpcmodel.RulesInTable, rules *[]i
 	*resRulesInFilter = append(*resRulesInFilter, rulesInNacl)
 }
 
-func (nl *NaclLayer) ReferencedIPblocks() []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
+func (nl *NaclLayer) ReferencedIPblocks() []*netset.IPBlock {
+	res := []*netset.IPBlock{}
 	for _, n := range nl.NaclList {
 		res = append(res, n.Analyzer.NaclAnalyzer.ReferencedIPblocks()...)
 	}
@@ -500,32 +499,32 @@ func (n *NACL) initConnectivityComputation(src, dst vpcmodel.Node,
 	}
 	// checking if targetNode is internal, to save a call to ContainedIn for external nodes
 	if connectivityInput.targetNode.IsInternal() &&
-		connectivityInput.targetNode.IPBlock().ContainedIn(connectivityInput.subnet.IPblock) {
+		connectivityInput.targetNode.IPBlock().IsSubset(connectivityInput.subnet.IPblock) {
 		connectivityInput.targetWithinSubnet = true
 	}
 
 	return connectivityInput, nil
 }
 
-func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
+func (n *NACL) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*netset.TransportSet, error) {
 	connectivityInput, err := n.initConnectivityComputation(src, dst, isIngress)
 	if err != nil {
 		return nil, err
 	}
 	// check if the subnet of the given node is affected by this nacl
 	if !connectivityInput.subnetAffectedByNACL {
-		return connection.None(), nil // not affected by current nacl
+		return netset.NoTransports(), nil // not affected by current nacl
 	}
 	// TODO: differentiate between "has no effect" vs "affects with allow-all / allow-none "
 	if connectivityInput.targetWithinSubnet {
-		return connection.All(), nil // nacl has no control on traffic between two instances in its subnet
+		return netset.AllTransports(), nil // nacl has no control on traffic between two instances in its subnet
 	}
 	return n.Analyzer.AllowedConnectivity(connectivityInput.subnet, connectivityInput.nodeInSubnet,
 		connectivityInput.targetNode, isIngress)
 }
 
 // TODO: rulesFilterInConnectivity has some duplicated code with AllowedConnectivity
-func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
+func (n *NACL) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *netset.TransportSet,
 	isIngress bool) (tableRelevant bool, allow, deny []int, err error) {
 	connectivityInput, err1 := n.initConnectivityComputation(src, dst, isIngress)
 	if err1 != nil {
@@ -565,8 +564,8 @@ func (sgl *SecurityGroupLayer) GetConnectivityOutputPerEachElemSeparately() stri
 
 // AllowedConnectivity
 // TODO: fix: is it possible that no sg applies  to the input peer? if so, should not return "no conns" when none applies
-func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*connection.Set, error) {
-	res := connection.None()
+func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) (*netset.TransportSet, error) {
+	res := netset.NoTransports()
 	for _, sg := range sgl.SgList {
 		sgConn := sg.AllowedConnectivity(src, dst, isIngress)
 		res = res.Union(sgConn)
@@ -578,7 +577,7 @@ func (sgl *SecurityGroupLayer) AllowedConnectivity(src, dst vpcmodel.Node, isIng
 // or between src and dst of connection connQuery if connQuery specified
 // denyRules not relevant here - returns nil
 func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
-	connQuery *connection.Set, isIngress bool) (allowRes []vpcmodel.RulesInTable,
+	connQuery *netset.TransportSet, isIngress bool) (allowRes []vpcmodel.RulesInTable,
 	denyRes []vpcmodel.RulesInTable, err error) {
 	for index, sg := range sgl.SgList {
 		tableRelevant, sgRules, err1 := sg.rulesFilterInConnectivity(src, dst, connQuery, isIngress)
@@ -605,8 +604,8 @@ func (sgl *SecurityGroupLayer) RulesInConnectivity(src, dst vpcmodel.Node,
 	return allowRes, nil, nil
 }
 
-func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*ipblock.IPBlock {
-	res := []*ipblock.IPBlock{}
+func (sgl *SecurityGroupLayer) ReferencedIPblocks() []*netset.IPBlock {
+	res := []*netset.IPBlock{}
 	for _, sg := range sgl.SgList {
 		res = append(res, sg.Analyzer.SgAnalyzer.ReferencedIPblocks()...)
 	}
@@ -640,7 +639,7 @@ func (sgl *SecurityGroupLayer) getIngressOrEgressRules(isIngress bool) ([]vpcmod
 		sgName := *sg.Analyzer.SgAnalyzer.Name()
 		for _, ruleOfSG := range sgRules {
 			ruleDesc, _, _, _ := sg.Analyzer.SgAnalyzer.GetSGRule(ruleOfSG.Index)
-			var srcBlock, dstBlock *ipblock.IPBlock
+			var srcBlock, dstBlock *netset.IPBlock
 			if isIngress {
 				srcBlock, dstBlock = ruleOfSG.Remote.Cidr, ruleOfSG.Local
 			} else {
@@ -676,17 +675,17 @@ type SecurityGroup struct {
 	Members map[string]vpcmodel.Node
 }
 
-func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *connection.Set {
+func (sg *SecurityGroup) AllowedConnectivity(src, dst vpcmodel.Node, isIngress bool) *netset.TransportSet {
 	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.Members[memberStrAddress]; !ok {
-		return connection.None() // connectivity not affected by this SG resource - input node is not its member
+		return netset.NoTransports() // connectivity not affected by this SG resource - input node is not its member
 	}
 	return sg.Analyzer.allowedConnectivity(targetIPBlock, memberIPBlock, isIngress)
 }
 
 // unifiedMembersIPBlock returns an *IPBlock object with union of all members IPBlock
-func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock.IPBlock) {
-	unifiedMembersIPBlock = ipblock.New()
+func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *netset.IPBlock) {
+	unifiedMembersIPBlock = netset.NewIPBlock()
 	for _, memberNode := range sg.Members {
 		unifiedMembersIPBlock = unifiedMembersIPBlock.Union(memberNode.IPBlock())
 	}
@@ -695,7 +694,7 @@ func (sg *SecurityGroup) unifiedMembersIPBlock() (unifiedMembersIPBlock *ipblock
 }
 
 // rulesFilterInConnectivity list of SG rules contributing to the connectivity
-func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *connection.Set,
+func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn *netset.TransportSet,
 	isIngress bool) (tableRelevant bool, rules []int, err error) {
 	memberIPBlock, targetIPBlock, memberStrAddress := sg.getMemberTargetStrAddress(src, dst, isIngress)
 	if _, ok := sg.Members[memberStrAddress]; !ok {
@@ -706,7 +705,7 @@ func (sg *SecurityGroup) rulesFilterInConnectivity(src, dst vpcmodel.Node, conn 
 }
 
 func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
-	isIngress bool) (memberIPBlock, targetIPBlock *ipblock.IPBlock, memberStrAddress string) {
+	isIngress bool) (memberIPBlock, targetIPBlock *netset.IPBlock, memberStrAddress string) {
 	var member, target vpcmodel.Node
 	if isIngress {
 		member, target = dst, src
@@ -717,7 +716,7 @@ func (sg *SecurityGroup) getMemberTargetStrAddress(src, dst vpcmodel.Node,
 	return member.IPBlock(), target.IPBlock(), member.CidrOrAddress()
 }
 
-func getTableConnEffect(connQuery, conn *connection.Set) (*connection.Set, vpcmodel.TableEffect) {
+func getTableConnEffect(connQuery, conn *netset.TransportSet) (*netset.TransportSet, vpcmodel.TableEffect) {
 	switch {
 	case connQuery == nil: // connection not part of query
 		if !conn.IsEmpty() {
@@ -726,8 +725,8 @@ func getTableConnEffect(connQuery, conn *connection.Set) (*connection.Set, vpcmo
 			return conn, vpcmodel.Deny
 		}
 	case conn.Intersect(connQuery).IsEmpty():
-		return connection.None(), vpcmodel.Deny
-	case connQuery.ContainedIn(conn):
+		return netset.NoTransports(), vpcmodel.Deny
+	case connQuery.IsSubset(conn):
 		return connQuery, vpcmodel.Allow
 	default:
 		return conn.Intersect(connQuery), vpcmodel.PartlyAllow
