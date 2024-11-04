@@ -12,7 +12,7 @@ import (
 
 	vpc1 "github.com/IBM/vpc-go-sdk/vpcv1"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // ///////////////////////////////////////////////////////////////////////
@@ -46,12 +46,12 @@ import (
 // /////////////////////////////////////////////////////////////////////////////////////////
 // oneSubnetBlocks hold the blocks of one subnet
 type oneSubnetBlocks struct {
-	subnetOriginalBlock *ipblock.IPBlock // the block of the cidr of the subnet
+	subnetOriginalBlock *netset.IPBlock // the block of the cidr of the subnet
 	// splitByFiltersBlocks are the atomic blocks induced by the filters, the union of this slice is the subnetOriginalBlock
-	splitByFiltersBlocks []*ipblock.IPBlock
+	splitByFiltersBlocks []*netset.IPBlock
 	// freeAddressesBlocks are the splitByFiltersBlocks minus the reserved IPs
 	// each block in splitByFiltersBlocks has a corresponding block at freeAddressesBlocks
-	freeAddressesBlocks []*ipblock.IPBlock
+	freeAddressesBlocks []*netset.IPBlock
 	// fullyReservedBlocks is a bool per block.
 	// its true if all the addresses in the original block are reserved IP
 	// for these blocks there is no need to create private IPs
@@ -94,7 +94,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsOriginalBlocks(rc *IBMresourcesCo
 			continue
 		}
 		subnetsBlocks[*subnetObj.CRN] = &oneSubnetBlocks{}
-		subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, err = ipblock.FromCidr(*subnetObj.Ipv4CIDRBlock)
+		subnetsBlocks[*subnetObj.CRN].subnetOriginalBlock, err = netset.IPBlockFromCidr(*subnetObj.Ipv4CIDRBlock)
 		if err != nil {
 			return err
 		}
@@ -117,8 +117,8 @@ func (subnetsBlocks subnetsIPBlocks) splitSubnetsOriginalBlocks(rc *IBMresources
 
 // splitSubnetsOriginalBlocks() splits one subnet's cidr(s) to (maximal) disjoint blocks -
 // such that each block is atomic w.r.t. the filters rules
-func splitSubnetOriginalBlock(subnetOriginalBlock *ipblock.IPBlock, filtersBlocks []*ipblock.IPBlock) []*ipblock.IPBlock {
-	filtersBlocksOnSubnet := []*ipblock.IPBlock{}
+func splitSubnetOriginalBlock(subnetOriginalBlock *netset.IPBlock, filtersBlocks []*netset.IPBlock) []*netset.IPBlock {
+	filtersBlocksOnSubnet := []*netset.IPBlock{}
 	for _, filterBlock := range filtersBlocks {
 		filterBlocksOnSubnet := subnetOriginalBlock.Intersect(filterBlock)
 		if !filterBlocksOnSubnet.IsEmpty() {
@@ -138,7 +138,7 @@ func (subnetsBlocks subnetsIPBlocks) getSubnetsFreeBlocks(rc *IBMresourcesContai
 		if skipByVPC[*subnetObj.VPC.ID] {
 			continue
 		}
-		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*ipblock.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
+		subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks = make([]*netset.IPBlock, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		subnetsBlocks[*subnetObj.CRN].fullyReservedBlocks = make([]bool, len(subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks))
 		for blockIndex, block := range subnetsBlocks[*subnetObj.CRN].splitByFiltersBlocks {
 			subnetsBlocks[*subnetObj.CRN].freeAddressesBlocks[blockIndex] = block.Copy()
@@ -168,7 +168,7 @@ func (subnetsBlocks subnetsIPBlocks) allocSubnetFreeAddress(subnetCRN string, bl
 	address := subnetsBlocks[subnetCRN].freeAddressesBlocks[blockIndex].FirstIPAddress()
 	return address, subnetsBlocks.removeAddressFromFree(address, subnetCRN, blockIndex)
 }
-func (subnetsBlocks subnetsIPBlocks) subnetBlocks(subnetCRN string) []*ipblock.IPBlock {
+func (subnetsBlocks subnetsIPBlocks) subnetBlocks(subnetCRN string) []*netset.IPBlock {
 	return subnetsBlocks[subnetCRN].splitByFiltersBlocks
 }
 func (subnetsBlocks subnetsIPBlocks) isFullyReservedBlock(subnetCRN string, blockIndex int) bool {
@@ -176,7 +176,7 @@ func (subnetsBlocks subnetsIPBlocks) isFullyReservedBlock(subnetCRN string, bloc
 }
 
 func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN string, blockIndex int) error {
-	addressBlock, err := ipblock.FromIPAddress(address)
+	addressBlock, err := netset.IPBlockFromIPAddress(address)
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func (subnetsBlocks subnetsIPBlocks) removeAddressFromFree(address, subnetCRN st
 
 // filtersBlocks is a map from VPC UID to a list of IPBlocks,
 // which holds the list of disjoint IPBlocks computed from all referenced CIDRs in that VPC's filters rules
-type filtersBlocks map[string][]*ipblock.IPBlock
+type filtersBlocks map[string][]*netset.IPBlock
 
 // ///////////////////////////////////////////
 // getFiltersBlocks() create a slice of disjoint blocks for each vpc, split according to the rules blocks, and their sum is allCidr:
@@ -198,13 +198,13 @@ func getFiltersBlocks(filtersCidrs []map[string][]*string) (blocks filtersBlocks
 	return disjointVpcCidrs(vpcCidrs)
 }
 
-// getVpcsCidrs() sort the cidr of all filters for each vpc separately, adding ipblock.CidrAll for every vpc
+// getVpcsCidrs() sort the cidr of all filters for each vpc separately, adding netset.CidrAll for every vpc
 func getVpcsCidrs(filtersCidrs []map[string][]*string) map[string][]string {
 	vpcCidrs := map[string][]string{}
 	for _, filterCidrsOrAddresses := range filtersCidrs {
 		for vpc, vpcCidrsOrAddresses := range filterCidrsOrAddresses {
 			if _, ok := vpcCidrs[vpc]; !ok {
-				vpcCidrs[vpc] = []string{ipblock.CidrAll}
+				vpcCidrs[vpc] = []string{netset.CidrAll}
 			}
 			for _, cidrOrAddress := range vpcCidrsOrAddresses {
 				if cidrOrAddress != nil {
@@ -237,11 +237,11 @@ func disjointVpcCidrs(cidr map[string][]string) (blocks filtersBlocks, err error
 //
 // please notice - there is a method models.DisjointIPBlocks(), this method is not suitable for this case:
 // at the output of models.DisjointIPBlocks(), each ipblock must be a range of IPs
-func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
+func disjointCidrs(cidrs []string) ([]*netset.IPBlock, error) {
 	compactCidrs := slices.Compact(cidrs)
-	cidrBlocks := make([]*ipblock.IPBlock, len(compactCidrs))
+	cidrBlocks := make([]*netset.IPBlock, len(compactCidrs))
 	for i, cidr := range compactCidrs {
-		block, err := ipblock.FromCidrOrAddress(cidr)
+		block, err := netset.IPBlockFromCidrOrAddress(cidr)
 		if err != nil {
 			return nil, err
 		}
@@ -254,8 +254,8 @@ func disjointCidrs(cidrs []string) ([]*ipblock.IPBlock, error) {
 		PrefixLengthJ, _ := cidrBlocks[j].PrefixLength()
 		return PrefixLengthI > PrefixLengthJ
 	})
-	unionOfPreviousBlocks := ipblock.New()
-	disjointBlocks := []*ipblock.IPBlock{}
+	unionOfPreviousBlocks := netset.NewIPBlock()
+	disjointBlocks := []*netset.IPBlock{}
 	for _, b := range cidrBlocks {
 		newBlock := b.Subtract(unionOfPreviousBlocks)
 		if !newBlock.IsEmpty() {

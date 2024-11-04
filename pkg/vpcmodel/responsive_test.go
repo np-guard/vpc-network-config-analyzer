@@ -10,19 +10,19 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type responsiveTest struct {
 	name     string
-	srcToDst *connection.Set
-	dstToSrc *connection.Set
+	srcToDst *netset.TransportSet
+	dstToSrc *netset.TransportSet
 	// expectedTCPResponsiveConn represents the subset from srcToDst which is not related to the
 	// "non-responsive" mark (*) on the srcToDst connection,
-	expectedTCPResponsiveConn    *connection.Set
-	expectedTCPNonResponsiveConn *connection.Set
-	expectedAllConn              *connection.Set
+	expectedTCPResponsiveConn    *netset.TransportSet
+	expectedTCPNonResponsiveConn *netset.TransportSet
+	expectedAllConn              *netset.TransportSet
 }
 
 func (tt responsiveTest) runTest(t *testing.T) {
@@ -40,34 +40,34 @@ func TestAll(t *testing.T) {
 			srcToDst:                     newTCPUDPSet(netp.ProtocolStringTCP), // TCP all ports
 			dstToSrc:                     newTCPUDPSet(netp.ProtocolStringTCP), // TCP all ports
 			expectedTCPResponsiveConn:    newTCPUDPSet(netp.ProtocolStringTCP), // TCP all ports
-			expectedTCPNonResponsiveConn: connection.None(),
+			expectedTCPNonResponsiveConn: netset.NoTransports(),
 			expectedAllConn:              newTCPUDPSet(netp.ProtocolStringTCP),
 		},
 		{
 			name:     "first_all_cons_second_tcp_with_ports",
-			srcToDst: connection.All(),                                           // all connections
-			dstToSrc: newTCPConn(80, 80, connection.MinPort, connection.MaxPort), // TCP , src-ports: 80, dst-ports: all
+			srcToDst: netset.AllTransports(),                         // all connections
+			dstToSrc: newTCPConn(80, 80, netp.MinPort, netp.MaxPort), // TCP , src-ports: 80, dst-ports: all
 
 			// TCP src-ports: all, dst-port: 80
-			expectedTCPResponsiveConn: newTCPConn(connection.MinPort, connection.MaxPort, 80, 80),
-			expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(connection.MinPort,
-				connection.MaxPort, 80, 80)),
-			expectedAllConn: connection.All(),
+			expectedTCPResponsiveConn: newTCPConn(netp.MinPort, netp.MaxPort, 80, 80),
+			expectedTCPNonResponsiveConn: allTCPconn().Subtract(newTCPConn(netp.MinPort,
+				netp.MaxPort, 80, 80)),
+			expectedAllConn: netset.AllTransports(),
 		},
 		{
 			name:                         "first_all_conns_second_no_tcp",
-			srcToDst:                     connection.All(), // all connections
-			dstToSrc:                     newICMPconn(),    // ICMP
-			expectedTCPResponsiveConn:    connection.None(),
+			srcToDst:                     netset.AllTransports(), // all connections
+			dstToSrc:                     newICMPconn(),          // ICMP
+			expectedTCPResponsiveConn:    netset.NoTransports(),
 			expectedTCPNonResponsiveConn: allTCPconn(),
-			expectedAllConn:              connection.All(),
+			expectedAllConn:              netset.AllTransports(),
 		},
 		{
 			name:                         "tcp_with_ports_both_directions_exact_match",
 			srcToDst:                     newTCPConn(80, 80, 443, 443),
 			dstToSrc:                     newTCPConn(443, 443, 80, 80),
 			expectedTCPResponsiveConn:    newTCPConn(80, 80, 443, 443),
-			expectedTCPNonResponsiveConn: connection.None(),
+			expectedTCPNonResponsiveConn: netset.NoTransports(),
 			expectedAllConn:              newTCPConn(80, 80, 443, 443),
 		},
 		{
@@ -82,7 +82,7 @@ func TestAll(t *testing.T) {
 			name:                         "tcp_with_ports_both_directions_no_match",
 			srcToDst:                     newTCPConn(80, 100, 443, 443),
 			dstToSrc:                     newTCPConn(80, 80, 80, 80),
-			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPResponsiveConn:    netset.NoTransports(),
 			expectedTCPNonResponsiveConn: newTCPConn(80, 100, 443, 443),
 			expectedAllConn:              newTCPConn(80, 100, 443, 443),
 		},
@@ -90,7 +90,7 @@ func TestAll(t *testing.T) {
 			name:                         "udp_and_tcp_with_ports_both_directions_no_match",
 			srcToDst:                     newTCPConn(80, 100, 443, 443).Union(newUDPConn(80, 100, 443, 443)),
 			dstToSrc:                     newTCPConn(80, 80, 80, 80).Union(newUDPConn(80, 80, 80, 80)),
-			expectedTCPResponsiveConn:    connection.None(),
+			expectedTCPResponsiveConn:    netset.NoTransports(),
 			expectedTCPNonResponsiveConn: newTCPConn(80, 100, 443, 443),
 			expectedAllConn:              newTCPConn(80, 100, 443, 443).Union(newUDPConn(80, 100, 443, 443)),
 		},
@@ -98,25 +98,25 @@ func TestAll(t *testing.T) {
 			name:                         "no_tcp_in_first_direction",
 			srcToDst:                     newUDPConn(70, 100, 443, 443),
 			dstToSrc:                     newTCPConn(70, 80, 80, 80).Union(newUDPConn(70, 80, 80, 80)),
-			expectedTCPResponsiveConn:    connection.None(),
-			expectedTCPNonResponsiveConn: connection.None(),
+			expectedTCPResponsiveConn:    netset.NoTransports(),
+			expectedTCPNonResponsiveConn: netset.NoTransports(),
 			expectedAllConn:              newUDPConn(70, 100, 443, 443),
 		},
 		{
 			name:                         "empty_conn_in_first_direction",
-			srcToDst:                     connection.None(),
+			srcToDst:                     netset.NoTransports(),
 			dstToSrc:                     newTCPConn(80, 80, 80, 80).Union(newTCPUDPSet(netp.ProtocolStringUDP)),
-			expectedTCPResponsiveConn:    connection.None(),
-			expectedTCPNonResponsiveConn: connection.None(),
-			expectedAllConn:              connection.None(),
+			expectedTCPResponsiveConn:    netset.NoTransports(),
+			expectedTCPNonResponsiveConn: netset.NoTransports(),
+			expectedAllConn:              netset.NoTransports(),
 		},
 		{
 			name:     "only_udp_icmp_in_first_direction_and_empty_second_direction",
 			srcToDst: newTCPUDPSet(netp.ProtocolStringUDP).Union(newICMPconn()),
-			dstToSrc: connection.None(),
+			dstToSrc: netset.NoTransports(),
 			// responsive analysis does not apply to udp/icmp, thus TCP responsive component is empty
-			expectedTCPResponsiveConn:    connection.None(),
-			expectedTCPNonResponsiveConn: connection.None(),
+			expectedTCPResponsiveConn:    netset.NoTransports(),
+			expectedTCPNonResponsiveConn: netset.NoTransports(),
 			expectedAllConn:              newTCPUDPSet(netp.ProtocolStringUDP).Union(newICMPconn()),
 		},
 	}

@@ -9,7 +9,7 @@ package linter
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -70,8 +70,8 @@ func findRuleNonRelevantCIDR(configs map[string]*vpcmodel.VPCConfig, filterLayer
 			if rules[i].IsIngress {
 				relevantBlock = rules[i].DstCidr
 			}
-			if !relevantBlock.Equal(ipblock.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
-				if !relevantBlock.ContainedIn(vpcAddressRange) {
+			if !relevantBlock.Equal(netset.GetCidrAll()) { // 0.0.0.0/0 common practice in rules
+				if !relevantBlock.IsSubset(vpcAddressRange) {
 					res = append(res, &ruleNonRelevantCIDR{rule: rules[i], vpcResource: config.VPC,
 						disjoint: !relevantBlock.Overlap(vpcAddressRange)})
 				}

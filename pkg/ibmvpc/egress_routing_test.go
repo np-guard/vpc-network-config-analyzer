@@ -31,7 +31,7 @@ func genConfig(vpc *commonvpc.VPC, subnets []*commonvpc.Subnet,
 		res.NodeSets = append(res.NodeSets, subnet)
 		// add references from subnet to nodes, and from node to subnet
 		for _, node := range netInterfaces {
-			if node.IPBlockObj.ContainedIn(subnet.AddressRange()) {
+			if node.IPBlockObj.IsSubset(subnet.AddressRange()) {
 				subnet.VPCnodes = append(subnet.VPCnodes, node)
 				node.SubnetResource = subnet
 				// currently skipping nodes without subnets

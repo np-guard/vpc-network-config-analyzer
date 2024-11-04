@@ -12,13 +12,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 func TestSubnetsBlocks(t *testing.T) {
 	subnetsBlocks := subnetsIPBlocks{}
 	subnetID, vpcID := "subId1", "vpcId"
-	subnetOrigBlock, _ := ipblock.FromCidr("10.240.0.0/23")
+	subnetOrigBlock, _ := netset.IPBlockFromCidr("10.240.0.0/23")
 	subnetsBlocks[subnetID] = &oneSubnetBlocks{subnetOriginalBlock: subnetOrigBlock}
 	filtersCidrs := map[string][]string{}
 

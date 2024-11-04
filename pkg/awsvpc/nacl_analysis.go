@@ -12,8 +12,8 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 )
@@ -21,7 +21,7 @@ import (
 // AWSNACLAnalyzer implements commonvpc.SpecificNACLAnalyzer
 type AWSNACLAnalyzer struct {
 	naclResource       *types.NetworkAcl
-	referencedIPblocks []*ipblock.IPBlock
+	referencedIPblocks []*netset.IPBlock
 	// all over the analyzer code, we assume that the acl rules are ordered by their priority.
 	// however, in aws, the priority is being config by the rule number, and the order has no meaning.
 	// so prioritiesEntries are the entries as in naclResource.Entries, sorted by the rule number:
@@ -43,18 +43,18 @@ func (na *AWSNACLAnalyzer) Name() *string {
 	return getResourceName(na.naclResource.Tags, na.naclResource.NetworkAclId)
 }
 
-func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*ipblock.IPBlock {
+func (na *AWSNACLAnalyzer) ReferencedIPblocks() []*netset.IPBlock {
 	return na.referencedIPblocks
 }
 
 // SetReferencedIPblocks updates referenced ip blocks
-func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*ipblock.IPBlock) {
+func (na *AWSNACLAnalyzer) SetReferencedIPblocks(referencedIPblocks []*netset.IPBlock) {
 	na.referencedIPblocks = referencedIPblocks
 }
 
 // GetNACLRule gets index of the rule and returns the rule results line and obj
 func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *commonvpc.NACLRule, isIngress bool, err error) {
-	var conns *connection.Set
+	var conns *netset.TransportSet
 	var connStr string
 	ruleObj := na.prioritiesEntries[index]
 	protocol := convertProtocol(*ruleObj.Protocol)
@@ -62,13 +62,13 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 	portsStr := ""
 	switch protocol {
 	case allProtocols:
-		conns = connection.All()
+		conns = netset.AllTransports()
 	case protocolTCP, protocolUDP:
 		minPort := int64(*ruleObj.PortRange.From)
 		maxPort := int64(*ruleObj.PortRange.To)
 		conns = commonvpc.GetTCPUDPConns(protocol,
-			connection.MinPort,
-			connection.MaxPort,
+			netp.MinPort,
+			netp.MaxPort,
 			minPort,
 			maxPort,
 		)
@@ -86,19 +86,19 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		if ruleObj.IcmpTypeCode.Code != nil && *ruleObj.IcmpTypeCode.Code != -1 {
 			portsStr += fmt.Sprintf(", code: %d", *ruleObj.IcmpTypeCode.Code)
 		}
-		conns = connection.ICMPConnection(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
+		conns = netset.NewICMPTransport(icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax)
 	default:
 		err = fmt.Errorf("GetNACLRule unsupported protocol type: %s ", *ruleObj.Protocol)
 		return "", nil, false, err
 	}
 	connStr = "protocol: " + protocol + portsStr
 	action := string(ruleObj.RuleAction)
-	ip, err := ipblock.FromCidr(*ruleObj.CidrBlock)
+	ip, err := netset.IPBlockFromCidr(*ruleObj.CidrBlock)
 	if err != nil {
 		return "", nil, false, err
 	}
 	isIngress = !*ruleObj.Egress
-	src, dst := ipblock.GetCidrAll(), ip
+	src, dst := netset.GetCidrAll(), ip
 	direction := commonvpc.Outbound
 	if isIngress {
 		src, dst = dst, src

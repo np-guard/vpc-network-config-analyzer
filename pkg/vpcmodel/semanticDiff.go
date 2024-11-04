@@ -11,8 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type DiffType = int
@@ -305,7 +304,7 @@ func (diffCfgs *diffBetweenCfgs) hasStatelessConns() bool {
 // prints connection for the above string(..) where the connection could be empty
 func connStr(extConn *detailedConn) string {
 	if extConn == nil {
-		return connection.NoConnections
+		return netset.NoConnections
 	}
 	return extConn.string()
 }
@@ -353,7 +352,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 	if err != nil {
 		return nil, nil, err
 	}
-	disjointIPblocks := ipblock.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
+	disjointIPblocks := netset.DisjointIPBlocks(connectivityIPBlist, otherIPBlist)
 	// 2. copy configs and generates Nodes[] as per disjointIPblocks
 	err = confConnectivity.config.refineConfigExternalNodes(disjointIPblocks)
 	if err != nil {
@@ -381,7 +380,7 @@ func (confConnectivity *configConnectivity) getConnectivityWithSameIPBlocks(othe
 }
 
 func (responsiveConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGivenIPBlists(config *VPCConfig,
-	disjointIPblocks []*ipblock.IPBlock) (
+	disjointIPblocks []*netset.IPBlock) (
 	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	alignedConnectivitySrc, err := responsiveConnMap.actualAlignSrcOrDstGivenIPBlists(config, disjointIPblocks, true)
 	if err != nil {
@@ -393,7 +392,7 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) alignConnectionsGiven
 
 // aligned config: copies from old config everything but external nodes,
 // external nodes are resized by disjointIPblocks
-func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblock.IPBlock) error {
+func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*netset.IPBlock) error {
 	// copy config
 	var err error
 	//  nodes - external addresses - are resized
@@ -401,7 +400,7 @@ func (c *VPCConfig) refineConfigExternalNodes(disjointIPblocks []*ipblock.IPBloc
 	return err
 }
 
-func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes []Node, err error) {
+func resizeNodes(oldNodes []Node, disjointIPblocks []*netset.IPBlock) (newNodes []Node, err error) {
 	newNodes = []Node{}
 	//  range over old nodes and inside range over disjoint blocks
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
@@ -413,7 +412,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 		}
 		disjointContained := false
 		for _, disjointIPBlock := range disjointIPblocks {
-			if disjointIPBlock.ContainedIn(oldNode.IPBlock()) {
+			if disjointIPBlock.IsSubset(oldNode.IPBlock()) {
 				disjointContained = true
 				for _, thisCidr := range disjointIPBlock.ToCidrList() {
 					newNode, err := newExternalNodeForCidr(thisCidr)
@@ -432,7 +431,7 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*ipblock.IPBlock) (newNodes
 }
 
 func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGivenIPBlists(config *VPCConfig,
-	disjointIPblocks []*ipblock.IPBlock, resizeSrc bool) (
+	disjointIPblocks []*netset.IPBlock, resizeSrc bool) (
 	alignedConnectivity GeneralResponsiveConnectivityMap, err error) {
 	// goes over all sources of connections in connectivity
 	// if src is external then for each IPBlock in disjointIPblocks copies dsts and connection type
@@ -454,7 +453,7 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 			}
 			// the resizing element is external - go over all ipBlock and allocates the connection
 			// if the ipBlock is contained in the original src/dst
-			var origIPBlock *ipblock.IPBlock
+			var origIPBlock *netset.IPBlock
 			if resizeSrc {
 				if node, ok := src.(Node); ok {
 					origIPBlock = node.IPBlock()
@@ -477,12 +476,12 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 	return alignedConnectivity, err
 }
 
-func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*ipblock.IPBlock,
-	origIPBlock *ipblock.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn,
+func addIPBlockToConnectivityMap(c *VPCConfig, disjointIPblocks []*netset.IPBlock,
+	origIPBlock *netset.IPBlock, alignedConnectivity map[VPCResourceIntf]map[VPCResourceIntf]*detailedConn,
 	src, dst VPCResourceIntf, conns *detailedConn, resizeSrc bool) error {
 	for _, ipBlock := range disjointIPblocks {
 		// get ipBlock of resized index (src/dst)
-		if !ipBlock.ContainedIn(origIPBlock) { // ipBlock not relevant here
+		if !ipBlock.IsSubset(origIPBlock) { // ipBlock not relevant here
 			continue
 		}
 		// origIPBlock has either several new disjointIPblocks contained in it or is contained in itself
@@ -519,7 +518,7 @@ func findNodeWithCidr(configNodes []Node, cidr string) Node {
 }
 
 // get a list of IPBlocks of the src and dst of the connections
-func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*ipblock.IPBlock,
+func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipbList []*netset.IPBlock,
 	myErr error) {
 	for src, endpointConns := range responsiveConnMap {
 		for dst, connsWithStateful := range endpointConns {
@@ -647,7 +646,7 @@ func (responsiveConnMap GeneralResponsiveConnectivityMap) getIPBlocksList() (ipb
 //// todo: instead of adding functionality to grouping, I plan to have more generic connectivity items that will be grouped
 ////       encode the cfgsDiff into this generic item as well as the other entities we are grouping
 ////       and then decode in the printing
-////       the idea is to use instead of *connection.Set in the grouped entity a string which will encode the connection
+////       the idea is to use instead of *netset.TransportSet in the grouped entity a string which will encode the connection
 ////       and also the diff where relevant
 ////       this will requires some rewriting in the existing grouping functionality and the way it provides
 ////       service to subnetsConnectivity and nodesConnectivity

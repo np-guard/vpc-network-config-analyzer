@@ -11,9 +11,7 @@ import (
 
 	"errors"
 
-	"github.com/np-guard/models/pkg/connection"
-
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 // VPCConfig captures the configured resources for a VPC
@@ -94,7 +92,7 @@ func (c *VPCConfig) shouldConsiderPairForConnectivity(r1, r2 VPCResourceIntf) (b
 // may refer to external routing or to routing between vpcs
 // node is associated with either a pgw or a fip for external router;
 // if the relevant network interface has both the parser will keep only the fip.
-func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connection.Set, error) {
+func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *netset.TransportSet, error) {
 	for _, router := range c.RoutingResources {
 		routerConnRes, err := router.AllowedConnectivity(src, dst)
 		if err != nil {
@@ -115,9 +113,9 @@ func (c *VPCConfig) getRoutingResource(src, dst Node) (RoutingResource, *connect
 
 // GetNodesWithinInternalAddress gets input IPBlock
 // and returns the list of all internal nodes (should be VSI) within address
-func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *ipblock.IPBlock) (networkInterfaceNodes []Node) {
+func (c *VPCConfig) GetNodesWithinInternalAddress(inputIPBlock *netset.IPBlock) (networkInterfaceNodes []Node) {
 	for _, node := range c.Nodes {
-		if node.IsInternal() && node.IPBlock().ContainedIn(inputIPBlock) {
+		if node.IsInternal() && node.IPBlock().IsSubset(inputIPBlock) {
 			networkInterfaceNodes = append(networkInterfaceNodes, node)
 		}
 	}
