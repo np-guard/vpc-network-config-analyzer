@@ -74,7 +74,17 @@ func getICMPCubeStr(cube ds.Pair[*netset.TypeSet, *netset.CodeSet]) string {
 }
 
 // tCPUDPString returns a string representation of a TransportSet object
+// partial cubes only
 func tCPUDPString(c *netset.TCPUDPSet, shortVersion bool) string {
+	if netset.AllTCPTransport().TCPUDPSet().IsSubset(c) {
+		c = c.Subtract(netset.AllTCPTransport().TCPUDPSet())
+	}
+	if netset.AllUDPTransport().TCPUDPSet().IsSubset(c) {
+		c = c.Subtract(netset.AllUDPTransport().TCPUDPSet())
+	}
+	if c.IsEmpty() {
+		return ""
+	}
 	cubes := c.Partitions()
 	var resStrings = make([]string, len(cubes))
 	for i, cube := range cubes {
@@ -85,7 +95,11 @@ func tCPUDPString(c *netset.TCPUDPSet, shortVersion bool) string {
 }
 
 // iCMPString returns a string representation of an ICMPSet object
+// partial cubes only
 func iCMPString(c *netset.ICMPSet, shortVersion bool) string {
+	if netset.AllICMPTransport().ICMPSet().IsSubset(c) {
+		c = c.Subtract(netset.AllICMPTransport().ICMPSet())
+	}
 	if c.IsEmpty() {
 		return ""
 	}
@@ -106,25 +120,46 @@ func iCMPString(c *netset.ICMPSet, shortVersion bool) string {
 	return str
 }
 
+func completeProtocols(c *netset.TransportSet, shortVersion bool) string {
+	completeProtocols := []string{}
+	if netset.AllICMPSet().IsSubset(c.ICMPSet()) {
+		completeProtocols = append(completeProtocols, string(netp.ProtocolStringICMP))
+	}
+	if netset.AllTCPTransport().IsSubset(c) {
+		completeProtocols = append(completeProtocols, string(netp.ProtocolStringTCP))
+	}
+	if netset.AllUDPTransport().IsSubset(c) {
+		completeProtocols = append(completeProtocols, string(netp.ProtocolStringUDP))
+	}
+
+	res := strings.Join(completeProtocols, ",")
+	if !shortVersion && res != "" {
+		res = protocolString + res
+	}
+
+	return res
+}
+
+func appendIfNotEmpty(res []string, s string) []string {
+	if len(s) > 0 {
+		res = append(res, s)
+	}
+	return res
+}
+
 func Stringify(c *netset.TransportSet, shortVersion bool) string {
 	if c.IsEmpty() {
 		return NoConnections
 	} else if c.IsAll() {
 		return AllConnections
 	}
-	tcpString := tCPUDPString(c.TCPUDPSet(), shortVersion)
-	icmpString := iCMPString(c.ICMPSet(), shortVersion)
 
-	// Special case: ICMP,UDP or ICMP,TCP
-	if strings.HasSuffix(tcpString, string(netp.ProtocolStringTCP)) || strings.HasSuffix(tcpString, string(netp.ProtocolStringUDP)) {
-		if strings.HasSuffix(icmpString, string(netp.ProtocolStringICMP)) {
-			return fmt.Sprintf("%s,%s", icmpString, tCPUDPString(c.TCPUDPSet(), true))
-		}
-	}
-	if tcpString != "" && icmpString != "" {
-		return fmt.Sprintf("%s%s%s", icmpString, semicolonString, tcpString)
-	}
-	return icmpString + tcpString
+	resStrs := []string{}
+	resStrs = appendIfNotEmpty(resStrs, completeProtocols(c, shortVersion))
+	resStrs = appendIfNotEmpty(resStrs, iCMPString(c.ICMPSet(), shortVersion))     // partial cubes only
+	resStrs = appendIfNotEmpty(resStrs, tCPUDPString(c.TCPUDPSet(), shortVersion)) // partial cubes only
+
+	return strings.Join(resStrs, semicolonString)
 }
 
 func ShortString(connections *netset.TransportSet) string {
