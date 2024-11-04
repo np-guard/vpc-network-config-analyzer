@@ -62,7 +62,7 @@ const (
 // the functionality to generate the analysis output in various formats, for that vpc
 type OutputGenerator struct {
 	configs        *MultipleVPCConfigs
-	outputGrouping bool
+	outputGrouping bool // todo: is this needed??? (SM)
 	lbAbstraction  bool
 	useCase        OutputUseCase
 	nodesConn      map[string]*VPCConnectivity
@@ -72,11 +72,12 @@ type OutputGenerator struct {
 	detailExplain  bool
 }
 
-func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUseCase,
-	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat, lbAbstraction bool) (*OutputGenerator, error) {
+func NewOutputGenerator(cConfigs *MultipleVPCConfigs, groupingType int, uc OutputUseCase,
+	archOnly bool, explanationArgs *ExplanationArgs, f OutFormat,
+	lbAbstraction bool) (*OutputGenerator, error) {
 	res := &OutputGenerator{
 		configs:        cConfigs,
-		outputGrouping: grouping,
+		outputGrouping: groupingType == GroupingWithConsistencyEdges || groupingType == GroupingNoConsistencyEdges,
 		lbAbstraction:  lbAbstraction,
 		useCase:        uc,
 		nodesConn:      map[string]*VPCConnectivity{},
@@ -88,7 +89,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 		switch uc {
 		case AllEndpoints:
 			for i, vpcConfig := range cConfigs.Configs() {
-				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(grouping, res.lbAbstraction)
+				nodesConn, err := vpcConfig.GetVPCNetworkConnectivity(res.lbAbstraction, groupingType)
 				if err != nil {
 					return nil, err
 				}
@@ -96,7 +97,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, grouping bool, uc OutputUs
 			}
 		case AllSubnets:
 			for i, vpcConfig := range cConfigs.Configs() {
-				subnetsConn, err := GetSubnetsConnectivity(vpcConfig, true, grouping)
+				subnetsConn, err := GetSubnetsConnectivity(vpcConfig, true, groupingType)
 				if err != nil {
 					return nil, err
 				}

@@ -203,7 +203,7 @@ func TestGroupingPhase1(t *testing.T) {
 	c, v := newVPCConfigTest1()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 
 	groupingStr := res.String(c)
@@ -218,7 +218,7 @@ func TestGroupingPhase2(t *testing.T) {
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
 	// phase 1
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	groupingStr := res.String(c)
 	require.Equal(t, "vsi1 => Public Internet 1.2.0.0/22,8.8.8.8/32 : All Connections\n"+
@@ -260,7 +260,7 @@ func TestResponsiveGrouping(t *testing.T) {
 	c, v := configResponsiveGrouping()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String(c)
@@ -293,7 +293,7 @@ func TestIPRange(t *testing.T) {
 	c, v := configIPRange()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String(c)
@@ -331,7 +331,7 @@ func TestSelfLoopClique(t *testing.T) {
 	c, v := configSelfLoopClique()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	groupingStr := res.String(c)
@@ -371,7 +371,7 @@ func TestSelfLoopCliqueDiffSubnets(t *testing.T) {
 	c, v := configSelfLoopCliqueDiffSubnets()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(true, true)
 	res.groupInternalSrcOrDst(false, true)
@@ -411,7 +411,7 @@ func TestSimpleSelfLoop(t *testing.T) {
 	c, v := configSimpleSelfLoop()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
@@ -462,7 +462,7 @@ func TestConfigSelfLoopCliqueLace(t *testing.T) {
 	c, v := configSelfLoopCliqueLace()
 	res := &GroupConnLines{config: c, nodesConn: v, srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(true)
+	err := res.groupExternalAddresses(true, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, true)
 	res.groupInternalSrcOrDst(true, true)
@@ -509,7 +509,7 @@ func TestSubnetSelfLoop(t *testing.T) {
 	res := &GroupConnLines{config: c, subnetsConn: s,
 		srcToDst: newGroupingConnections(), dstToSrc: newGroupingConnections(),
 		cacheGrouped: newCacheGroupedElements()}
-	err := res.groupExternalAddresses(false)
+	err := res.groupExternalAddresses(false, false)
 	require.Equal(t, err, nil)
 	res.groupInternalSrcOrDst(false, false)
 	res.groupInternalSrcOrDst(true, false)
