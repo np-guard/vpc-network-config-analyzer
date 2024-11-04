@@ -172,7 +172,7 @@ func getSubnetsWithPGW(c *VPCConfig) map[string]bool {
 }
 
 // the main function to compute connectivity per subnet based on resources that capture subnets, such as nacl, pgw, tgw, routing-tables
-func GetSubnetsConnectivity(c *VPCConfig, includePGW, grouping int) (*VPCsubnetConnectivity, error) {
+func GetSubnetsConnectivity(c *VPCConfig, includePGW bool, groupingType int) (*VPCsubnetConnectivity, error) {
 	var subnetsConnectivityFromACLresources map[string]*IPbasedConnectivityResult
 	var err error
 	for _, fl := range c.FilterResources {
