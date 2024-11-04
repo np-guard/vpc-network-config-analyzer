@@ -562,7 +562,7 @@ func (rc *IBMresourcesContainer) getPgwConfig(
 	return nil
 }
 
-func newSGW(sgwName string, cidr *ipblock.IPBlock) *ServiceNetworkGateway {
+func newSGW(sgwName string, cidr *netset.IPBlock) *ServiceNetworkGateway {
 	return &ServiceNetworkGateway{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: sgwName,

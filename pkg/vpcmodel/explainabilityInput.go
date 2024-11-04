@@ -467,7 +467,7 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *netset.IPBlock) (cidrNode
 		externalType := publicInternetNodeName
 		isPublicInternet := true
 		_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
-		if block.ContainedIn(ip) {
+		if block.IsSubset(ip) {
 			externalType = serviceNetworkNodeName
 			isPublicInternet = false
 		}

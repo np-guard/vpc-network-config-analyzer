@@ -94,9 +94,9 @@ func isDestPublicInternet(dest *netset.IPBlock) bool {
 	return dest.IsSubset(publicRange)
 }
 
-func isDestServiceNetwork(dest *ipblock.IPBlock) bool {
+func isDestServiceNetwork(dest *netset.IPBlock) bool {
 	_, serviceNetworkRange, _ := vpcmodel.GetNetworkAddressList().GetServiceNetworkIPblocksList()
-	return dest.ContainedIn(serviceNetworkRange)
+	return dest.IsSubset(serviceNetworkRange)
 }
 
 func fipHasSource(src vpcmodel.Node, fip *FloatingIP) bool {

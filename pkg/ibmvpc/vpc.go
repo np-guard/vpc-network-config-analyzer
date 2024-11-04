@@ -287,10 +287,10 @@ func (fip *FloatingIP) IsMultipleVPCs() bool {
 // we add it for convenience - it is not a resource that appears in the input configuration file.
 type ServiceNetworkGateway struct {
 	vpcmodel.VPCResource
-	cidr *ipblock.IPBlock
+	cidr *netset.IPBlock
 }
 
-func (sgw *ServiceNetworkGateway) Cidr() *ipblock.IPBlock {
+func (sgw *ServiceNetworkGateway) Cidr() *netset.IPBlock {
 	return sgw.cidr
 }
 func (sgw *ServiceNetworkGateway) Sources() []vpcmodel.Node {
@@ -306,12 +306,12 @@ func (sgw *ServiceNetworkGateway) Destinations() []vpcmodel.Node {
 func (sgw *ServiceNetworkGateway) SetExternalDestinations(destinations []vpcmodel.Node) {
 }
 
-func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*connection.Set, error) {
+func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if areNodes, _, dst1 := isNodesPair(src, dst); areNodes {
 		if dst1.IsExternal() && !dst1.IsPublicInternet() {
-			return connection.All(), nil
+			return netset.AllTransports(), nil
 		}
-		return connection.None(), nil
+		return netset.NoTransports(), nil
 	}
 	return nil, errors.New("ServiceNetworkGateway.AllowedConnectivity unexpected src/dst types")
 }
@@ -387,7 +387,7 @@ func (pgw *PublicGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf)
 		srcSubnet := src.(*commonvpc.Subnet)
 		if dstNode, ok := dst.(vpcmodel.Node); ok {
 			if dstNode.IsExternal() && dstNode.IsPublicInternet() && hasSubnet(pgw.srcSubnets, srcSubnet) {
-				netset.AllTransports(), nil
+				return netset.AllTransports(), nil
 			}
 			return netset.NoTransports(), nil
 		}

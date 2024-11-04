@@ -66,16 +66,16 @@ func GetDefaultPublicInternetAddressList() []string {
 	}
 }
 
-func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*ipblock.IPBlock,
-	allInternetRagnes *ipblock.IPBlock, err error) {
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*netset.IPBlock,
+	allInternetRagnes *netset.IPBlock, err error) {
 	if len(n.publicInternetAddressList) == 0 {
 		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
 	}
 	return ipStringsToIPblocks(n.publicInternetAddressList)
 }
 
-func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*ipblock.IPBlock,
-	serviceNetworkRagnes *ipblock.IPBlock, err error) {
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*netset.IPBlock,
+	serviceNetworkRagnes *netset.IPBlock, err error) {
 	return ipStringsToIPblocks(n.serviceNetworkAddressList)
 }
 
@@ -219,14 +219,14 @@ func GetExternalNetworkNodes(disjointRefExternalIPBlocks []*netset.IPBlock) ([]N
 	}
 	for _, ipb := range disjointRefExternalIPBlocksServiceNetwork {
 		var isPublicInternet bool
-		if ipb.ContainedIn(serviceNetworkRagnes) {
+		if ipb.IsSubset(serviceNetworkRagnes) {
 			isPublicInternet = false
 		} else {
 			continue
 		}
 		cidrs := ipb.ToCidrList()
 		for _, cidr := range cidrs {
-			nodeIPBlock, err := ipblock.FromCidr(cidr)
+			nodeIPBlock, err := netset.IPBlockFromCidr(cidr)
 			if err != nil {
 				return nil, err
 			}
