@@ -141,7 +141,7 @@ func completeProtocols(c *netset.TransportSet, shortVersion bool) string {
 }
 
 func appendIfNotEmpty(res []string, s string) []string {
-	if len(s) > 0 {
+	if s != "" {
 		res = append(res, s)
 	}
 	return res
