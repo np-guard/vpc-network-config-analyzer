@@ -68,23 +68,21 @@ func GetDefaultPublicInternetAddressList() []string {
 	}
 }
 
-func (n *NetworkAddressLists) GetPublicInternetIPblocksList() ([]*netset.IPBlock, *netset.IPBlock, error) {
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (ipList []*netset.IPBlock, ipRanges *netset.IPBlock, err error) {
 	if len(n.publicInternetAddressList) == 0 {
 		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
 	}
-	allInternetRanges := netset.NewIPBlock()
 	for _, ipRange := range n.publicInternetAddressList {
-		allInternetRanges = allInternetRanges.Union(ipRange)
+		ipRanges = ipRanges.Union(ipRange)
 	}
-	return n.publicInternetAddressList, allInternetRanges, nil
+	return n.publicInternetAddressList, ipRanges, nil
 }
 
-func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() ([]*netset.IPBlock, *netset.IPBlock, error) {
-	allServiceNetworkRanges := netset.NewIPBlock()
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (ipList []*netset.IPBlock, ipRanges *netset.IPBlock, err error) {
 	for _, ipRange := range n.serviceNetworkAddressList {
-		allServiceNetworkRanges = allServiceNetworkRanges.Union(ipRange)
+		ipRanges = ipRanges.Union(ipRange)
 	}
-	return n.serviceNetworkAddressList, allServiceNetworkRanges, nil
+	return n.serviceNetworkAddressList, ipRanges, nil
 }
 
 // ExternalNetwork implements Node interface
