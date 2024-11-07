@@ -8,7 +8,6 @@ package vpcmodel
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/np-guard/models/pkg/netset"
@@ -75,10 +74,8 @@ func (n *NetworkAddressLists) GetPublicInternetIPblocksList() ([]*netset.IPBlock
 	}
 	allInternetRanges := netset.NewIPBlock()
 	for _, ipRange := range n.publicInternetAddressList {
-		fmt.Printf("ipRange.String(): %v\n", ipRange.String())
 		allInternetRanges = allInternetRanges.Union(ipRange)
 	}
-	fmt.Printf("allInternetRanges.String(): %v\n", allInternetRanges.String())
 	return n.publicInternetAddressList, allInternetRanges, nil
 }
 
@@ -87,7 +84,6 @@ func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() ([]*netset.IPBlock
 	for _, ipRange := range n.serviceNetworkAddressList {
 		allServiceNetworkRanges = allServiceNetworkRanges.Union(ipRange)
 	}
-	fmt.Printf("allServiceNetworkRanges.String(): %v\n", allServiceNetworkRanges.String())
 	return n.serviceNetworkAddressList, allServiceNetworkRanges, nil
 }
 
