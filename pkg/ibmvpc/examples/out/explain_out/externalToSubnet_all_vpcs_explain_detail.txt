@@ -1,5 +1,5 @@
 Explaining connectivity from 161.26.0.0 to subnet3-ky within test-vpc1-ky
-Interpreted source(s): 161.26.0.0 (external)
+Interpreted source(s): 161.26.0.0 (Service Network)
 Interpreted destination(s): vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-endpoint-gateway-ky[10.240.30.6]
 =========================================================================
 

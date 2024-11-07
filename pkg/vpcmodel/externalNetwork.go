@@ -181,7 +181,7 @@ func newExternalNode(isPublicInternet bool, ipb *netset.IPBlock, resourceType st
 		ipblock:          ipb}, nil
 }
 
-func newExternalNodeForCidr(cidr, resourceType string) (Node, error) { //nolint:unparam // resourceType is param
+func newExternalNodeForCidr(cidr, resourceType string) (Node, error) {
 	cidrIPBlodk, err := netset.IPBlockFromCidr(cidr)
 	if err != nil {
 		return nil, err

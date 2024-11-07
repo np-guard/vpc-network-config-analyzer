@@ -1,5 +1,5 @@
 Explaining connectivity from 161.26.0.0/16 to vsi1-ky within test-vpc1-ky
-Interpreted source(s): 161.26.0.0/16 (external)
+Interpreted source(s): 161.26.0.0/16 (Service Network)
 Interpreted destination(s): vsi1-ky[10.240.10.4]
 =========================================================================
 

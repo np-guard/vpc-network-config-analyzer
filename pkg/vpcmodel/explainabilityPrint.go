@@ -60,8 +60,12 @@ func connHeader(connQuery *netset.TransportSet) string {
 
 // in case the src/dst is not external address, returns a string of all relevant nodes names
 func endPointInterpretation(c *VPCConfig, userInput string, nodes []Node) string {
+	externalType := serviceNetworkNodeName
 	if nodes[0].IsExternal() {
-		return userInput + " (external)"
+		if nodes[0].IsPublicInternet() {
+			externalType = publicInternetNodeName
+		}
+		return fmt.Sprintf("%s (%s)", userInput, externalType)
 	}
 	networkInterfaces := make([]string, len(nodes))
 	for i, node := range nodes {

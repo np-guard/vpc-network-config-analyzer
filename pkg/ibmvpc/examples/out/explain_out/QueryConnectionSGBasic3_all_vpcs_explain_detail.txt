@@ -1,6 +1,6 @@
 Explaining connectivity from crn:v1:staging:public:is:us-south:a/6527::vpc:a456 to 161.26.0.0/20 within test-vpc1-ky using "protocol: UDP src-ports: 10-100 dst-ports: 443"
 Interpreted source(s): vsi1-ky[10.240.10.4]
-Interpreted destination(s): 161.26.0.0/20 (external)
+Interpreted destination(s): 161.26.0.0/20 (Service Network)
 ===========================================================================================================================================================================
 
 Connections are allowed from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/20 using "protocol: UDP src-ports: 10-100 dst-ports: 443"

@@ -1,6 +1,6 @@
 Explaining connectivity from vsi3b-ky to 161.26.0.0/32 within test-vpc1-ky
 Interpreted source(s): vsi3b-ky[10.240.30.4]
-Interpreted destination(s): 161.26.0.0/32 (external)
+Interpreted destination(s): 161.26.0.0/32 (Service Network)
 ==========================================================================
 
 No connectivity from vsi3b-ky[10.240.30.4] to Service Network 161.26.0.0/32;

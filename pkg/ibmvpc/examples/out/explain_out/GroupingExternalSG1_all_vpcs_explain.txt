@@ -1,6 +1,6 @@
 Explaining connectivity from vsi1-ky to 161.26.0.0/8 within test-vpc1-ky
 Interpreted source(s): vsi1-ky[10.240.10.4]
-Interpreted destination(s): 161.26.0.0/8 (external)
+Interpreted destination(s): 161.26.0.0/8 (Service Network)
 ========================================================================
 
 Connections from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/16: protocol: UDP

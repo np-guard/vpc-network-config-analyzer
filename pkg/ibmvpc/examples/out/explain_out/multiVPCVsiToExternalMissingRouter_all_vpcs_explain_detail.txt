@@ -1,6 +1,6 @@
 Explaining connectivity from vsi11-ky to 172.217.22.46/32 within test-vpc1-ky
 Interpreted source(s): vsi11-ky[10.240.11.4]
-Interpreted destination(s): 172.217.22.46/32 (external)
+Interpreted destination(s): 172.217.22.46/32 (Public Internet)
 =============================================================================
 
 No connectivity from vsi11-ky[10.240.11.4] to Public Internet 172.217.22.46/32;
