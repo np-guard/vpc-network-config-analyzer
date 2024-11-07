@@ -72,7 +72,9 @@ func CopyIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesCo
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	return &IBMresourcesContainer{ResourcesContainerModel: *ibmResources}, nil
+	ibmRC := NewIBMresourcesContainer()
+	ibmRC.ResourcesContainerModel = *ibmResources
+	return ibmRC, nil
 }
 
 func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesContainer, error) {

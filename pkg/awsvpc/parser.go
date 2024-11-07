@@ -44,7 +44,9 @@ func CopyAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesCo
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *aws.ResourcesContainerModel type")
 	}
-	return &AWSresourcesContainer{ResourcesContainer: *awsResources}, nil
+	awsRC := NewAWSresourcesContainer()
+	awsRC.ResourcesContainer = *awsResources
+	return awsRC, nil
 }
 
 // parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
