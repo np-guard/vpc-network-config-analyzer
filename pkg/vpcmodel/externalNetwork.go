@@ -8,6 +8,7 @@ package vpcmodel
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/np-guard/models/pkg/netset"
@@ -28,15 +29,17 @@ var once sync.Once
 
 // singleton struct
 type NetworkAddressLists struct {
-	publicInternetAddressList []string
-	serviceNetworkAddressList []string
+	publicInternetAddressList []*netset.IPBlock
+	serviceNetworkAddressList []*netset.IPBlock
 }
 
 var networkAddressList = &NetworkAddressLists{}
 
 func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList []string) {
 	once.Do(func() {
-		networkAddressList = &NetworkAddressLists{publicInternetAddressList, serviceNetworkAddressList}
+		ipbListPI, _, _ := ipStringsToIPblocks(publicInternetAddressList)
+		ipbListSN, _, _ := ipStringsToIPblocks(serviceNetworkAddressList)
+		networkAddressList = &NetworkAddressLists{ipbListPI, ipbListSN}
 	})
 }
 
@@ -66,17 +69,26 @@ func GetDefaultPublicInternetAddressList() []string {
 	}
 }
 
-func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (internetIPblocksList []*netset.IPBlock,
-	allInternetRagnes *netset.IPBlock, err error) {
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() ([]*netset.IPBlock, *netset.IPBlock, error) {
 	if len(n.publicInternetAddressList) == 0 {
 		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
 	}
-	return ipStringsToIPblocks(n.publicInternetAddressList)
+	allInternetRanges := netset.NewIPBlock()
+	for _, ipRange := range n.publicInternetAddressList {
+		fmt.Printf("ipRange.String(): %v\n", ipRange.String())
+		allInternetRanges = allInternetRanges.Union(ipRange)
+	}
+	fmt.Printf("allInternetRanges.String(): %v\n", allInternetRanges.String())
+	return n.publicInternetAddressList, allInternetRanges, nil
 }
 
-func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (serviceNetworkIPblocksList []*netset.IPBlock,
-	serviceNetworkRagnes *netset.IPBlock, err error) {
-	return ipStringsToIPblocks(n.serviceNetworkAddressList)
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() ([]*netset.IPBlock, *netset.IPBlock, error) {
+	allServiceNetworkRanges := netset.NewIPBlock()
+	for _, ipRange := range n.serviceNetworkAddressList {
+		allServiceNetworkRanges = allServiceNetworkRanges.Union(ipRange)
+	}
+	fmt.Printf("allServiceNetworkRanges.String(): %v\n", allServiceNetworkRanges.String())
+	return n.serviceNetworkAddressList, allServiceNetworkRanges, nil
 }
 
 // ExternalNetwork implements Node interface
