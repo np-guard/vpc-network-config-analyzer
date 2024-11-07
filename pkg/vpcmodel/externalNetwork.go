@@ -68,7 +68,8 @@ func GetDefaultPublicInternetAddressList() []string {
 	}
 }
 
-func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (ipList []*netset.IPBlock, allPublicInternetRanges *netset.IPBlock, err error) {
+func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (ipList []*netset.IPBlock,
+	allPublicInternetRanges *netset.IPBlock, err error) {
 	allPublicInternetRanges = netset.NewIPBlock()
 	if len(n.publicInternetAddressList) == 0 {
 		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
@@ -79,7 +80,8 @@ func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (ipList []*netset.
 	return n.publicInternetAddressList, allPublicInternetRanges, nil
 }
 
-func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (ipList []*netset.IPBlock, allServiceNetworkRanges *netset.IPBlock, err error) {
+func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (ipList []*netset.IPBlock,
+	allServiceNetworkRanges *netset.IPBlock, err error) {
 	allServiceNetworkRanges = netset.NewIPBlock()
 	for _, ipRange := range n.serviceNetworkAddressList {
 		allServiceNetworkRanges = allServiceNetworkRanges.Union(ipRange)
