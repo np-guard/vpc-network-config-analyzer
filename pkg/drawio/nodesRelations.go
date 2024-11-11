@@ -193,7 +193,7 @@ func tnRelations(network TreeNodeInterface) map[TreeNodeInterface][]TreeNodeInte
 		// each node related to a line get all the other nodes:
 		lineRelations := lineRelation(info)
 		for _, relatedTn := range lineRelations {
-			res[relatedTn] = append(res[relatedTn], lineRelations...)
+			res[relatedTn] = append(res[relatedTn], lineRelations...) //nolint:gocritic // false positive
 		}
 	}
 
