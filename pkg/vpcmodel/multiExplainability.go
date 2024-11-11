@@ -9,7 +9,7 @@ package vpcmodel
 import (
 	"fmt"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 type explainInputEntry struct {
@@ -94,7 +94,7 @@ func getNodesFromEndpoint(c *VPCConfig, endpoint EndpointElem) ([]Node, error) {
 	case LoadBalancer:
 		return n.Nodes(), nil
 	case *groupedExternalNodes:
-		var externalIP = ipblock.New()
+		var externalIP = netset.NewIPBlock()
 		for _, e := range *n {
 			externalIP = externalIP.Union(e.ipblock)
 		}

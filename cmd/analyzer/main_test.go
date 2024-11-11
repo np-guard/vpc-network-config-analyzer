@@ -231,7 +231,7 @@ func TestMainWithExpectedOut(t *testing.T) {
 
 // comparison should be insensitive to line comparators; cleaning strings from line comparators
 func cleanStr(str string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(str, "/n", ""), "\r", "")
+	return strings.ReplaceAll(str, "\r", "")
 }
 
 func removeGeneratedFiles() {

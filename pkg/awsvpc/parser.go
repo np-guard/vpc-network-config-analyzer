@@ -18,7 +18,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/aws"
 	"github.com/np-guard/cloud-resource-collector/pkg/common"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -125,7 +125,7 @@ func (rc *AWSresourcesContainer) VPCConfigsFromResources(resourceGroup string, v
 		return nil, err
 	}
 
-	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
+	var vpcInternalAddressRange map[string]*netset.IPBlock // map from vpc name to its internal address range
 
 	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
 	netIntfToSGs := map[string][]types.GroupIdentifier{}
@@ -248,8 +248,8 @@ func (rc *AWSresourcesContainer) getSubnetsConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 	subnetNameToNetIntf map[string][]*commonvpc.NetworkInterface,
 	skipByVPC map[string]bool,
-) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
-	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
+) (vpcInternalAddressRange map[string]*netset.IPBlock, err error) {
+	vpcInternalAddressRange = map[string]*netset.IPBlock{}
 	for vpcUID := range res.Configs() {
 		vpcInternalAddressRange[vpcUID] = nil
 	}

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
@@ -106,7 +106,7 @@ func NewVSI(name, uid, zone string, vpc vpcmodel.VPCResourceIntf, res *vpcmodel.
 
 // UpdateConfigWithSubnet creates new subnets from provided args and update it's vpc object and subnets list
 func UpdateConfigWithSubnet(name, uid, zone, cidr, vpcUID string, res *vpcmodel.MultipleVPCConfigs,
-	vpcInternalAddressRange map[string]*ipblock.IPBlock,
+	vpcInternalAddressRange map[string]*netset.IPBlock,
 	subnetIDToNetIntf map[string][]*NetworkInterface) (*Subnet, error) {
 	subnetNodes := []vpcmodel.Node{}
 	vpc, err := GetVPCObjectByUID(res, vpcUID)
@@ -166,7 +166,7 @@ func NewSGResource(name, uid, pairingID string, vpc vpcmodel.VPC, analyzer Speci
 }
 
 // UpdateVPCSAddressRanges assigns to each vpc object its internal address range, as inferred from its subnets
-func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*ipblock.IPBlock,
+func UpdateVPCSAddressRanges(vpcInternalAddressRange map[string]*netset.IPBlock,
 	vpcsMap *vpcmodel.MultipleVPCConfigs) error {
 	for vpcUID, addressRange := range vpcInternalAddressRange {
 		var vpc *VPC
@@ -214,7 +214,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
 		vpcNodeSet.AddressPrefixesList = append(vpcNodeSet.AddressPrefixesList, zoneCidrsList...)
-		zoneIPBlock, err := ipblock.FromCidrList(zoneCidrsList)
+		zoneIPBlock, err := netset.IPBlockFromCidrList(zoneCidrsList)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +224,7 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 			IPblock: zoneIPBlock}
 	}
 
-	vpcNodeSet.AddressPrefixesIPBlock, err = ipblock.FromCidrList(vpcNodeSet.AddressPrefixesList)
+	vpcNodeSet.AddressPrefixesIPBlock, err = netset.IPBlockFromCidrList(vpcNodeSet.AddressPrefixesList)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ func NewSubnet(name, uid, zone, cidr string, vpc vpcmodel.VPCResourceIntf) (*Sub
 		Cidr: cidr,
 	}
 
-	cidrIPBlock, err := ipblock.FromCidr(subnetNode.Cidr)
+	cidrIPBlock, err := netset.IPBlockFromCidr(subnetNode.Cidr)
 	if err != nil {
 		return nil, err
 	}
@@ -317,7 +317,7 @@ func PrintRule(ruleStr string, index int, err error) {
 }
 
 // filter VPCs with empty address ranges, then add for remaining VPCs the external nodes
-func FilterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
+func FilterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*netset.IPBlock, res *vpcmodel.MultipleVPCConfigs) error {
 	for vpcUID, vpcConfig := range res.Configs() {
 		if vpcInternalAddressRange[vpcUID] == nil {
 			logging.Warnf("Ignoring VPC %s, no subnets found for this VPC\n", vpcUID)
@@ -332,7 +332,7 @@ func FilterVPCSAndAddExternalNodes(vpcInternalAddressRange map[string]*ipblock.I
 	return nil
 }
 
-func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) error {
+func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange *netset.IPBlock) error {
 	externalNodes, err := addExternalNodes(res, vpcInternalAddressRange)
 	if err != nil {
 		return err
@@ -350,21 +350,21 @@ func handlePublicInternetNodes(res *vpcmodel.VPCConfig, vpcInternalAddressRange 
 	return nil
 }
 
-func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *ipblock.IPBlock) ([]vpcmodel.Node, error) {
-	ipBlocks := []*ipblock.IPBlock{}
+func addExternalNodes(config *vpcmodel.VPCConfig, vpcInternalAddressRange *netset.IPBlock) ([]vpcmodel.Node, error) {
+	ipBlocks := []*netset.IPBlock{}
 	for _, f := range config.FilterResources {
 		ipBlocks = append(ipBlocks, f.ReferencedIPblocks()...)
 	}
 
-	externalRefIPBlocks := []*ipblock.IPBlock{}
+	externalRefIPBlocks := []*netset.IPBlock{}
 	for _, ipBlock := range ipBlocks {
-		if ipBlock.ContainedIn(vpcInternalAddressRange) {
+		if ipBlock.IsSubset(vpcInternalAddressRange) {
 			continue
 		}
 		externalRefIPBlocks = append(externalRefIPBlocks, ipBlock.Subtract(vpcInternalAddressRange))
 	}
 
-	disjointRefExternalIPBlocks := ipblock.DisjointIPBlocks(externalRefIPBlocks, []*ipblock.IPBlock{})
+	disjointRefExternalIPBlocks := netset.DisjointIPBlocks(externalRefIPBlocks, []*netset.IPBlock{})
 
 	externalNodes, err := vpcmodel.GetExternalNetworkNodes(disjointRefExternalIPBlocks)
 	if err != nil {

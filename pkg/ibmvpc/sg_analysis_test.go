@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/connection"
-	"github.com/np-guard/models/pkg/ipblock"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -120,13 +119,13 @@ type sgTest struct {
 	expectedConnectivityMap commonvpc.ConnectivityResultMap
 }
 
-func fromIPRangeStrWithoutValidation(ipRange string) *ipblock.IPBlock {
-	ip, _ := ipblock.FromIPRangeStr(ipRange)
+func fromIPRangeStrWithoutValidation(ipRange string) *netset.IPBlock {
+	ip, _ := netset.IPBlockFromIPRangeStr(ipRange)
 	return ip
 }
 
-func fromIPAddressStrWithoutValidation(ipAddress string) *ipblock.IPBlock {
-	ip, _ := ipblock.FromIPAddress(ipAddress)
+func fromIPAddressStrWithoutValidation(ipAddress string) *netset.IPBlock {
+	ip, _ := netset.IPBlockFromIPAddress(ipAddress)
 	return ip
 }
 
@@ -136,37 +135,37 @@ var sgTests = []sgTest{
 		rules: []*commonvpc.SGRule{
 			{
 				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"), "ola"),
-				Connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
+				Connections: netset.NewTCPorUDPTransport(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
 				Index:       1,
-				Local:       ipblock.GetCidrAll(),
+				Local:       netset.GetCidrAll(),
 			},
 			{
 				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"), "ola"),
-				Connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+				Connections: netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 				Index:       2,
-				Local:       ipblock.GetCidrAll(),
+				Local:       netset.GetCidrAll(),
 			},
 		},
 		isIngress: false,
-		expectedConnectivityMap: map[*ipblock.IPBlock]*commonvpc.ConnectivityResult{
-			ipblock.GetCidrAll(): {
+		expectedConnectivityMap: map[*netset.IPBlock]*commonvpc.ConnectivityResult{
+			netset.GetCidrAll(): {
 				IsIngress: false,
-				AllowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPAddressStrWithoutValidation("10.250.10.0"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
-					fromIPAddressStrWithoutValidation("10.250.10.1"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
+				AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        netset.NoTransports(),
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): netset.NoTransports(),
+					fromIPAddressStrWithoutValidation("10.250.10.1"):               netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(netset.NewTCPorUDPTransport(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
 				},
-				AllowRules: map[*ipblock.IPBlock][]int{
+				AllowRules: map[*netset.IPBlock][]int{
 					fromIPAddressStrWithoutValidation("10.250.10.0"):               {2},
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
 					fromIPAddressStrWithoutValidation("10.250.10.1"):               {1, 2},
 				},
-				DeniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				DenyRules:   map[*ipblock.IPBlock][]int{},
+				DeniedConns: map[*netset.IPBlock]*netset.TransportSet{},
+				DenyRules:   map[*netset.IPBlock][]int{},
 			},
 		},
 	},
@@ -175,68 +174,68 @@ var sgTests = []sgTest{
 		rules: []*commonvpc.SGRule{
 			{
 				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.1"), "ola"),
-				Connections: connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
+				Connections: netset.NewTCPorUDPTransport(netp.ProtocolString("UDP"), 5, 87, 10, 3245),
 				Index:       1,
 				Local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.1"),
 			},
 			{
 				Remote:      commonvpc.NewRuleTarget(newIPBlockFromCIDROrAddressWithoutValidation("10.250.10.0/30"), "ola"),
-				Connections: connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+				Connections: netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
 				Index:       2,
 				Local:       newIPBlockFromCIDROrAddressWithoutValidation("10.240.10.0/30"),
 			},
 		},
 		isIngress: false,
-		expectedConnectivityMap: map[*ipblock.IPBlock]*commonvpc.ConnectivityResult{
+		expectedConnectivityMap: map[*netset.IPBlock]*commonvpc.ConnectivityResult{
 			fromIPAddressStrWithoutValidation("10.240.10.1"): {
 				IsIngress: false,
-				AllowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPAddressStrWithoutValidation("10.250.10.0"):               connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
-					fromIPAddressStrWithoutValidation("10.250.10.1"): connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(
-						connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
+				AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+					fromIPAddressStrWithoutValidation("10.250.10.0"):               netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        netset.NoTransports(),
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): netset.NoTransports(),
+					fromIPAddressStrWithoutValidation("10.250.10.1"): netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000).Union(
+						netset.NewTCPorUDPTransport(netp.ProtocolString("UDP"), 5, 87, 10, 3245)),
 				},
-				AllowRules: map[*ipblock.IPBlock][]int{
+				AllowRules: map[*netset.IPBlock][]int{
 					fromIPAddressStrWithoutValidation("10.250.10.0"):               {2},
 					fromIPRangeStrWithoutValidation("10.250.10.2-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
 					fromIPAddressStrWithoutValidation("10.250.10.1"):               {1, 2},
 				},
-				DeniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				DenyRules:   map[*ipblock.IPBlock][]int{},
+				DeniedConns: map[*netset.IPBlock]*netset.TransportSet{},
+				DenyRules:   map[*netset.IPBlock][]int{},
 			},
 			fromIPAddressStrWithoutValidation("10.240.10.0"): {
 				IsIngress: false,
-				AllowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
+				AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        netset.NoTransports(),
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): netset.NoTransports(),
 				},
-				AllowRules: map[*ipblock.IPBlock][]int{
+				AllowRules: map[*netset.IPBlock][]int{
 					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
 				},
-				DeniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				DenyRules:   map[*ipblock.IPBlock][]int{},
+				DeniedConns: map[*netset.IPBlock]*netset.TransportSet{},
+				DenyRules:   map[*netset.IPBlock][]int{},
 			},
 			fromIPRangeStrWithoutValidation("10.240.10.2-10.240.10.3"): {
 				IsIngress: false,
-				AllowedConns: map[*ipblock.IPBlock]*connection.Set{
-					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
-					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        connection.None(),
-					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): connection.None(),
+				AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000),
+					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        netset.NoTransports(),
+					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): netset.NoTransports(),
 				},
-				AllowRules: map[*ipblock.IPBlock][]int{
+				AllowRules: map[*netset.IPBlock][]int{
 					fromIPRangeStrWithoutValidation("10.250.10.0-10.250.10.3"):     {2},
 					fromIPRangeStrWithoutValidation("0.0.0.0-10.250.9.255"):        {},
 					fromIPRangeStrWithoutValidation("10.250.10.4-255.255.255.255"): {},
 				},
-				DeniedConns: map[*ipblock.IPBlock]*connection.Set{},
-				DenyRules:   map[*ipblock.IPBlock][]int{},
+				DeniedConns: map[*netset.IPBlock]*netset.TransportSet{},
+				DenyRules:   map[*netset.IPBlock][]int{},
 			},
 		},
 	},
@@ -274,8 +273,8 @@ func TestMapAndAnalyzeSGRules(t *testing.T) {
 
 func TestCaching(t *testing.T) {
 	// test to check caching in mapAndAnalyzeSGRules
-	c1 := connection.TCPorUDPConnection(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
-	c2 := connection.TCPorUDPConnection(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
+	c1 := netset.NewTCPorUDPTransport(netp.ProtocolString("UDP"), 5, 87, 10, 3245)
+	c2 := netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 1, 100, 5, 1000)
 	var endpoint1 = &commonvpc.NetworkInterface{InternalNode: vpcmodel.InternalNode{
 		AddressStr: "10.240.10.1",
 		IPBlockObj: fromIPAddressStrWithoutValidation("10.240.10.1"),
@@ -313,7 +312,7 @@ func TestCaching(t *testing.T) {
 	require.True(t, connectivityResult1 == connectivityResult2) // compare pointers-- to make sure that caching worked
 }
 
-func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *ipblock.IPBlock {
-	res, _ := ipblock.FromCidrOrAddress(cidr)
+func newIPBlockFromCIDROrAddressWithoutValidation(cidr string) *netset.IPBlock {
+	res, _ := netset.IPBlockFromCidrOrAddress(cidr)
 	return res
 }

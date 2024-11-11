@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/np-guard/models/pkg/connection"
+	"github.com/np-guard/models/pkg/netset"
 )
 
 var FilterLayers = [2]string{SecurityGroupLayer, NaclLayer}
@@ -37,8 +37,8 @@ type srcDstDetails struct {
 	// the part of the connection relevant to the query otherwise.
 	// used to detect ingress and egress block and to
 	// detect cases in which there is no connection due to empty intersection between ingress and egress
-	ingressConn    *connection.Set
-	egressConn     *connection.Set
+	ingressConn    *netset.TransportSet
+	egressConn     *netset.TransportSet
 	conn           *detailedConn
 	externalRouter RoutingResource // the router (fip or pgw) to external network; nil if none or not relevant
 	crossVpcRouter RoutingResource // the (currently only tgw) router between src and dst from different VPCs; nil if none or not relevant
@@ -74,7 +74,7 @@ func NewExplanationArgs(src, dst, protocol string, srcMinPort, srcMaxPort, dstMi
 
 type Explanation struct {
 	c               *VPCConfig
-	connQuery       *connection.Set
+	connQuery       *netset.TransportSet
 	rulesAndDetails *rulesAndConnDetails // rules and more details for a single src->dst
 	src             string
 	dst             string
@@ -91,7 +91,7 @@ type Explanation struct {
 }
 
 // ExplainConnectivity returns Explanation object, that explains connectivity of a single <src, dst> couple given by the user
-func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *connection.Set) (res *Explanation, err error) {
+func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *netset.TransportSet) (res *Explanation, err error) {
 	vpcConfig, srcNodes, dstNodes, err := c.getVPCConfigAndSrcDstNodes(src, dst)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *con
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
 func explainConnectivityForVPC(c *VPCConfig, src, dst string, srcNodes, dstNodes []Node,
-	connQuery *connection.Set, connectivity *VPCConnectivity) (res *Explanation, err error) {
+	connQuery *netset.TransportSet, connectivity *VPCConnectivity) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
 	rulesAndDetails, err1 := computeExplainRules(c, srcNodes, dstNodes, connQuery)
 	if err1 != nil {
@@ -151,7 +151,7 @@ func explainConnectivityForVPC(c *VPCConfig, src, dst string, srcNodes, dstNodes
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
 func computeExplainRules(c *VPCConfig, srcNodes, dstNodes []Node,
-	conn *connection.Set) (rulesAndConn rulesAndConnDetails, err error) {
+	conn *netset.TransportSet) (rulesAndConn rulesAndConnDetails, err error) {
 	// the size is not known in this stage due to the corner case in which we have the same node both in srcNodes and dstNodes
 	rulesAndConn = rulesAndConnDetails{}
 	for _, src := range srcNodes {
@@ -225,12 +225,12 @@ func (details *rulesAndConnDetails) computeActualRules() {
 		// ingress disabled due to private subnet?
 		privateSubnetRule := singleSrcDstDetails.privateSubnetRule
 		if privateSubnetRule != nil && privateSubnetRule.Deny(true) {
-			ingressConn = connection.None()
+			ingressConn = netset.NoTransports()
 		}
 		actualAllowEgress, egressConn :=
 			computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialAllowRules.egressRules, filterRelevant)
 		if privateSubnetRule != nil && privateSubnetRule.Deny(false) {
-			egressConn = connection.None()
+			egressConn = netset.NoTransports()
 		}
 		actualDenyIngress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.ingressRules, filterRelevant)
 		actualDenyEgress, _ := computeActualRulesGivenRulesFilter(singleSrcDstDetails.potentialDenyRules.egressRules, filterRelevant)
@@ -247,9 +247,9 @@ func (details *rulesAndConnDetails) computeActualRules() {
 // could be different than the connection implied by the rules, in case there are both deny and allow rules).
 // this is called separately for each direction (ingress/egress) and allow/deny (for nacl, sg has only allow)
 func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[string]bool) (*rulesInLayers,
-	*connection.Set) {
+	*netset.TransportSet) {
 	actualRules := rulesInLayers{}
-	conn := connection.All()
+	conn := netset.AllTransports()
 	// connection of direction: intersection between connections of layers;
 	for _, layer := range FilterLayers {
 		filterIsRelevant := filters[layer]
@@ -263,8 +263,8 @@ func computeActualRulesGivenRulesFilter(rulesLayers rulesInLayers, filters map[s
 }
 
 // connection of each layer is the union of the connection's of tables in the layer; (nacl single table; relevant for sg)
-func connOfLayer(layerTables []RulesInTable) *connection.Set {
-	conn := connection.None()
+func connOfLayer(layerTables []RulesInTable) *netset.TransportSet {
+	conn := netset.NoTransports()
 	for _, table := range layerTables {
 		conn = conn.Union(table.TableConn)
 	}
@@ -330,7 +330,7 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 }
 
 func getFiltersRulesBetweenNodesPerDirectionAndLayer(
-	c *VPCConfig, src, dst Node, conn *connection.Set, isIngress bool, layer string) (allowRules *[]RulesInTable,
+	c *VPCConfig, src, dst Node, conn *netset.TransportSet, isIngress bool, layer string) (allowRules *[]RulesInTable,
 	denyRules *[]RulesInTable, err error) {
 	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
@@ -344,7 +344,7 @@ func getFiltersRulesBetweenNodesPerDirectionAndLayer(
 }
 
 func getRulesOfConnection(c *VPCConfig, src, dst Node,
-	conn *connection.Set) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
+	conn *netset.TransportSet) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
 	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
 	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
 	for _, layer := range FilterLayers {
@@ -401,7 +401,7 @@ func getContainingConfigNode(c *VPCConfig, node Node) (Node, error) {
 			continue
 		}
 		configNodeIPBlock := configNode.IPBlock()
-		if nodeIPBlock.ContainedIn(configNodeIPBlock) {
+		if nodeIPBlock.IsSubset(configNodeIPBlock) {
 			return configNode, nil
 		}
 	}
@@ -414,7 +414,7 @@ func getContainingConfigNode(c *VPCConfig, node Node) (Node, error) {
 // todo: connectivity is computed for the entire network, even though we need only for specific src, dst pairs
 // this is seems the time spent here should be neglectable, not worth the effort of adding dedicated code
 func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
-	connQuery *connection.Set, connectivity *VPCConnectivity) (err error) {
+	connQuery *netset.TransportSet, connectivity *VPCConnectivity) (err error) {
 	for _, srcDstDetails := range *details {
 		conn, err := connectivity.getConnection(c, srcDstDetails.src, srcDstDetails.dst)
 		if err != nil {
@@ -465,7 +465,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 // updates respondRules of each line in rulesAndConnDetails
 // respondRules are the rules enabling/disabling the response when relevant:
 // respond is relevant for TCP, and respond rules are relevant when non-stateful filters are relevant (NACL)
-func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *connection.Set) error {
+func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *netset.TransportSet) error {
 	responseConn := allTCPconn()
 	if connQuery != nil {
 		responseConn = responseConn.Intersect(connQuery)
@@ -499,7 +499,7 @@ func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool, c
 
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
 func getRespondRules(c *VPCConfig, src, dst Node,
-	conn *connection.Set) (respondRules *rulesConnection, err error) {
+	conn *netset.TransportSet) (respondRules *rulesConnection, err error) {
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src; thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
@@ -519,12 +519,12 @@ func getRespondRules(c *VPCConfig, src, dst Node,
 	return &rulesConnection{mergedIngressRules, mergedEgressRules}, nil
 }
 
-func computeAndUpdateDirectionRespondRules(c *VPCConfig, src, dst Node, conn *connection.Set,
+func computeAndUpdateDirectionRespondRules(c *VPCConfig, src, dst Node, conn *netset.TransportSet,
 	isIngress bool) (rulesInLayers, error) {
 	// respond: dst and src switched, src and dst ports also switched
 	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
 	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
-	connSwitch := conn.SwitchSrcDstPorts()
+	connSwitch := conn.SwapPorts()
 	allowRules, denyRules, err1 := getFiltersRulesBetweenNodesPerDirectionAndLayer(c, dst, src, connSwitch, isIngress,
 		statelessLayerName)
 	if err1 != nil {

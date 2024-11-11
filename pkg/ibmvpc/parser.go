@@ -18,7 +18,7 @@ import (
 
 	"github.com/np-guard/cloud-resource-collector/pkg/common"
 	"github.com/np-guard/cloud-resource-collector/pkg/ibm/datamodel"
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/logging"
@@ -142,7 +142,7 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(resourceGroup string, v
 		return nil, err
 	}
 
-	var vpcInternalAddressRange map[string]*ipblock.IPBlock // map from vpc name to its internal address range
+	var vpcInternalAddressRange map[string]*netset.IPBlock // map from vpc name to its internal address range
 
 	subnetIDToNetIntf := map[string][]*commonvpc.NetworkInterface{}
 	err = rc.getInstancesConfig(subnetIDToNetIntf, res, filteredOut, shouldSkipVpcIds)
@@ -442,8 +442,8 @@ func (rc *IBMresourcesContainer) getSubnetsConfig(
 	pgwToSubnet map[string][]*commonvpc.Subnet,
 	subnetIDToNetIntf map[string][]*commonvpc.NetworkInterface,
 	skipByVPC map[string]bool,
-) (vpcInternalAddressRange map[string]*ipblock.IPBlock, err error) {
-	vpcInternalAddressRange = map[string]*ipblock.IPBlock{}
+) (vpcInternalAddressRange map[string]*netset.IPBlock, err error) {
+	vpcInternalAddressRange = map[string]*netset.IPBlock{}
 	for vpcUID := range res.Configs() {
 		vpcInternalAddressRange[vpcUID] = nil
 	}
@@ -799,8 +799,8 @@ func newTGW(name, uid, region string, regionToStructMap map[string]*commonvpc.Re
 			Region:       region,
 		},
 		vpcs:                []*commonvpc.VPC{},
-		availableRoutes:     map[string][]*ipblock.IPBlock{},
-		vpcsAPToPrefixRules: map[string]map[*ipblock.IPBlock]vpcmodel.RulesInTable{},
+		availableRoutes:     map[string][]*netset.IPBlock{},
+		vpcsAPToPrefixRules: map[string]map[*netset.IPBlock]vpcmodel.RulesInTable{},
 		region:              commonvpc.GetRegionByName(region, regionToStructMap),
 		tgwConnList:         tgwConnList,
 	}
@@ -824,7 +824,7 @@ func (tgw *TransitGateway) addVPC(vpc *commonvpc.VPC, tgwConn *datamodel.Transit
 		// explainability related struct initialization
 		for ipB, rulesInTable := range vpcAPToPrefixRules {
 			if _, ok := tgw.vpcsAPToPrefixRules[vpcUID]; !ok {
-				tgw.vpcsAPToPrefixRules[vpcUID] = map[*ipblock.IPBlock]vpcmodel.RulesInTable{}
+				tgw.vpcsAPToPrefixRules[vpcUID] = map[*netset.IPBlock]vpcmodel.RulesInTable{}
 			}
 			tgw.vpcsAPToPrefixRules[vpcUID][ipB] = rulesInTable
 		}
@@ -911,12 +911,12 @@ func (rc *IBMresourcesContainer) getTgwObjects(
 // validateVPCsAddressPrefixesForTGW checks that all VPCs address prefixes (connected by TGW) are disjoint,
 // returns error if address prefixes are missing or overlapping
 func validateVPCsAddressPrefixesForTGW(vpcsList []*commonvpc.VPC) (err error) {
-	ipBlocksForAP := make([]*ipblock.IPBlock, len(vpcsList))
+	ipBlocksForAP := make([]*netset.IPBlock, len(vpcsList))
 	for i, vpc := range vpcsList {
 		if len(vpc.AddressPrefixesList) == 0 {
 			return fmt.Errorf("TGW analysis requires all VPCs have configured address prefixes, but this is missing for vpc %s", vpc.NameAndUID())
 		}
-		ipBlocksForAP[i], err = ipblock.FromCidrList(vpc.AddressPrefixesList)
+		ipBlocksForAP[i], err = netset.IPBlockFromCidrList(vpc.AddressPrefixesList)
 		if err != nil {
 			return err
 		}
@@ -969,7 +969,7 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 		IsMultipleVPCsConfig: true,
 	}
 
-	var vpcsAddressRanges *ipblock.IPBlock // collect all internal address ranges of involved VPCs
+	var vpcsAddressRanges *netset.IPBlock // collect all internal address ranges of involved VPCs
 	nacls := &commonvpc.NaclLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.NaclLayer}}
 	sgs := &commonvpc.SecurityGroupLayer{VPCResource: vpcmodel.VPCResource{ResourceType: vpcmodel.SecurityGroupLayer}}
 	for _, vpc := range tgw.vpcs { // iterate the involved VPCs -- all of them are connected (all to all)
@@ -1045,9 +1045,9 @@ func (tgw *TransitGateway) newConfigFromTGW(configs *vpcmodel.MultipleVPCConfigs
 	return newConfig, nil
 }
 
-func getSubnetByIPAddress(addressIPblock *ipblock.IPBlock, c *vpcmodel.VPCConfig) (subnet *commonvpc.Subnet, err error) {
+func getSubnetByIPAddress(addressIPblock *netset.IPBlock, c *vpcmodel.VPCConfig) (subnet *commonvpc.Subnet, err error) {
 	for _, s := range c.Subnets {
-		if addressIPblock.ContainedIn(s.AddressRange()) {
+		if addressIPblock.IsSubset(s.AddressRange()) {
 			return s.(*commonvpc.Subnet), nil
 		}
 	}
@@ -1364,10 +1364,10 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 	vpc *commonvpc.VPC,
 	subnetsBlocks subnetsIPBlocks) ([]vpcmodel.Node, error) {
 	// first we collect  the subnets that has private IPs:
-	subnetsPIPsAddresses := map[vpcmodel.Subnet]*ipblock.IPBlock{} // map from the subnet to the address block
-	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}                // map from a subnet to the pip index
+	subnetsPIPsAddresses := map[vpcmodel.Subnet]*netset.IPBlock{} // map from the subnet to the address block
+	subnetsPIPsIndexes := map[vpcmodel.Subnet]int{}               // map from a subnet to the pip index
 	for pipIndex, pIP := range loadBalancerObj.PrivateIps {
-		address, err := ipblock.FromIPAddress(*pIP.Address)
+		address, err := netset.IPBlockFromIPAddress(*pIP.Address)
 		if err != nil {
 			return nil, err
 		}
@@ -1398,7 +1398,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 			// first get name, id, address, publicAddress:
 			var name, id, address, publicAddress string
 			blockHasPrivateIP := subnetsPIPsAddresses[subnet] != nil &&
-				subnetsPIPsAddresses[subnet].ContainedIn(subnetBlock)
+				subnetsPIPsAddresses[subnet].IsSubset(subnetBlock)
 			switch {
 			case blockHasPrivateIP:
 				// subnet block has a private IP, we take it from the config
@@ -1450,7 +1450,7 @@ func getLoadBalancerIPs(vpcConfig *vpcmodel.VPCConfig,
 // also update vpcConfig & subnet with the result
 func createPrivateIP(name, id, address, publicAddress string,
 	vpc vpcmodel.VPCResourceIntf, loadBalancer *LoadBalancer, vpcConfig *vpcmodel.VPCConfig,
-	original bool, block *ipblock.IPBlock, subnet *commonvpc.Subnet) (*PrivateIP, error) {
+	original bool, block *netset.IPBlock, subnet *commonvpc.Subnet) (*PrivateIP, error) {
 	privateIP := &PrivateIP{
 		VPCResource: vpcmodel.VPCResource{
 			ResourceName: name,

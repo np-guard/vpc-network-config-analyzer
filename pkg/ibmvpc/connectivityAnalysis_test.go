@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/np-guard/models/pkg/connection"
 	"github.com/np-guard/models/pkg/netp"
+	"github.com/np-guard/models/pkg/netset"
 
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
@@ -93,7 +93,7 @@ var nc3 = &naclConfig{
 		{
 			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.240.20.0/24"),
-			Connections: connection.All(),
+			Connections: netset.AllTransports(),
 			Action:      "allow",
 		},
 	},
@@ -108,15 +108,15 @@ var nc4 = &naclConfig{
 		{
 			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			Connections: connection.TCPorUDPConnection(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
+			Connections: netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, netp.MinPort, netp.MaxPort, netp.MinPort, netp.MaxPort),
 			Action:      "allow",
 		},
 	},
 	subnets: []string{"10.240.20.0/24"},
 }
 
-func nc5Conn() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 10, 100, 443, 443)
+func nc5Conn() *netset.TransportSet {
+	return netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 10, 100, 443, 443)
 }
 
 // nc5 - applied to subnet-1, limited egress (certain TCP ports allowed)
@@ -134,8 +134,8 @@ var nc5 = &naclConfig{
 	subnets: []string{"10.240.10.0/24"},
 }
 
-func nc6Conn() *connection.Set {
-	return connection.TCPorUDPConnection(netp.ProtocolStringTCP, 443, 443, 10, 100)
+func nc6Conn() *netset.TransportSet {
+	return netset.NewTCPorUDPTransport(netp.ProtocolStringTCP, 443, 443, 10, 100)
 }
 
 var nc6 = &naclConfig{
@@ -240,7 +240,7 @@ func getAllowAllRules() []*commonvpc.NACLRule {
 		{
 			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			Connections: connection.All(),
+			Connections: netset.AllTransports(),
 			Action:      "allow",
 		},
 	}
@@ -251,7 +251,7 @@ func getDenyAllRules() []*commonvpc.NACLRule {
 		{
 			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
 			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			Connections: connection.All(),
+			Connections: netset.AllTransports(),
 			Action:      "deny",
 		},
 	}
@@ -268,10 +268,8 @@ func getAllowICMPRules() []*commonvpc.NACLRule {
 	}
 }
 
-func icmpConn() *connection.Set {
-	return connection.ICMPConnection(
-		connection.MinICMPType, connection.MaxICMPType,
-		connection.MinICMPCode, connection.MaxICMPCode)
+func icmpConn() *netset.TransportSet {
+	return netset.AllICMPTransport()
 }
 
 func addInterfaceNode(config *vpcmodel.VPCConfig, name, address, vsiName, subnetName string) {

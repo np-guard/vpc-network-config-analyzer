@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/np-guard/models/pkg/ipblock"
+	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/vpcmodel"
 )
 
@@ -65,7 +65,7 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 		for i := range rules {
 			subnetsSplitByRule := []vpcmodel.Subnet{}
 			for _, subnet := range config.Subnets {
-				splitSubnet := ruleSplitSubnet(subnet, [2]*ipblock.IPBlock{rules[i].SrcCidr, rules[i].DstCidr})
+				splitSubnet := ruleSplitSubnet(subnet, [2]*netset.IPBlock{rules[i].SrcCidr, rules[i].DstCidr})
 				if splitSubnet {
 					subnetsSplitByRule = append(subnetsSplitByRule, subnet)
 				}
@@ -79,10 +79,10 @@ func findSplitRulesSubnet(configs map[string]*vpcmodel.VPCConfig, filterLayerNam
 }
 
 // given a subnet and IPBlocks mentioned in a rule, returns true if the rules split any of the blocks
-func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks [2]*ipblock.IPBlock) bool {
+func ruleSplitSubnet(subnet vpcmodel.Subnet, ruleIPBlocks [2]*netset.IPBlock) bool {
 	subnetCidrIPBlock := subnet.AddressRange()
 	for _, ruleIPBlock := range ruleIPBlocks {
-		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.ContainedIn(ruleIPBlock) {
+		if ruleIPBlock.Overlap(subnetCidrIPBlock) && !subnetCidrIPBlock.IsSubset(ruleIPBlock) {
 			return true
 		}
 	}
