@@ -7,7 +7,7 @@ Connections from db-endpoint-gateway-ky[10.240.30.6] to Service Network 161.26.0
 
 Path:
 	db-endpoint-gateway-ky[10.240.30.6] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
-	ServiceNetwork serviceNetwork -> 
+	ServiceGateway  -> 
 	Service Network 161.26.0.0/16
 
 
@@ -33,7 +33,7 @@ Connections from vsi3a-ky[10.240.30.5] to Service Network 161.26.0.0/16: All Con
 
 Path:
 	vsi3a-ky[10.240.30.5] -> security group sg3-ky -> network ACL acl3-ky -> subnet subnet3-ky -> 
-	ServiceNetwork serviceNetwork -> 
+	ServiceGateway  -> 
 	Service Network 161.26.0.0/16
 
 
@@ -123,7 +123,7 @@ Path is disabled; The relevant rules are:
 No connectivity from vsi3b-ky[10.240.30.4] to Service Network 161.26.0.0/16;
 	connection is blocked at egress
 
-External traffic via ServiceNetwork: serviceNetwork
+External traffic via ServiceGateway: 
 Egress: security group sg2-ky does not allow connection; network ACL acl3-ky allows connection
 
 Path:

@@ -564,13 +564,13 @@ func (rc *IBMresourcesContainer) getPgwConfig(
 	return nil
 }
 
-func newSGW(sgwName string, cidr *netset.IPBlock) *ServiceNetworkGateway {
+func newSGW(cidr *netset.IPBlock) *ServiceNetworkGateway {
 	return &ServiceNetworkGateway{
 		VPCResource: vpcmodel.VPCResource{
-			ResourceName: sgwName,
-			ResourceUID:  sgwName,
+			ResourceName: "",
+			ResourceUID:  "",
 			Zone:         "",
-			ResourceType: commonvpc.ResourceTypeServiceNetwork,
+			ResourceType: commonvpc.ResourceTypeServiceNetworkGateway,
 			VPCRef:       nil,
 		},
 		cidr: cidr,
@@ -581,7 +581,7 @@ func (rc *IBMresourcesContainer) addSgwToConfig(
 	res *vpcmodel.MultipleVPCConfigs,
 ) {
 	_, serviceNetworkIPblock, _ := vpcmodel.GetNetworkAddressList().GetServiceNetworkIPblocksList()
-	routerSgw := newSGW("serviceNetwork", serviceNetworkIPblock)
+	routerSgw := newSGW(serviceNetworkIPblock)
 	for _, vpcConfig := range res.Configs() {
 		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)
 		vpcConfig.UIDToResource[routerSgw.ResourceUID] = routerSgw

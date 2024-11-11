@@ -7,7 +7,7 @@ Connections from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/16: protocol
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
-	ServiceNetwork serviceNetwork -> 
+	ServiceGateway  -> 
 	Service Network 161.26.0.0/16
 
 

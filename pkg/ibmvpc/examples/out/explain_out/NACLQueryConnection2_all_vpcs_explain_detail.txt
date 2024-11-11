@@ -6,7 +6,7 @@ Interpreted destination(s): 161.26.0.0/16 (Service Network)
 No connectivity from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/16 using "protocol: TCP";
 	connection is blocked at egress
 
-External traffic via ServiceNetwork: serviceNetwork
+External traffic via ServiceGateway: 
 Egress: security group sg1-ky allows connection; network ACL acl1-ky blocks connection
 
 Path:

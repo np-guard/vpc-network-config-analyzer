@@ -82,7 +82,7 @@ func systemRTConfigFromVPCConfig(vpcConfig *vpcmodel.VPCConfig) *systemRTConfig 
 			res.pgwList = append(res.pgwList, router.(*PublicGateway))
 		case commonvpc.ResourceTypeFloatingIP:
 			res.fipList = append(res.fipList, router.(*FloatingIP))
-		case commonvpc.ResourceTypeServiceNetwork:
+		case commonvpc.ResourceTypeServiceNetworkGateway:
 			res.sgw = router.(*ServiceNetworkGateway)
 		}
 	}
