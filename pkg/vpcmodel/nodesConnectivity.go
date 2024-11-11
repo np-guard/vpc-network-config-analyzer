@@ -34,11 +34,11 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(lbAbstraction bool, groupingType i
 		if !node.IsInternal() {
 			continue
 		}
-		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := getAllowedConnsPerDirection(c, true, node)
+		allIngressAllowedConns, ingressAllowedConnsPerLayer, err1 := c.getAllowedConnsPerDirection(true, node)
 		if err1 != nil {
 			return nil, err1
 		}
-		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := getAllowedConnsPerDirection(c, false, node)
+		allEgressAllowedConns, egressAllowedConnsPerLayer, err2 := c.getAllowedConnsPerDirection(false, node)
 		if err2 != nil {
 			return nil, err2
 		}
@@ -70,7 +70,7 @@ func (c *VPCConfig) GetVPCNetworkConnectivity(lbAbstraction bool, groupingType i
 	return res, err
 }
 
-func getLoadBalancerRule(c *VPCConfig, src, dst Node) LoadBalancerRule {
+func (c *VPCConfig) getLoadBalancerRule(src, dst Node) LoadBalancerRule {
 	for _, lb := range c.LoadBalancers {
 		if rule := lb.GetLoadBalancerRule(src, dst); rule != nil {
 			return rule
@@ -91,7 +91,7 @@ func getPrivateSubnetRule(src, dst Node) PrivateSubnetRule {
 
 // getNonFilterNonRouterRulesConn() return the connectivity of all rules that are not part of the filters and routers.
 func getNonFilterNonRouterRulesConn(c *VPCConfig, src, dst Node, isIngress bool) *netset.TransportSet {
-	loadBalancerRule := getLoadBalancerRule(c, src, dst)
+	loadBalancerRule := c.getLoadBalancerRule(src, dst)
 	if loadBalancerRule != nil && loadBalancerRule.Deny(isIngress) {
 		return NoConns()
 	}
@@ -123,7 +123,7 @@ func updatePerLayerRes(res map[string]map[Node]*netset.TransportSet, layer strin
 
 // getAllowedConnsPerDirection returns: (1) map of allowed (ingress or egress) connectivity for capturedNode, considering
 // all relevant resources (nacl/sg/fip/pgw) , and (2) similar map per separated layers only (nacl/sg)
-func getAllowedConnsPerDirection(c *VPCConfig, isIngress bool, capturedNode Node) (
+func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Node) (
 	allLayersRes map[Node]*netset.TransportSet, // result considering all layers
 	perLayerRes map[string]map[Node]*netset.TransportSet, // result separated per layer
 	err error,

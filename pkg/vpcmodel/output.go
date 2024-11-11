@@ -97,7 +97,7 @@ func NewOutputGenerator(cConfigs *MultipleVPCConfigs, groupingType int, uc Outpu
 			}
 		case AllSubnets:
 			for i, vpcConfig := range cConfigs.Configs() {
-				subnetsConn, err := GetSubnetsConnectivity(vpcConfig, true, groupingType)
+				subnetsConn, err := vpcConfig.GetSubnetsConnectivity(true, groupingType)
 				if err != nil {
 					return nil, err
 				}

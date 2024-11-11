@@ -298,7 +298,7 @@ func getSrcOrDstInputNode(c *VPCConfig, name, srcOrDst string) (nodes []Node,
 func getNodesFromInputString(c *VPCConfig, cidrOrName string) (nodes []Node,
 	errType int, err error) {
 	// 1. cidrOrName references endpoint
-	endpoint, errType1, err1 := getNodesOfEndpoint(c, cidrOrName)
+	endpoint, errType1, err1 := c.getNodesOfEndpoint(cidrOrName)
 	if err1 != nil {
 		return nil, errType1, err1
 	}
@@ -306,7 +306,7 @@ func getNodesFromInputString(c *VPCConfig, cidrOrName string) (nodes []Node,
 		return endpoint, noErr, nil
 	}
 	// 2. cidrOrName references subnet
-	subnetEndpoints, err2 := getNodesOfSubnet(c, cidrOrName)
+	subnetEndpoints, err2 := c.getNodesOfSubnet(cidrOrName)
 	if err2 != nil {
 		return nil, noConnectedEndpoints, err2
 	}
@@ -332,7 +332,7 @@ func getNodesFromInputString(c *VPCConfig, cidrOrName string) (nodes []Node,
 // note: in case there are two subnets of the same name, or a subnet and a vsi, we take the first one
 // using the same name is a bad practice but its not npGuard's responsibility to guard.
 // in this case the user may refer to the exact cidr instead of the name
-func getNodesOfSubnet(c *VPCConfig, name string) ([]Node, error) {
+func (c *VPCConfig) getNodesOfSubnet(name string) ([]Node, error) {
 	inputSubnet, inputVpc := getResourceAndVpcNames(name)
 	var foundSubnet Subnet
 	for _, subnet := range c.Subnets {
@@ -353,7 +353,7 @@ func getNodesOfSubnet(c *VPCConfig, name string) ([]Node, error) {
 
 // getNodesOfEndpoint gets a string name or UID of an endpoint (e.g. VSI), and
 // returns the list of all nodes within this endpoint
-func getNodesOfEndpoint(c *VPCConfig, name string) ([]Node, int, error) {
+func (c *VPCConfig) getNodesOfEndpoint(name string) ([]Node, int, error) {
 	var nodeSetOfEndpoint NodeSet
 	uid := name // uid specified - vpc prefix is not relevant and uid may contain the deliminator "/"
 	// endpoint name may be prefixed by vpc name

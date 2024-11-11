@@ -184,7 +184,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		// RoutingResources are computed by the parser for []Nodes of the VPC,
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
-		singleSrcDstDetails.loadBalancerRule = getLoadBalancerRule(c, src, dst)
+		singleSrcDstDetails.loadBalancerRule = c.getLoadBalancerRule(src, dst)
 		singleSrcDstDetails.privateSubnetRule = getPrivateSubnetRule(src, dst)
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
