@@ -121,7 +121,7 @@ func (g *groupedExternalNodes) GenerateDrawioTreeNode(gen *DrawioGenerator) draw
 	if (*g)[0].IsPublicInternet() {
 		tn = drawio.NewInternetTreeNode(gen.PublicNetwork(), name)
 	} else {
-		tn = drawio.NewServiceNetworkTreeNode(gen.PublicNetwork(), name)
+		tn = drawio.NewServiceNetworkTreeNode(gen.Cloud(), name)
 	}
 	tn.SetTooltip(tooltip)
 	return tn
