@@ -111,7 +111,7 @@ type Node interface {
 	IPBlock() *netset.IPBlock
 	// IsInternal returns true if the node is internal, within a VPC
 	IsInternal() bool
-	// IsPublicInternet returns true if the node is external and pubic Internet
+	// IsPublicInternet returns true if the node is external and public Internet
 	IsPublicInternet() bool
 	// AbstractedToNodeSet returns the abstracted nodeSet that contains this node (if any)
 	// e.g. the Nodes of Load Balancer private IPs are abstracted by the Load Balancer
