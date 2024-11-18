@@ -29,7 +29,9 @@ var once sync.Once
 // singleton struct
 type NetworkAddressLists struct {
 	publicInternetAddressList []*netset.IPBlock
+	publicInternetRanges      *netset.IPBlock
 	serviceNetworkAddressList []*netset.IPBlock
+	serviceNetworkRanges      *netset.IPBlock
 }
 
 var networkAddressList = &NetworkAddressLists{}
@@ -38,7 +40,15 @@ func InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressLis
 	once.Do(func() {
 		ipbListPI, _, _ := ipStringsToIPblocks(publicInternetAddressList)
 		ipbListSN, _, _ := ipStringsToIPblocks(serviceNetworkAddressList)
-		networkAddressList = &NetworkAddressLists{ipbListPI, ipbListSN}
+		publicInternetRanges := netset.NewIPBlock()
+		serviceNetworkRanges := netset.NewIPBlock()
+		for _, ipRange := range ipbListPI {
+			publicInternetRanges = publicInternetRanges.Union(ipRange)
+		}
+		for _, ipRange := range ipbListSN {
+			serviceNetworkRanges = serviceNetworkRanges.Union(ipRange)
+		}
+		networkAddressList = &NetworkAddressLists{ipbListPI, publicInternetRanges, ipbListSN, serviceNetworkRanges}
 	})
 }
 
@@ -69,24 +79,19 @@ func GetDefaultPublicInternetAddressList() []string {
 }
 
 func (n *NetworkAddressLists) GetPublicInternetIPblocksList() (ipList []*netset.IPBlock,
-	allPublicInternetRanges *netset.IPBlock, err error) {
-	allPublicInternetRanges = netset.NewIPBlock()
+	publicInternetRanges *netset.IPBlock, err error) {
 	if len(n.publicInternetAddressList) == 0 {
 		return ipStringsToIPblocks(GetDefaultPublicInternetAddressList())
 	}
-	for _, ipRange := range n.publicInternetAddressList {
-		allPublicInternetRanges = allPublicInternetRanges.Union(ipRange)
-	}
-	return n.publicInternetAddressList, allPublicInternetRanges, nil
+	return n.publicInternetAddressList, n.publicInternetRanges, nil
 }
 
 func (n *NetworkAddressLists) GetServiceNetworkIPblocksList() (ipList []*netset.IPBlock,
-	allServiceNetworkRanges *netset.IPBlock, err error) {
-	allServiceNetworkRanges = netset.NewIPBlock()
-	for _, ipRange := range n.serviceNetworkAddressList {
-		allServiceNetworkRanges = allServiceNetworkRanges.Union(ipRange)
+	serviceNetworkRanges *netset.IPBlock, err error) {
+	if n.serviceNetworkRanges == nil {
+		return []*netset.IPBlock{}, netset.NewIPBlock(), nil
 	}
-	return n.serviceNetworkAddressList, allServiceNetworkRanges, nil
+	return n.serviceNetworkAddressList, n.serviceNetworkRanges, nil
 }
 
 // ExternalNetwork implements Node interface
@@ -260,11 +265,11 @@ func isEntireServiceNetworkRange(nodes []*ExternalNetwork) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	_, allServiceNetworkRagnes, err := GetNetworkAddressList().GetServiceNetworkIPblocksList()
+	_, allServiceNetworkRanges, err := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	if err != nil {
 		return false, err
 	}
-	return nodesRanges.Equal(allServiceNetworkRagnes), nil
+	return nodesRanges.Equal(allServiceNetworkRanges), nil
 }
 
 func isEntirePublicInternetRange(nodes []*ExternalNetwork) (bool, error) {

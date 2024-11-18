@@ -4,13 +4,15 @@ Interpreted destination(s): vsi1-ky[10.240.10.4]
 =========================================================================
 
 No connectivity from Service Network 161.26.0.0/16 to vsi1-ky[10.240.10.4];
-	connection is blocked at ingress and because there is no resource for external connectivity
+	connection is blocked at ingress
 
+External traffic via ServiceGateway: 
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky does not allow connection
 
 Path:
 	Service Network 161.26.0.0/16 -> 
-	| no resource for external connectivity |
+	ServiceGateway  -> 
+	subnet subnet1-ky -> network ACL acl1-ky -> | security group sg1-ky |
 
 ------------------------------------------------------------------------------------------------------------------------
 

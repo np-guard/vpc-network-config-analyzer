@@ -1,6 +1,16 @@
 Endpoint connectivity for VPC lbvpc
 Public Internet (all ranges) => vsi0-ctrl-sub2[10.240.66.4] : All Connections
+Service Network (all ranges) => alb[LB private IP][10.240.65.4] : All Connections
+Service Network (all ranges) => alb[Potential LB private IP][10.240.1.0/25] : All Connections
+Service Network (all ranges) => alb[Potential LB private IP][10.240.1.128/25] : All Connections
+Service Network (all ranges) => alb[Potential LB private IP][10.240.129.128/25] : All Connections
+Service Network (all ranges) => alb[Potential LB private IP][10.240.65.128/25] : All Connections
 Service Network (all ranges) => vsi0-ctrl-sub2[10.240.66.4] : All Connections
+Service Network (all ranges) => vsi0-sub2[10.240.64.5] : All Connections
+Service Network (all ranges) => vsi0-sub3[10.240.128.4] : All Connections
+Service Network (all ranges) => vsi1-sub1[10.240.0.4] : All Connections
+Service Network (all ranges) => vsi1-sub2[10.240.64.4] : All Connections
+Service Network (all ranges) => vsi1-sub3[10.240.128.5] : All Connections
 alb[LB private IP][10.240.129.4] => vsi0-sub2[10.240.64.5] : protocol: ICMP,UDP
 alb[LB private IP][10.240.129.4] => vsi0-sub2[10.240.64.5] : protocol: TCP * 
 alb[LB private IP][10.240.129.4] => vsi0-sub3[10.240.128.4] : protocol: ICMP,UDP

@@ -1,6 +1,15 @@
 # Endpoint connectivity for VPC ky-testenv-vpc
 | src | dst | conn |
 |-----|-----|------|
+| Service Network (all ranges) | edge-0-instance-ky[192.168.32.4] | All Connections |
+| Service Network (all ranges) | edge-1-instance-ky[192.168.36.4] | All Connections |
+| Service Network (all ranges) | edge-2-instance-ky[192.168.40.4] | All Connections |
+| Service Network (all ranges) | private-0-instance-ky[192.168.0.4] | All Connections |
+| Service Network (all ranges) | private-1-instance-ky[192.168.4.4] | All Connections |
+| Service Network (all ranges) | private-2-instance-ky[192.168.8.4] | All Connections |
+| Service Network (all ranges) | transit-0-instance-ky[192.168.16.4] | All Connections |
+| Service Network (all ranges) | transit-1-instance-ky[192.168.20.4] | All Connections |
+| Service Network (all ranges) | transit-2-instance-ky[192.168.24.4] | All Connections |
 | edge-0-instance-ky[192.168.32.4] | Public Internet (all ranges) | All Connections |
 | edge-0-instance-ky[192.168.32.4] | Service Network (all ranges) | All Connections |
 | edge-0-instance-ky[192.168.32.4] | edge-1-instance-ky[192.168.36.4] | All Connections |

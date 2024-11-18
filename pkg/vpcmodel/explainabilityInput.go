@@ -407,8 +407,10 @@ func (c *VPCConfig) getNodesFromAddress(ipOrCidr string, inputIPBlock *netset.IP
 	if err1 != nil || err2 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, fatalErr, err1
 	}
-	isExternal := inputIPBlock.Overlap(publicInternet.Union(serviceNetwork))
-	isInternal := !inputIPBlock.IsSubset(publicInternet.Union(serviceNetwork))
+
+	publicInternetAndServiceNetwork := publicInternet.Union(serviceNetwork)
+	isExternal := inputIPBlock.Overlap(publicInternetAndServiceNetwork)
+	isInternal := !inputIPBlock.IsSubset(publicInternetAndServiceNetwork)
 	if isInternal && isExternal {
 		return nil, fatalErr,
 			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
@@ -460,13 +462,13 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *netset.IPBlock) (cidrNode
 	disjointBlocks := netset.DisjointIPBlocks([]*netset.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrNodes = []Node{}
+	_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	for _, block := range disjointBlocks {
 		if !block.IsSubset(inputIPBlock) {
 			continue
 		}
 		externalType := publicInternetNodeName
 		isPublicInternet := true
-		_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 		if block.IsSubset(ip) {
 			externalType = serviceNetworkNodeName
 			isPublicInternet = false

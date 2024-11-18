@@ -34,13 +34,8 @@ type IBMresourcesContainer struct {
 // vpcmodel.NetworkAddressLists with ibm Public internet and service network
 // if you do not use this function, you need to initialize vpcmodel.NetworkAddressLists
 func NewIBMresourcesContainer() *IBMresourcesContainer {
-	vpcmodel.InitNetworkAddressLists(GetPublicInternetAddressList(), GetServiceNetworkAddressList())
-	return &IBMresourcesContainer{}
-}
-
-// IBM All public IP addresses belong to one of the following public IP address ranges:
-func GetPublicInternetAddressList() []string {
-	return []string{
+	// IBM All public IP addresses belong to one of the following public IP address ranges:
+	publicInternetAddressList := []string{
 		"1.0.0.0-9.255.255.255",
 		"11.0.0.0-100.63.255.255",
 		"100.128.0.0-126.255.255.255",
@@ -57,14 +52,14 @@ func GetPublicInternetAddressList() []string {
 		"198.51.101.0-203.0.112.255",
 		"203.0.114.0-223.255.255.255",
 	}
-}
 
-// IBM All service network IP addresses belong to one of the following service network IP address ranges:
-func GetServiceNetworkAddressList() []string {
-	return []string{
+	// IBM All service network IP addresses belong to one of the following service network IP address ranges:
+	serviceNetworkAddressList := []string{
 		"161.26.0.0/16",
 		"166.8.0.0/14",
 	}
+	vpcmodel.InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList)
+	return &IBMresourcesContainer{}
 }
 
 func CopyIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
@@ -574,7 +569,7 @@ func newSGW(cidr *netset.IPBlock) *ServiceNetworkGateway {
 			VPCRef:       nil,
 		},
 		cidr: cidr,
-	} // TODO: get cidr from fip of the pgw
+	}
 }
 
 func (rc *IBMresourcesContainer) addSgwToConfig(

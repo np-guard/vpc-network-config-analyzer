@@ -250,10 +250,10 @@ func (fip *FloatingIP) SetExternalDestinations(destinations []vpcmodel.Node) {
 
 func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
 	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
-		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() {
+		if vpcmodel.HasNode(fip.Sources(), src1) && dst1.IsExternal() && dst1.IsPublicInternet() {
 			return netset.AllTransports(), nil
 		}
-		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() {
+		if vpcmodel.HasNode(fip.Sources(), dst1) && src1.IsExternal() && src1.IsPublicInternet() {
 			return netset.AllTransports(), nil
 		}
 		return netset.NoTransports(), nil
@@ -262,8 +262,8 @@ func (fip *FloatingIP) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*
 }
 
 func (fip *FloatingIP) RouterDefined(src, dst vpcmodel.Node) bool {
-	return (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal()) ||
-		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal())
+	return (vpcmodel.HasNode(fip.Sources(), src) && dst.IsExternal() && dst.IsPublicInternet()) ||
+		(vpcmodel.HasNode(fip.Sources(), dst) && src.IsExternal() && src.IsPublicInternet())
 }
 
 func (fip *FloatingIP) ExternalIP() string {
@@ -307,8 +307,8 @@ func (sgw *ServiceNetworkGateway) SetExternalDestinations(destinations []vpcmode
 }
 
 func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
-	if areNodes, _, dst1 := isNodesPair(src, dst); areNodes {
-		if dst1.IsExternal() && !dst1.IsPublicInternet() {
+	if areNodes, src1, dst1 := isNodesPair(src, dst); areNodes {
+		if src1.IsExternal() && !src1.IsPublicInternet() || dst1.IsExternal() && !dst1.IsPublicInternet() {
 			return netset.AllTransports(), nil
 		}
 		return netset.NoTransports(), nil
@@ -317,7 +317,7 @@ func (sgw *ServiceNetworkGateway) AllowedConnectivity(src, dst vpcmodel.VPCResou
 }
 
 func (sgw *ServiceNetworkGateway) RouterDefined(src, dst vpcmodel.Node) bool {
-	return dst.IsExternal() && !dst.IsPublicInternet()
+	return (dst.IsExternal() && !dst.IsPublicInternet()) || (src.IsExternal() && !src.IsPublicInternet())
 }
 
 func (sgw *ServiceNetworkGateway) ExternalIP() string {

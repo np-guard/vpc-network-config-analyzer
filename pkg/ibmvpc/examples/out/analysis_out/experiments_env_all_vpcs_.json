@@ -2534,12 +2534,88 @@
                     "CidrStr": "161.26.0.0/16"
                 },
                 "dst": {
+                    "ResourceName": "chivalry-donation-molehill-stopper",
+                    "ResourceUID": "id:48",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.0.5"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "swept-epidemic-list-prong",
+                    "ResourceUID": "id:90",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.1.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
                     "ResourceName": "headrest-deceptive-transport-custody",
                     "ResourceUID": "id:68",
                     "ResourceType": "NetworkInterface",
                     "Zone": "us-south-1",
                     "Region": "us-south",
                     "AddressStr": "10.240.2.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "chivalry-donation-molehill-stopper",
+                    "ResourceUID": "id:48",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.0.5"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "swept-epidemic-list-prong",
+                    "ResourceUID": "id:90",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.1.4"
                 },
                 "conn": [
                     {
@@ -7876,6 +7952,82 @@
     },
     "test-vpc2-ky": {
         "endpoints_connectivity": [
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "tint-reviver-caregiver-shorthand",
+                    "ResourceUID": "id:107",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.128.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "tint-reviver-caregiver-shorthand-11",
+                    "ResourceUID": "id:10711",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.128.5"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "tint-reviver-caregiver-shorthand",
+                    "ResourceUID": "id:107",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.128.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "tint-reviver-caregiver-shorthand-11",
+                    "ResourceUID": "id:10711",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "10.240.128.5"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
             {
                 "src": {
                     "ResourceName": "tint-reviver-caregiver-shorthand",

@@ -4,13 +4,15 @@ Interpreted destination(s): vsi3a-ky[10.240.30.5], vsi3b-ky[10.240.30.4], db-end
 =========================================================================
 
 No connectivity from Service Network 161.26.0.0/32 to db-endpoint-gateway-ky[10.240.30.6];
-	connection is blocked at ingress and because there is no resource for external connectivity
+	connection is blocked at ingress
 
+External traffic via ServiceGateway: 
 Ingress: network ACL acl3-ky allows connection; security group sg3-ky does not allow connection
 
 Path:
 	Service Network 161.26.0.0/32 -> 
-	| no resource for external connectivity |
+	ServiceGateway  -> 
+	subnet subnet3-ky -> network ACL acl3-ky -> | security group sg3-ky |
 
 
 Details:
@@ -24,13 +26,15 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connectivity from Service Network 161.26.0.0/32 to vsi3a-ky[10.240.30.5];
-	connection is blocked at ingress and because there is no resource for external connectivity
+	connection is blocked at ingress
 
+External traffic via ServiceGateway: 
 Ingress: network ACL acl3-ky allows connection; security group sg3-ky does not allow connection
 
 Path:
 	Service Network 161.26.0.0/32 -> 
-	| no resource for external connectivity |
+	ServiceGateway  -> 
+	subnet subnet3-ky -> network ACL acl3-ky -> | security group sg3-ky |
 
 
 Details:
@@ -44,13 +48,15 @@ Path is disabled; The relevant rules are:
 ------------------------------------------------------------------------------------------------------------------------
 
 No connectivity from Service Network 161.26.0.0/32 to vsi3b-ky[10.240.30.4];
-	connection is blocked at ingress and because there is no resource for external connectivity
+	connection is blocked at ingress
 
+External traffic via ServiceGateway: 
 Ingress: network ACL acl3-ky allows connection; security group sg2-ky does not allow connection
 
 Path:
 	Service Network 161.26.0.0/32 -> 
-	| no resource for external connectivity |
+	ServiceGateway  -> 
+	subnet subnet3-ky -> network ACL acl3-ky -> | security group sg2-ky |
 
 
 Details:

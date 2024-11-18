@@ -107,6 +107,7 @@
                     "protocol": "ANY"
                 }
             ],
+            "bidirectional": true,
             "dst": {
                 "name": "external-0",
                 "type": "external"

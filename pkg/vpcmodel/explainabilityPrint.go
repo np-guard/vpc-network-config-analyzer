@@ -60,21 +60,22 @@ func connHeader(connQuery *netset.TransportSet) string {
 
 // nodes are externals
 func getExternalTypeStr(userInput string, nodes []Node) string {
-	externalType := ""
+	var hasPublicNode, hasServiceNode bool
+	var externalTypes []string
 	for _, node := range nodes {
 		if node.IsPublicInternet() {
-			if externalType != "" && externalType != publicInternetNodeName {
-				return fmt.Sprintf("%s (%s, %s)", userInput, externalType, publicInternetNodeName)
+			if !hasPublicNode {
+				hasPublicNode = true
+				externalTypes = append(externalTypes, publicInternetNodeName)
 			}
-			externalType = publicInternetNodeName
 		} else {
-			if externalType != "" && externalType != serviceNetworkNodeName {
-				return fmt.Sprintf("%s (%s, %s)", userInput, serviceNetworkNodeName, externalType)
+			if !hasServiceNode {
+				hasServiceNode = true
+				externalTypes = append(externalTypes, serviceNetworkNodeName)
 			}
-			externalType = serviceNetworkNodeName
 		}
 	}
-	return fmt.Sprintf("%s (%s)", userInput, externalType)
+	return fmt.Sprintf("%s (%s)", userInput, strings.Join(externalTypes, comma))
 }
 
 // in case the src/dst is not external address, returns a string of all relevant nodes names

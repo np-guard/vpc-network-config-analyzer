@@ -1,8 +1,13 @@
 Endpoint connectivity for VPC lbvpc
 Public Internet (all ranges) => vsi0-ctrl-sub1[10.240.2.4] : All Connections
 Public Internet (all ranges) => vsi0-ctrl-sub2[10.240.66.4] : All Connections
+Service Network (all ranges) => alb[LoadBalancer] : All Connections ** 
 Service Network (all ranges) => vsi0-ctrl-sub1[10.240.2.4] : All Connections
 Service Network (all ranges) => vsi0-ctrl-sub2[10.240.66.4] : All Connections
+Service Network (all ranges) => vsi0-sub1[10.240.0.4] : All Connections
+Service Network (all ranges) => vsi0-sub2[10.240.64.4] : All Connections
+Service Network (all ranges) => vsi1-sub1[10.240.0.5] : All Connections
+Service Network (all ranges) => vsi1-sub2[10.240.64.5] : All Connections
 alb[LoadBalancer] => vsi0-sub1[10.240.0.4] : All Connections ** 
 alb[LoadBalancer] => vsi0-sub2[10.240.64.4] : All Connections ** 
 alb[LoadBalancer] => vsi0-sub3[10.240.128.4] : All Connections ** 
