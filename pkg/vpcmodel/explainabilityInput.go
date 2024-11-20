@@ -467,13 +467,11 @@ func (c *VPCConfig) getCidrExternalNodes(inputIPBlock *netset.IPBlock) (cidrNode
 		if !block.IsSubset(inputIPBlock) {
 			continue
 		}
-		externalType := publicInternetNodeName
 		isPublicInternet := true
 		if block.IsSubset(ip) {
-			externalType = serviceNetworkNodeName
 			isPublicInternet = false
 		}
-		node, err1 := newExternalNode(isPublicInternet, block, externalType)
+		node, err1 := newExternalNode(isPublicInternet, block)
 		if err1 != nil {
 			return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
 		}
