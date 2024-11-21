@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package vpcmodel
 
 import (
-	"errors"
 	"fmt"
 )
 
@@ -15,19 +14,9 @@ type TextOutputFormatter struct {
 }
 
 func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
-	var tgw RoutingResource
-	tgwRouterFound := false
-	for _, router := range c.RoutingResources {
-		if router.Kind() == resourceTypeTGW {
-			if tgwRouterFound {
-				return "", errors.New("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only one TGW")
-			}
-			tgw = router
-			tgwRouterFound = true
-		}
-	}
-	if !tgwRouterFound {
-		return "", errors.New("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
+	tgw, err := c.getTGWRouterForMultiVPC()
+	if err != nil {
+		return "", err
 	}
 	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.NameForAnalyzerOut(c), tgw.UID()), nil
 }

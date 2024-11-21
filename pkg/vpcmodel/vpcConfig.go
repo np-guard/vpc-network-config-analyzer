@@ -134,3 +134,21 @@ func (c *VPCConfig) loadBalancersAsNodeSets() []NodeSet {
 	}
 	return nodeSet
 }
+
+// getTGWRouterForMultiVPC returns tgw router and error if it does not contain exactly one router
+// of kind TGW for a "MultipleVPCsConfig"
+// assuming a single router representing the tgw for a "MultipleVPCsConfig"
+func (c *VPCConfig) getTGWRouterForMultiVPC() (tgw RoutingResource, err error) {
+	for _, router := range c.RoutingResources {
+		if router.Kind() == resourceTypeTGW {
+			if tgw != nil {
+				return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only one TGW")
+			}
+			tgw = router
+		}
+	}
+	if tgw == nil {
+		return tgw, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
+	}
+	return tgw, nil
+}

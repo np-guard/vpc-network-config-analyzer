@@ -240,20 +240,9 @@ func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
 	combinedConns *netset.TransportSet,
 	c *VPCConfig) (
 	*netset.TransportSet, error) {
-	// assuming a single router representing the tgw for a "MultipleVPCsConfig"
-	var tgw RoutingResource
-	tgwRouterFound := false
-	for _, router := range c.RoutingResources {
-		if router.Kind() == resourceTypeTGW {
-			if tgwRouterFound {
-				return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only one TGW")
-			}
-			tgw = router
-			tgwRouterFound = true
-		}
-	}
-	if !tgwRouterFound {
-		return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
+	tgw, err := c.getTGWRouterForMultiVPC()
+	if err != nil {
+		return nil, err
 	}
 	connections, err := tgw.AllowedConnectivity(src, dst)
 	if err != nil {
