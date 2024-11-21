@@ -142,13 +142,13 @@ func (c *VPCConfig) getTGWRouterForMultiVPC() (tgw RoutingResource, err error) {
 	for _, router := range c.RoutingResources {
 		if router.Kind() == resourceTypeTGW {
 			if tgw != nil {
-				return nil, fmt.Errorf("Only one TGW is support in a given MultipleVPCsConfig")
+				return nil, fmt.Errorf("only one TGW is support in a given MultipleVPCsConfig")
 			}
 			tgw = router
 		}
 	}
 	if tgw == nil {
-		return nil, fmt.Errorf("No TGW found in a MultipleVPCsConfig")
+		return nil, fmt.Errorf("no TGW found in a MultipleVPCsConfig")
 	}
 	return tgw, nil
 }
