@@ -37,6 +37,7 @@ type NextHopEntry struct {
 }
 
 const pathConnector string = " -> "
+const resourceTypeTGW = "TGW"
 
 func (p Path) String() string {
 	return strings.Join(p.listEndpointsStrings(), pathConnector)
@@ -69,7 +70,7 @@ func PathFromTGWResource(tgw VPCResourceIntf, targetVPC string) Path {
 
 func (p Path) DoesEndWithTGW() bool {
 	return len(p) > 0 && p[len(p)-1].VpcResource != nil &&
-		p[len(p)-1].VpcResource.Kind() == "TGW" // TODO: use const
+		p[len(p)-1].VpcResource.Kind() == resourceTypeTGW
 }
 
 func (p Path) TargetVPC() string {

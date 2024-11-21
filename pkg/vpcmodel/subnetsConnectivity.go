@@ -241,7 +241,6 @@ func updateSubnetsConnectivityByTransitGateway(src, dst VPCResourceIntf,
 	c *VPCConfig) (
 	*netset.TransportSet, error) {
 	// assuming a single router representing the tgw for a "MultipleVPCsConfig"
-	resourceTypeTGW := "TGW"
 	var tgw RoutingResource
 	tgwRouterFound := false
 	for _, router := range c.RoutingResources {

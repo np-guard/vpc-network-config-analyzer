@@ -15,7 +15,6 @@ type TextOutputFormatter struct {
 }
 
 func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
-	resourceTypeTGW := "TGW"
 	var tgw RoutingResource
 	tgwRouterFound := false
 	for _, router := range c.RoutingResources {
