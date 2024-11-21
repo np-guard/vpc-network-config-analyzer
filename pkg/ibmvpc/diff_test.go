@@ -95,14 +95,14 @@ var diffTests = []*testfunc.VpcDiffTest{
 // uncomment the function below to run for updating the expected output
 
 /*
-func TestDiffWithGeneration(t *testing.T) {
-	// tests is the list of tests to run
-	for testIdx := range diffTests {
-		tt := diffTests[testIdx]
-		tt.TestDiffSingle(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+	func TestDiffWithGeneration(t *testing.T) {
+		// tests is the list of tests to run
+		for testIdx := range diffTests {
+			tt := diffTests[testIdx]
+			tt.TestDiffSingle(t, testfunc.OutputGeneration, NewIBMresourcesContainer(), diffOut, tt.InputConfig)
+		}
+		fmt.Println("done")
 	}
-	fmt.Println("done")
-}
 */
 
 const diffOut = "diff_out"
@@ -111,7 +111,7 @@ func TestDiffWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range diffTests {
 		tt := diffTests[testIdx]
-		tt.TestDiffSingle(t, testfunc.OutputComparison, &IBMresourcesContainer{}, diffOut, tt.InputConfig)
+		tt.TestDiffSingle(t, testfunc.OutputComparison, NewIBMresourcesContainer(), diffOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }

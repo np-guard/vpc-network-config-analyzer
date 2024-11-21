@@ -1,16 +1,28 @@
 Connectivity diff between VPC test-vpc-ky and VPC test-vpc1-ky
 diff-type: added, source: Public Internet (all ranges), destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi2-ky[10.240.20.4] added
+diff-type: added, source: Service Network (all ranges), destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi2-ky[10.240.20.4] added
+diff-type: added, source: Service Network (all ranges), destination: vsi3b-ky[10.240.30.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi3b-ky[10.240.30.4] added
+diff-type: added, source: db-endpoint-gateway-ky[10.240.30.6], destination: Service Network (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: db-endpoint-gateway-ky[10.240.30.6] added
 diff-type: added, source: db-endpoint-gateway-ky[10.240.30.6], destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: db-endpoint-gateway-ky[10.240.30.6] and vsi2-ky[10.240.20.4] added
 diff-type: added, source: db-endpoint-gateway-ky[10.240.30.6], destination: vsi3b-ky[10.240.30.4], config1: No Connections, config2: All Connections, vsis-diff-info: db-endpoint-gateway-ky[10.240.30.6] and vsi3b-ky[10.240.30.4] added
 diff-type: added, source: vsi1-ky[10.240.10.4], destination: Public Internet (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi1-ky[10.240.10.4] added
+diff-type: added, source: vsi1-ky[10.240.10.4], destination: Service Network (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi1-ky[10.240.10.4] added
 diff-type: added, source: vsi1-ky[10.240.10.4], destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi1-ky[10.240.10.4] and vsi2-ky[10.240.20.4] added
 diff-type: added, source: vsi1-ky[10.240.10.4], destination: vsi3b-ky[10.240.30.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi1-ky[10.240.10.4] and vsi3b-ky[10.240.30.4] added
 diff-type: added, source: vsi2-ky[10.240.20.4], destination: Public Internet (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi2-ky[10.240.20.4] added
+diff-type: added, source: vsi2-ky[10.240.20.4], destination: Service Network (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi2-ky[10.240.20.4] added
 diff-type: added, source: vsi2-ky[10.240.20.4], destination: vsi3b-ky[10.240.30.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi2-ky[10.240.20.4] and vsi3b-ky[10.240.30.4] added
+diff-type: added, source: vsi3a-ky[10.240.30.5], destination: Service Network (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] added
 diff-type: added, source: vsi3a-ky[10.240.30.5], destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] and vsi2-ky[10.240.20.4] added
 diff-type: added, source: vsi3a-ky[10.240.30.5], destination: vsi3b-ky[10.240.30.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi3a-ky[10.240.30.5] and vsi3b-ky[10.240.30.4] added
+diff-type: added, source: vsi3b-ky[10.240.30.4], destination: Service Network (all ranges), config1: No Connections, config2: All Connections, vsis-diff-info: vsi3b-ky[10.240.30.4] added
 diff-type: added, source: vsi3b-ky[10.240.30.4], destination: vsi2-ky[10.240.20.4], config1: No Connections, config2: All Connections, vsis-diff-info: vsi3b-ky[10.240.30.4] and vsi2-ky[10.240.20.4] added
 diff-type: removed, source: Public Internet (all ranges), destination: proxy-ky[10.240.0.4], config1: All Connections, config2: No Connections, vsis-diff-info: proxy-ky[10.240.0.4] removed
+diff-type: removed, source: Service Network (all ranges), destination: appdata-endpoint-gateway[10.240.0.5], config1: TCP, config2: No Connections, vsis-diff-info: appdata-endpoint-gateway[10.240.0.5] removed
+diff-type: removed, source: Service Network (all ranges), destination: appdata-endpoint-gateway[10.240.128.8], config1: TCP, config2: No Connections, vsis-diff-info: appdata-endpoint-gateway[10.240.128.8] removed
+diff-type: removed, source: Service Network (all ranges), destination: policydb-endpoint-gateway[10.240.128.7], config1: TCP, config2: No Connections, vsis-diff-info: policydb-endpoint-gateway[10.240.128.7] removed
+diff-type: removed, source: Service Network (all ranges), destination: policydb-endpoint-gateway[10.240.64.4], config1: TCP, config2: No Connections, vsis-diff-info: policydb-endpoint-gateway[10.240.64.4] removed
+diff-type: removed, source: Service Network (all ranges), destination: proxy-ky[10.240.0.4], config1: All Connections, config2: No Connections, vsis-diff-info: proxy-ky[10.240.0.4] removed
 diff-type: removed, source: be-ky[10.240.128.5], destination: opa-ky[10.240.128.4], config1: TCP dst-ports: 8181, config2: No Connections, vsis-diff-info: be-ky[10.240.128.5] and opa-ky[10.240.128.4] removed
 diff-type: removed, source: be-ky[10.240.128.5], destination: policydb-endpoint-gateway[10.240.128.7], config1: TCP, config2: No Connections, vsis-diff-info: be-ky[10.240.128.5] and policydb-endpoint-gateway[10.240.128.7] removed
 diff-type: removed, source: be-ky[10.240.128.5], destination: policydb-endpoint-gateway[10.240.64.4], config1: TCP, config2: No Connections, vsis-diff-info: be-ky[10.240.128.5] and policydb-endpoint-gateway[10.240.64.4] removed

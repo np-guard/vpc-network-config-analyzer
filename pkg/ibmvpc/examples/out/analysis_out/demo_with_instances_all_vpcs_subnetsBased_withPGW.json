@@ -353,24 +353,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-1",
-                    "ResourceUID": "crn:128",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-1",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -570,24 +552,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-1",
-                    "ResourceUID": "crn:128",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-1",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -2424,6 +2388,42 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "96.0.0.0/6"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-1",
+                    "ResourceUID": "crn:128",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-1",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-1",
+                    "ResourceUID": "crn:128",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-1",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -2957,24 +2957,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-2",
-                    "ResourceUID": "crn:57",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-2",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -3174,24 +3156,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-2",
-                    "ResourceUID": "crn:57",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-2",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -5028,6 +4992,42 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "96.0.0.0/6"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-2",
+                    "ResourceUID": "crn:57",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-2",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-2",
+                    "ResourceUID": "crn:57",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-2",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -5561,24 +5561,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-3",
-                    "ResourceUID": "crn:17",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-3",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -5778,24 +5760,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "ky-testenv-edge-subnet-3",
-                    "ResourceUID": "crn:17",
-                    "ResourceType": "Subnet",
-                    "Zone": "us-south-3",
-                    "Region": "us-south"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -7632,6 +7596,42 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "96.0.0.0/6"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-3",
+                    "ResourceUID": "crn:17",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-3",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "ky-testenv-edge-subnet-3",
+                    "ResourceUID": "crn:17",
+                    "ResourceType": "Subnet",
+                    "Zone": "us-south-3",
+                    "Region": "us-south"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {

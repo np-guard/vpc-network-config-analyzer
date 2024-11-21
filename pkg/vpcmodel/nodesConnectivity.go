@@ -178,7 +178,7 @@ func (c *VPCConfig) getAllowedConnsPerDirection(isIngress bool, capturedNode Nod
 			if appliedRouter != nil {
 				updatePerLayerRes(perLayerRes, appliedRouter.Kind(), peerNode, routerConnRes)
 			} else {
-				// without fip/pgw there is no external connectivity
+				// without fip/pgw/sgw there is no external connectivity
 				allLayersRes[peerNode] = NoConns()
 				continue
 			}

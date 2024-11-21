@@ -4,7 +4,10 @@ ky-vpc2/ky-vpc2-vsi[10.240.64.5] => ky-vpc1/ky-vpc1-vsi[10.240.0.5] : All Connec
 
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections
+Service Network (all ranges) => ky-vpc1-vsi[10.240.0.5] : All Connections
 ky-vpc1-vsi[10.240.0.5] => Public Internet (all ranges) : All Connections
+ky-vpc1-vsi[10.240.0.5] => Service Network (all ranges) : All Connections
 
 Endpoint connectivity for VPC ky-vpc2
-<nothing to report>
+Service Network (all ranges) => ky-vpc2-vsi[10.240.64.5] : All Connections
+ky-vpc2-vsi[10.240.64.5] => Service Network (all ranges) : All Connections

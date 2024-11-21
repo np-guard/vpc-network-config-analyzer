@@ -20,6 +20,7 @@ Subnet connectivity for VPC test-vpc0-ky
 subnet1-ky => Public Internet 172.217.22.46/32 : All Connections
 subnet1-ky => subnet3-ky : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 subnet2-ky => Public Internet (all ranges) : All Connections
+subnet2-ky => Service Network (all ranges) : All Connections
 subnet3-ky => subnet1-ky : protocol: TCP src-ports: 1-442,444-65535 dst-ports: 443; protocol: TCP src-ports: 443
 
 Subnet connectivity for VPC test-vpc1-ky

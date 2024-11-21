@@ -1,11 +1,13 @@
 Connectivity diff between VPC test-vpc1-ky and VPC test-vpc1-ky
+diff-type: changed, source: db-endpoint-gateway-ky[10.240.30.6], destination: Service Network (all ranges), config1: All Connections, config2: TCP src-ports: 1-99,221-65535 * ; TCP src-ports: 100-220 dst-ports: 1-9,61-65535 * ; ICMP,UDP; TCP src-ports: 100-220 dst-ports: 10-60
 diff-type: changed, source: db-endpoint-gateway-ky[10.240.30.6], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-99,201-65535 * ; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 * ; ICMP,UDP; TCP src-ports: 100-200 dst-ports: 10-50
 diff-type: changed, source: vsi2-ky[10.240.20.4], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-99,201-65535 * ; TCP src-ports: 100-200 dst-ports: 51-65535 * ; ICMP,UDP; TCP src-ports: 100-200 dst-ports: 1-50
 diff-type: changed, source: vsi2-ky[10.240.20.4], destination: vsi3b-ky[10.240.30.4], config1: TCP, config2: TCP src-ports: 10-60 dst-ports: 100-220
+diff-type: changed, source: vsi3a-ky[10.240.30.5], destination: Service Network (all ranges), config1: All Connections, config2: TCP src-ports: 1-99,221-65535 * ; TCP src-ports: 100-220 dst-ports: 1-9,61-65535 * ; ICMP,UDP; TCP src-ports: 100-220 dst-ports: 10-60
 diff-type: changed, source: vsi3a-ky[10.240.30.5], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-99,201-65535 * ; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 * ; ICMP,UDP; TCP src-ports: 100-200 dst-ports: 10-50
 diff-type: changed, source: vsi3b-ky[10.240.30.4], destination: vsi1-ky[10.240.10.4], config1: All Connections, config2: TCP src-ports: 1-99,201-65535 * ; TCP src-ports: 100-200 dst-ports: 1-9,51-65535 * ; ICMP,UDP; TCP src-ports: 100-200 dst-ports: 10-50
 diff-type: changed, source: vsi3b-ky[10.240.30.4], destination: vsi2-ky[10.240.20.4], config1: TCP, config2: TCP src-ports: 1-99,221-65535 * ; TCP src-ports: 100-220 dst-ports: 1-9,61-65535 * ; TCP src-ports: 100-220 dst-ports: 10-60
 diff-type: removed, source: vsi1-ky[10.240.10.4], destination: Public Internet 142.0.0.0/7, config1: ICMP, config2: No Connections
-diff-type: removed, source: vsi1-ky[10.240.10.4], destination: Public Internet 161.26.0.0/16, config1: UDP, config2: No Connections
+diff-type: removed, source: vsi1-ky[10.240.10.4], destination: Service Network 161.26.0.0/16, config1: UDP, config2: No Connections
 
 TCP connections for which response is not permitted are marked with * 

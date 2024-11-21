@@ -13,30 +13,41 @@ Endpoint connectivity for VPC ete-storage-project
 Public Internet 1.0.0.0-9.255.255.255,11.0.0.0-100.63.255.255,100.128.0.0-126.255.255.255,128.0.0.0-129.33.255.255,129.35.0.0-129.41.45.255,129.41.48.0/21,129.41.60.0-129.41.85.255,129.41.88.0-161.25.255.255,161.27.0.0-161.202.246.191,161.202.246.224-166.7.255.255,166.12.0.0-169.253.255.255,169.255.0.0-172.15.255.255,172.32.0.0-191.255.255.255,192.0.1.0/24,192.0.3.0-192.88.98.255,192.88.100.0-192.167.255.255,192.169.0.0-195.110.39.255,195.110.42.0-198.17.255.255,198.20.0.0-198.51.99.255,198.51.101.0-203.0.112.255,203.0.114.0-223.255.255.255 => ete-basic-01[10.248.64.4] : protocol: ICMP icmp-type: 8
 Public Internet 129.34.0.0/16,161.202.246.192/27,195.110.40.0/23 => ete-basic-01[10.248.64.4] : protocol: ICMP icmp-type: 8; protocol: TCP dst-ports: 22
 Public Internet 129.41.46.0/23,129.41.56.0/22,129.41.86.0/23 => ete-basic-01[10.248.64.4] : protocol: TCP; protocol: ICMP icmp-type: 8
-Public Internet 161.26.0.0/16,166.8.0.0/14 => ete-basic-01[10.248.64.4] : All Connections
+Service Network (all ranges) => ete-basic-01[10.248.64.4] : All Connections
+Service Network (all ranges) => xc-login-01[10.248.64.9] : All Connections
+Service Network (all ranges) => xc-server-01[10.248.64.8] : All Connections
+Service Network (all ranges) => xcat-bjripp[10.248.64.7] : All Connections
 ete-basic-01[10.248.64.4] => Public Internet (all ranges) : All Connections
+ete-basic-01[10.248.64.4] => Service Network (all ranges) : All Connections
 ete-basic-01[10.248.64.4] => xc-login-01[10.248.64.9] : All Connections
 ete-basic-01[10.248.64.4] => xc-server-01[10.248.64.8] : All Connections
 ete-basic-01[10.248.64.4] => xcat-bjripp[10.248.64.7] : All Connections
 xc-login-01[10.248.64.9] => Public Internet (all ranges) : All Connections
+xc-login-01[10.248.64.9] => Service Network (all ranges) : All Connections
 xc-login-01[10.248.64.9] => ete-basic-01[10.248.64.4] : All Connections
 xc-login-01[10.248.64.9] => xc-server-01[10.248.64.8] : All Connections
 xc-login-01[10.248.64.9] => xcat-bjripp[10.248.64.7] : All Connections
 xc-server-01[10.248.64.8] => Public Internet (all ranges) : All Connections
+xc-server-01[10.248.64.8] => Service Network (all ranges) : All Connections
 xc-server-01[10.248.64.8] => ete-basic-01[10.248.64.4] : All Connections
 xc-server-01[10.248.64.8] => xc-login-01[10.248.64.9] : All Connections
 xc-server-01[10.248.64.8] => xcat-bjripp[10.248.64.7] : All Connections
 xcat-bjripp[10.248.64.7] => Public Internet (all ranges) : All Connections
+xcat-bjripp[10.248.64.7] => Service Network (all ranges) : All Connections
 xcat-bjripp[10.248.64.7] => ete-basic-01[10.248.64.4] : All Connections
 xcat-bjripp[10.248.64.7] => xc-login-01[10.248.64.9] : All Connections
 xcat-bjripp[10.248.64.7] => xc-server-01[10.248.64.8] : All Connections
 
 Endpoint connectivity for VPC ky-vpc1
 Public Internet (all ranges) => ky-vpc1-vsi[10.240.0.4] : All Connections
+Service Network (all ranges) => ky-vpc1-vsi[10.240.0.4] : All Connections
 ky-vpc1-vsi[10.240.0.4] => Public Internet (all ranges) : All Connections
+ky-vpc1-vsi[10.240.0.4] => Service Network (all ranges) : All Connections
 
 Endpoint connectivity for VPC ky-vpc2
-<nothing to report>
+Service Network (all ranges) => ky-vpc2-vsi[10.240.64.4] : All Connections
+ky-vpc2-vsi[10.240.64.4] => Service Network (all ranges) : All Connections
 
 Endpoint connectivity for VPC ky-vpc3
-<nothing to report>
+Service Network (all ranges) => ky-vpc3-vsi[10.241.0.4] : All Connections
+ky-vpc3-vsi[10.241.0.4] => Service Network (all ranges) : All Connections

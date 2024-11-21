@@ -871,6 +871,7 @@ func (ly *layoutS) setIconsLocations() {
 			}
 			ly.setTgwLocations(region)
 		}
+		ly.setIconsLocationsOnTop(cloud)
 	}
 	ly.setPublicNetworkIconsLocations()
 	ly.setGroupingIconLocations()

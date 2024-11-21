@@ -1,3 +1,4 @@
 Subnet connectivity for VPC test-vpc1-ky
 subnet1-ky => Public Internet (all ranges) : All Connections
+subnet1-ky => Service Network (all ranges) : All Connections
 subnet1-ky,subnet2-ky,subnet3-ky => subnet1-ky,subnet2-ky,subnet3-ky : All Connections

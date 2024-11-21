@@ -3,6 +3,348 @@
         "endpoints_connectivity": [
             {
                 "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "unfairly-errant-reliably-geography",
+                    "ResourceUID": "id:145",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.32.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "evoke-reprocess-detergent-unarmored",
+                    "ResourceUID": "id:74",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.36.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "viewless-sprig-wreaths-immunize",
+                    "ResourceUID": "id:34",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.40.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "dexterity-reneged-giggly-choice",
+                    "ResourceUID": "id:54",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.0.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "underdog-breeches-porcupine-stainable",
+                    "ResourceUID": "id:108",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.4.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "entreaty-evolution-baking-vista",
+                    "ResourceUID": "id:179",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.8.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "bullish-sprinkled-paradox-gravity",
+                    "ResourceUID": "id:91",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.16.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "wool-daisy-energize-repeated",
+                    "ResourceUID": "id:162",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.20.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "dst": {
+                    "ResourceName": "keep-borough-prankster-racings",
+                    "ResourceUID": "id:125",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.24.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "unfairly-errant-reliably-geography",
+                    "ResourceUID": "id:145",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.32.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "evoke-reprocess-detergent-unarmored",
+                    "ResourceUID": "id:74",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.36.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "viewless-sprig-wreaths-immunize",
+                    "ResourceUID": "id:34",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.40.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "dexterity-reneged-giggly-choice",
+                    "ResourceUID": "id:54",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.0.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "underdog-breeches-porcupine-stainable",
+                    "ResourceUID": "id:108",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.4.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "entreaty-evolution-baking-vista",
+                    "ResourceUID": "id:179",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.8.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "bullish-sprinkled-paradox-gravity",
+                    "ResourceUID": "id:91",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.16.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "wool-daisy-energize-repeated",
+                    "ResourceUID": "id:162",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.20.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "dst": {
+                    "ResourceName": "keep-borough-prankster-racings",
+                    "ResourceUID": "id:125",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.24.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -373,25 +715,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "unfairly-errant-reliably-geography",
-                    "ResourceUID": "id:145",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.32.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -602,25 +925,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "unfairly-errant-reliably-geography",
-                    "ResourceUID": "id:145",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-1",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.32.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -2576,6 +2880,44 @@
                     "AddressStr": "192.168.32.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "unfairly-errant-reliably-geography",
+                    "ResourceUID": "id:145",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.32.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "unfairly-errant-reliably-geography",
+                    "ResourceUID": "id:145",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.32.4"
+                },
+                "dst": {
                     "ResourceName": "evoke-reprocess-detergent-unarmored",
                     "ResourceUID": "id:74",
                     "ResourceType": "NetworkInterface",
@@ -3128,25 +3470,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "evoke-reprocess-detergent-unarmored",
-                    "ResourceUID": "id:74",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-2",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.36.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -3357,25 +3680,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "evoke-reprocess-detergent-unarmored",
-                    "ResourceUID": "id:74",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-2",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.36.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -5331,6 +5635,44 @@
                     "AddressStr": "192.168.36.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "evoke-reprocess-detergent-unarmored",
+                    "ResourceUID": "id:74",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.36.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "evoke-reprocess-detergent-unarmored",
+                    "ResourceUID": "id:74",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.36.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -5883,25 +6225,6 @@
                 },
                 "dst": {
                     "ResourceType": "Public Internet",
-                    "CidrStr": "161.26.0.0/16"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "viewless-sprig-wreaths-immunize",
-                    "ResourceUID": "id:34",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-3",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.40.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
                     "CidrStr": "161.27.0.0/16"
                 },
                 "conn": [
@@ -6112,25 +6435,6 @@
                 "dst": {
                     "ResourceType": "Public Internet",
                     "CidrStr": "166.64.0.0/10"
-                },
-                "conn": [
-                    {
-                        "protocol": "ANY"
-                    }
-                ]
-            },
-            {
-                "src": {
-                    "ResourceName": "viewless-sprig-wreaths-immunize",
-                    "ResourceUID": "id:34",
-                    "ResourceType": "NetworkInterface",
-                    "Zone": "us-south-3",
-                    "Region": "us-south",
-                    "AddressStr": "192.168.40.4"
-                },
-                "dst": {
-                    "ResourceType": "Public Internet",
-                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {
@@ -8086,6 +8390,44 @@
                     "AddressStr": "192.168.40.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "viewless-sprig-wreaths-immunize",
+                    "ResourceUID": "id:34",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.40.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "viewless-sprig-wreaths-immunize",
+                    "ResourceUID": "id:34",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.40.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -8276,6 +8618,44 @@
                     "AddressStr": "192.168.0.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "dexterity-reneged-giggly-choice",
+                    "ResourceUID": "id:54",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.0.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "dexterity-reneged-giggly-choice",
+                    "ResourceUID": "id:54",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.0.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -8480,6 +8860,44 @@
                     "AddressStr": "192.168.4.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "underdog-breeches-porcupine-stainable",
+                    "ResourceUID": "id:108",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.4.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "underdog-breeches-porcupine-stainable",
+                    "ResourceUID": "id:108",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.4.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -8684,6 +9102,44 @@
                     "AddressStr": "192.168.8.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "entreaty-evolution-baking-vista",
+                    "ResourceUID": "id:179",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.8.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "entreaty-evolution-baking-vista",
+                    "ResourceUID": "id:179",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.8.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -8888,6 +9344,44 @@
                     "AddressStr": "192.168.16.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "bullish-sprinkled-paradox-gravity",
+                    "ResourceUID": "id:91",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.16.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "bullish-sprinkled-paradox-gravity",
+                    "ResourceUID": "id:91",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-1",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.16.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -9078,6 +9572,44 @@
                     "AddressStr": "192.168.20.4"
                 },
                 "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "wool-daisy-energize-repeated",
+                    "ResourceUID": "id:162",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.20.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "wool-daisy-energize-repeated",
+                    "ResourceUID": "id:162",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-2",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.20.4"
+                },
+                "dst": {
                     "ResourceName": "unfairly-errant-reliably-geography",
                     "ResourceUID": "id:145",
                     "ResourceType": "NetworkInterface",
@@ -9251,6 +9783,44 @@
                     "Zone": "us-south-3",
                     "Region": "us-south",
                     "AddressStr": "192.168.24.4"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "keep-borough-prankster-racings",
+                    "ResourceUID": "id:125",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.24.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "161.26.0.0/16"
+                },
+                "conn": [
+                    {
+                        "protocol": "ANY"
+                    }
+                ]
+            },
+            {
+                "src": {
+                    "ResourceName": "keep-borough-prankster-racings",
+                    "ResourceUID": "id:125",
+                    "ResourceType": "NetworkInterface",
+                    "Zone": "us-south-3",
+                    "Region": "us-south",
+                    "AddressStr": "192.168.24.4"
+                },
+                "dst": {
+                    "ResourceType": "Service Network",
+                    "CidrStr": "166.8.0.0/14"
                 },
                 "conn": [
                     {

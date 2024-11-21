@@ -30,12 +30,46 @@ type IBMresourcesContainer struct {
 	datamodel.ResourcesContainerModel
 }
 
-func NewIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
+// NewIBMresourcesContainer is used to return empty IBMresourcesContainer and also initialize
+// vpcmodel.NetworkAddressLists with ibm Public internet and service network
+// if you do not use this function, you need to initialize vpcmodel.NetworkAddressLists
+func NewIBMresourcesContainer() *IBMresourcesContainer {
+	// IBM All public IP addresses belong to one of the following public IP address ranges:
+	publicInternetAddressList := []string{
+		"1.0.0.0-9.255.255.255",
+		"11.0.0.0-100.63.255.255",
+		"100.128.0.0-126.255.255.255",
+		"128.0.0.0-161.25.255.255",
+		"161.27.0.0-166.7.255.255",
+		"166.12.0.0-169.253.255.255",
+		"169.255.0.0-172.15.255.255",
+		"172.32.0.0-191.255.255.255",
+		"192.0.1.0/24",
+		"192.0.3.0-192.88.98.255",
+		"192.88.100.0-192.167.255.255",
+		"192.169.0.0-198.17.255.255",
+		"198.20.0.0-198.51.99.255",
+		"198.51.101.0-203.0.112.255",
+		"203.0.114.0-223.255.255.255",
+	}
+
+	// IBM All service network IP addresses belong to one of the following service network IP address ranges:
+	serviceNetworkAddressList := []string{
+		"161.26.0.0/16",
+		"166.8.0.0/14",
+	}
+	vpcmodel.InitNetworkAddressLists(publicInternetAddressList, serviceNetworkAddressList)
+	return &IBMresourcesContainer{}
+}
+
+func CopyIBMresourcesContainer(rc common.ResourcesContainerInf) (*IBMresourcesContainer, error) {
 	ibmResources, ok := rc.GetResources().(*datamodel.ResourcesContainerModel)
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *datamodel.ResourcesContainerModel type")
 	}
-	return &IBMresourcesContainer{ResourcesContainerModel: *ibmResources}, nil
+	ibmRC := NewIBMresourcesContainer()
+	ibmRC.ResourcesContainerModel = *ibmResources
+	return ibmRC, nil
 }
 
 func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesContainer, error) {
@@ -70,7 +104,7 @@ func mergeResourcesContainers(rc1, rc2 *IBMresourcesContainer) (*IBMresourcesCon
 func (rc *IBMresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
-		mergedRC := &IBMresourcesContainer{}
+		mergedRC := NewIBMresourcesContainer()
 		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)
@@ -206,6 +240,8 @@ func (rc *IBMresourcesContainer) VPCConfigsFromResources(resourceGroup string, v
 	if err != nil {
 		return nil, err
 	}
+
+	rc.addSgwToConfig(res)
 
 	printVPCConfigs(res)
 
@@ -521,6 +557,30 @@ func (rc *IBMresourcesContainer) getPgwConfig(
 		}
 	}
 	return nil
+}
+
+func newSGW(cidr *netset.IPBlock) *ServiceNetworkGateway {
+	return &ServiceNetworkGateway{
+		VPCResource: vpcmodel.VPCResource{
+			ResourceName: "",
+			ResourceUID:  "",
+			Zone:         "",
+			ResourceType: commonvpc.ResourceTypeServiceNetworkGateway,
+			VPCRef:       nil,
+		},
+		cidr: cidr,
+	}
+}
+
+func (rc *IBMresourcesContainer) addSgwToConfig(
+	res *vpcmodel.MultipleVPCConfigs,
+) {
+	_, serviceNetworkIPblock, _ := vpcmodel.GetNetworkAddressList().GetServiceNetworkIPblocksList()
+	routerSgw := newSGW(serviceNetworkIPblock)
+	for _, vpcConfig := range res.Configs() {
+		vpcConfig.RoutingResources = append(vpcConfig.RoutingResources, routerSgw)
+		vpcConfig.UIDToResource[routerSgw.ResourceUID] = routerSgw
+	}
 }
 
 func ignoreFIPWarning(fipName, details string) string {

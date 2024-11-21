@@ -1,5 +1,10 @@
 Endpoint connectivity for VPC test-vpc-ky
 Public Internet (all ranges) => proxy-ky[10.240.0.4] : All Connections
+Service Network (all ranges) => appdata-endpoint-gateway[10.240.0.5] : protocol: TCP
+Service Network (all ranges) => appdata-endpoint-gateway[10.240.128.8] : protocol: TCP
+Service Network (all ranges) => policydb-endpoint-gateway[10.240.128.7] : protocol: TCP
+Service Network (all ranges) => policydb-endpoint-gateway[10.240.64.4] : protocol: TCP
+Service Network (all ranges) => proxy-ky[10.240.0.4] : All Connections
 be-ky[10.240.128.5] => opa-ky[10.240.128.4] : protocol: TCP dst-ports: 8181
 be-ky[10.240.128.5] => policydb-endpoint-gateway[10.240.128.7] : protocol: TCP
 be-ky[10.240.128.5] => policydb-endpoint-gateway[10.240.64.4] : protocol: TCP

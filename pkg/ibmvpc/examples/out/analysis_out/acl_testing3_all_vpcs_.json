@@ -111,7 +111,7 @@
                     "AddressStr": "10.240.10.4"
                 },
                 "dst": {
-                    "ResourceType": "Public Internet",
+                    "ResourceType": "Service Network",
                     "CidrStr": "161.26.0.0/16"
                 },
                 "conn": [
