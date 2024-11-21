@@ -148,7 +148,7 @@ func (c *VPCConfig) getTGWRouterForMultiVPC() (tgw RoutingResource, err error) {
 		}
 	}
 	if tgw == nil {
-		return tgw, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
+		return nil, fmt.Errorf("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
 	}
 	return tgw, nil
 }
