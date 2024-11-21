@@ -108,7 +108,7 @@ func (c *VPCConfig) ipblockToNamedResourcesInConfig(ipb *netset.IPBlock, exclude
 	return res, nil
 }
 
-func (c *VPCConfig) convertIPbasedToSubnetBasedResult(ipconn *IPbasedConnectivityResult, excludeExternalNodes bool) (
+func convertIPbasedToSubnetBasedResult(c *VPCConfig, ipconn *IPbasedConnectivityResult, excludeExternalNodes bool) (
 	*ConfigBasedConnectivityResults,
 	error,
 ) {
@@ -206,7 +206,7 @@ func (c *VPCConfig) GetSubnetsConnectivity(includePGW bool, groupingType int) (*
 			subnetHasPGW = true // do not limit connectivity to external nodes only if has actual PGW
 		}
 		excludeExternalNodes := !subnetHasPGW || subnet.IsPrivate()
-		configBasedConns, err2 := c.convertIPbasedToSubnetBasedResult(ipBasedConnectivity, excludeExternalNodes)
+		configBasedConns, err2 := convertIPbasedToSubnetBasedResult(c, ipBasedConnectivity, excludeExternalNodes)
 		if err2 != nil {
 			return nil, err2
 		}

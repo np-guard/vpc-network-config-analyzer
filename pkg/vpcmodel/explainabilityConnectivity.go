@@ -105,15 +105,15 @@ func (c *MultipleVPCConfigs) ExplainConnectivity(src, dst string, connQuery *net
 	if err1 != nil {
 		return nil, err1
 	}
-	return vpcConfig.explainConnectivityForVPC(src, dst, srcNodes, dstNodes, connQuery, connectivity)
+	return explainConnectivityForVPC(vpcConfig, src, dst, srcNodes, dstNodes, connQuery, connectivity)
 }
 
 // explainConnectivityForVPC for a vpcConfig, given src, dst and connQuery returns a struct with all explanation details
 // nil connQuery means connection is not part of the query
-func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNodes []Node,
+func explainConnectivityForVPC(c *VPCConfig, src, dst string, srcNodes, dstNodes []Node,
 	connQuery *netset.TransportSet, connectivity *VPCConnectivity) (res *Explanation, err error) {
 	// we do not support multiple configs, yet
-	rulesAndDetails, err1 := c.computeExplainRules(srcNodes, dstNodes, connQuery)
+	rulesAndDetails, err1 := computeExplainRules(c, srcNodes, dstNodes, connQuery)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -150,7 +150,7 @@ func (c *VPCConfig) explainConnectivityForVPC(src, dst string, srcNodes, dstNode
 }
 
 // computeExplainRules computes the egress and ingress rules contributing to the (existing or missing) connection <src, dst>
-func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
+func computeExplainRules(c *VPCConfig, srcNodes, dstNodes []Node,
 	conn *netset.TransportSet) (rulesAndConn rulesAndConnDetails, err error) {
 	// the size is not known in this stage due to the corner case in which we have the same node both in srcNodes and dstNodes
 	rulesAndConn = rulesAndConnDetails{}
@@ -159,7 +159,7 @@ func (c *VPCConfig) computeExplainRules(srcNodes, dstNodes []Node,
 			if src.UID() == dst.UID() {
 				continue
 			}
-			allowRules, denyRules, err := c.getRulesOfConnection(src, dst, conn)
+			allowRules, denyRules, err := getRulesOfConnection(c, src, dst, conn)
 			if err != nil {
 				return nil, err
 			}
@@ -185,7 +185,7 @@ func (details *rulesAndConnDetails) computeRoutersAndFilters(c *VPCConfig) (err 
 		src := singleSrcDstDetails.src
 		dst := singleSrcDstDetails.dst
 		singleSrcDstDetails.loadBalancerRule = c.getLoadBalancerRule(src, dst)
-		singleSrcDstDetails.privateSubnetRule = c.getPrivateSubnetRule(src, dst)
+		singleSrcDstDetails.privateSubnetRule = getPrivateSubnetRule(src, dst)
 		if src.IsInternal() && dst.IsInternal() { // internal (including cross vpcs)
 			singleSrcDstDetails.crossVpcRouter, _, err = c.getRoutingResource(src, dst)
 			if err != nil {
@@ -329,8 +329,8 @@ func mergeAllowDeny(allow, deny rulesInLayers) rulesInLayers {
 	return allowDenyMerged
 }
 
-func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
-	src, dst Node, conn *netset.TransportSet, isIngress bool, layer string) (allowRules *[]RulesInTable,
+func getFiltersRulesBetweenNodesPerDirectionAndLayer(
+	c *VPCConfig, src, dst Node, conn *netset.TransportSet, isIngress bool, layer string) (allowRules *[]RulesInTable,
 	denyRules *[]RulesInTable, err error) {
 	filter := c.GetFilterTrafficResourceOfKind(layer)
 	if filter == nil {
@@ -343,14 +343,14 @@ func (c *VPCConfig) getFiltersRulesBetweenNodesPerDirectionAndLayer(
 	return &rulesOfFilter, &denyRulesOfFilter, nil
 }
 
-func (c *VPCConfig) getRulesOfConnection(src, dst Node,
+func getRulesOfConnection(c *VPCConfig, src, dst Node,
 	conn *netset.TransportSet) (allowRulesOfConnection, denyRulesOfConnection *rulesConnection, err error) {
 	ingressAllowPerLayer, egressAllowPerLayer := rulesInLayers{}, rulesInLayers{}
 	ingressDenyPerLayer, egressDenyPerLayer := rulesInLayers{}, rulesInLayers{}
 	for _, layer := range FilterLayers {
 		// ingress rules: relevant only if dst is internal
 		if dst.IsInternal() {
-			ingressAllowRules, ingressDenyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, true, layer)
+			ingressAllowRules, ingressDenyRules, err1 := getFiltersRulesBetweenNodesPerDirectionAndLayer(c, src, dst, conn, true, layer)
 			if err1 != nil {
 				return nil, nil, err1
 			}
@@ -360,7 +360,7 @@ func (c *VPCConfig) getRulesOfConnection(src, dst Node,
 
 		// egress rules: relevant only is src is internal
 		if src.IsInternal() {
-			egressAllowRules, egressDenyRules, err2 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(src, dst, conn, false, layer)
+			egressAllowRules, egressDenyRules, err2 := getFiltersRulesBetweenNodesPerDirectionAndLayer(c, src, dst, conn, false, layer)
 			if err2 != nil {
 				return nil, nil, err2
 			}
@@ -380,18 +380,18 @@ func (rules rulesInLayers) updateRulesPerLayerIfNonEmpty(layer string, rulesFilt
 }
 
 // given a node, we need to find the resource that represent the node in the connectivity
-func (c *VPCConfig) getConnectedResource(node Node) (VPCResourceIntf, error) {
+func getConnectedResource(c *VPCConfig, node Node) (VPCResourceIntf, error) {
 	if AbstractedToNodeSet := node.AbstractedToNodeSet(); AbstractedToNodeSet != nil {
 		// if the node is part of abstraction - return the abstracted nodeSet:
 		return AbstractedToNodeSet, nil
 	} else if node.IsInternal() {
 		return node, nil
 	}
-	return c.getContainingConfigNode(node)
+	return getContainingConfigNode(c, node)
 }
 
 // node is from getCidrExternalNodes, thus there is a node in VPCConfig that either equal to or contains it.
-func (c *VPCConfig) getContainingConfigNode(node Node) (Node, error) {
+func getContainingConfigNode(c *VPCConfig, node Node) (Node, error) {
 	nodeIPBlock := node.IPBlock()
 	if nodeIPBlock == nil { // string cidr does not represent a legal cidr, would be handled earlier
 		return nil, fmt.Errorf("node %v does not refer to a legal IP", node.NameForAnalyzerOut(c))
@@ -435,7 +435,7 @@ func (details *rulesAndConnDetails) computeConnections(c *VPCConfig,
 // if src or dst is a node then the node is from getCidrExternalNodes,
 // thus there is a node in VPCConfig that either equal to or contains it.
 func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *detailedConn, err error) {
-	srcForConnection, err1 := c.getConnectedResource(src)
+	srcForConnection, err1 := getConnectedResource(c, src)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -443,7 +443,7 @@ func (v *VPCConnectivity) getConnection(c *VPCConfig, src, dst Node) (conn *deta
 	if srcForConnection == nil {
 		return nil, fmt.Errorf(errMsg, src.NameForAnalyzerOut(c))
 	}
-	dstForConnection, err2 := c.getConnectedResource(dst)
+	dstForConnection, err2 := getConnectedResource(c, dst)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -478,7 +478,7 @@ func (details *rulesAndConnDetails) updateRespondRules(c *VPCConfig, connQuery *
 		}
 		// non-stateful filters (NACL at the moment) - gather filter rules relevant to TCP respond
 		if srcDstDetails.filtersRelevant[statelessLayerName] {
-			respondRules, err := c.getRespondRules(srcDstDetails.src, srcDstDetails.dst, responseConn)
+			respondRules, err := getRespondRules(c, srcDstDetails.src, srcDstDetails.dst, responseConn)
 			if err != nil {
 				return err
 			}
@@ -498,20 +498,20 @@ func respondRulesRelevant(conn *detailedConn, filtersRelevant map[string]bool, c
 }
 
 // gets the NACL rules that enables/disables respond for connection conn, assuming nacl is applied
-func (c *VPCConfig) getRespondRules(src, dst Node,
+func getRespondRules(c *VPCConfig, src, dst Node,
 	conn *netset.TransportSet) (respondRules *rulesConnection, err error) {
 	mergedIngressRules, mergedEgressRules := rulesInLayers{}, rulesInLayers{}
 	// respond: from dst to src; thus, ingress rules: relevant only if *src* is internal, egress is *dst* is internal
 	if src.IsInternal() {
 		var err error
-		mergedIngressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, true)
+		mergedIngressRules, err = computeAndUpdateDirectionRespondRules(c, src, dst, conn, true)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if dst.IsInternal() {
 		var err error
-		mergedEgressRules, err = c.computeAndUpdateDirectionRespondRules(src, dst, conn, false)
+		mergedEgressRules, err = computeAndUpdateDirectionRespondRules(c, src, dst, conn, false)
 		if err != nil {
 			return nil, err
 		}
@@ -519,13 +519,13 @@ func (c *VPCConfig) getRespondRules(src, dst Node,
 	return &rulesConnection{mergedIngressRules, mergedEgressRules}, nil
 }
 
-func (c *VPCConfig) computeAndUpdateDirectionRespondRules(src, dst Node, conn *netset.TransportSet,
+func computeAndUpdateDirectionRespondRules(c *VPCConfig, src, dst Node, conn *netset.TransportSet,
 	isIngress bool) (rulesInLayers, error) {
 	// respond: dst and src switched, src and dst ports also switched
 	// computes allowRulesPerLayer/denyRulePerLayer: ingress/egress rules enabling/disabling respond
 	// note that there could be both allow and deny in case part of the connection is enabled and part blocked
 	connSwitch := conn.SwapPorts()
-	allowRules, denyRules, err1 := c.getFiltersRulesBetweenNodesPerDirectionAndLayer(dst, src, connSwitch, isIngress,
+	allowRules, denyRules, err1 := getFiltersRulesBetweenNodesPerDirectionAndLayer(c, dst, src, connSwitch, isIngress,
 		statelessLayerName)
 	if err1 != nil {
 		return nil, err1
