@@ -15,11 +15,21 @@ type TextOutputFormatter struct {
 }
 
 func multipleVPCsConfigHeader(c *VPCConfig) (string, error) {
-	if len(c.RoutingResources) != 2 { // expecting tgw and sgw (virtual gateway)
-		fmt.Printf("c.RoutingResources: %v\n", c.RoutingResources)
-		return "", errors.New("unexpected config of multiple VPCs connected by TGW, missing TGW resource")
+	resourceTypeTGW := "TGW"
+	var tgw RoutingResource
+	tgwRouterFound := false
+	for _, router := range c.RoutingResources {
+		if router.Kind() == resourceTypeTGW {
+			if tgwRouterFound {
+				return "", errors.New("unexpected number of RoutingResources for MultipleVPCsConfig, expecting only one TGW")
+			}
+			tgw = router
+			tgwRouterFound = true
+		}
 	}
-	tgw := c.RoutingResources[0]
+	if !tgwRouterFound {
+		return "", errors.New("unexpected number of RoutingResources for MultipleVPCsConfig, expecting TGW")
+	}
 	return fmt.Sprintf("Connectivity between VPCs connected by TGW %s (UID: %s)\n", tgw.NameForAnalyzerOut(c), tgw.UID()), nil
 }
 
