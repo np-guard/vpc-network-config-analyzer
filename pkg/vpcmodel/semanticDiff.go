@@ -405,6 +405,11 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*netset.IPBlock) (newNodes 
 	//  range over old nodes and inside range over disjoint blocks
 	//  if a disjoint block is contained in an old oldNode - create external oldNode and add it
 	//  if no disjoint block is contained in an old oldNode - add the old oldNode as is
+	networkAddressLists := GetNetworkAddressList()
+	_, serviceNetworkIPRanges, err := networkAddressLists.GetServiceNetworkIPblocksList()
+	if err != nil {
+		return nil, err
+	}
 	for _, oldNode := range oldNodes {
 		if oldNode.IsInternal() {
 			newNodes = append(newNodes, oldNode)
@@ -415,7 +420,11 @@ func resizeNodes(oldNodes []Node, disjointIPblocks []*netset.IPBlock) (newNodes 
 			if disjointIPBlock.IsSubset(oldNode.IPBlock()) {
 				disjointContained = true
 				for _, thisCidr := range disjointIPBlock.ToCidrList() {
-					newNode, err := newExternalNodeForCidr(thisCidr)
+					externalResourceType := publicInternetNodeName
+					if disjointIPBlock.IsSubset(serviceNetworkIPRanges) {
+						externalResourceType = serviceNetworkNodeName
+					}
+					newNode, err := newExternalNodeForCidr(thisCidr, externalResourceType)
 					if err != nil {
 						return nil, err
 					}

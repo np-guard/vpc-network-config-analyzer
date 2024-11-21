@@ -58,9 +58,9 @@ func vpcConfigsFromFiles(fileNames []string, inArgs *inArgs) (*vpcmodel.Multiple
 	var rc commonvpc.ResourcesContainer
 	switch provider {
 	case common.IBM:
-		rc = &ibmvpc.IBMresourcesContainer{}
+		rc = ibmvpc.NewIBMresourcesContainer()
 	case common.AWS:
-		rc = &awsvpc.AWSresourcesContainer{}
+		rc = awsvpc.NewAWSresourcesContainer()
 	default:
 		return nil, fmt.Errorf(notSupportedYet, provider)
 	}
@@ -78,9 +78,9 @@ func vpcConfigsFromAccount(inArgs *inArgs) (*vpcmodel.MultipleVPCConfigs, error)
 	var commonRC commonvpc.ResourcesContainer
 	switch inArgs.provider {
 	case common.IBM:
-		commonRC, err = ibmvpc.NewIBMresourcesContainer(rc)
+		commonRC, err = ibmvpc.CopyIBMresourcesContainer(rc)
 	case common.AWS:
-		commonRC, err = awsvpc.NewAWSresourcesContainer(rc)
+		commonRC, err = awsvpc.CopyAWSresourcesContainer(rc)
 	default:
 		return nil, fmt.Errorf(notSupportedYet, inArgs.provider.String())
 	}

@@ -19,7 +19,7 @@ import (
 )
 
 func TestGetRules(t *testing.T) {
-	rc := IBMresourcesContainer{}
+	rc := NewIBMresourcesContainer()
 	err := rc.ParseResourcesFromFile(filepath.Join(testfunc.GetTestsDirInput(), "input_acl_testing3.json"))
 	require.Nilf(t, err, "err: %s", err)
 	vpcConfigs, err := rc.VPCConfigsFromResources("", nil, nil)

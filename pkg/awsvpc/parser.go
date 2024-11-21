@@ -31,12 +31,22 @@ type AWSresourcesContainer struct {
 	aws.ResourcesContainer
 }
 
-func NewAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
+// NewAWSresourcesContainer is used to return empty NewAWSresourcesContainer and also initialize
+// vpcmodel.NetworkAddressLists with aws Public internet and service network
+// if you do not use this function, you need to initialize vpcmodel.NetworkAddressLists
+func NewAWSresourcesContainer() *AWSresourcesContainer {
+	vpcmodel.InitNetworkAddressLists(vpcmodel.GetDefaultPublicInternetAddressList(), []string{})
+	return &AWSresourcesContainer{}
+}
+
+func CopyAWSresourcesContainer(rc common.ResourcesContainerInf) (*AWSresourcesContainer, error) {
 	awsResources, ok := rc.GetResources().(*aws.ResourcesContainer)
 	if !ok {
 		return nil, fmt.Errorf("error casting resources to *aws.ResourcesContainerModel type")
 	}
-	return &AWSresourcesContainer{ResourcesContainer: *awsResources}, nil
+	awsRC := NewAWSresourcesContainer()
+	awsRC.ResourcesContainer = *awsResources
+	return awsRC, nil
 }
 
 // parseResourcesFromFile returns aws.ResourcesContainer object, containing the configured resources structs
@@ -79,7 +89,7 @@ func mergeResourcesContainers(rc1, rc2 *AWSresourcesContainer) (*AWSresourcesCon
 func (rc *AWSresourcesContainer) VpcConfigsFromFiles(fileNames []string, resourceGroup string, vpcIDs, regions []string) (
 	*vpcmodel.MultipleVPCConfigs, error) {
 	for _, file := range fileNames {
-		mergedRC := &AWSresourcesContainer{}
+		mergedRC := NewAWSresourcesContainer()
 		err1 := mergedRC.ParseResourcesFromFile(file)
 		if err1 != nil {
 			return nil, fmt.Errorf("error parsing input vpc resources file: %w", err1)

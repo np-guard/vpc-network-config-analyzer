@@ -1,0 +1,19 @@
+Endpoint connectivity for VPC quicktest
+Public Internet 11.0.0.0/8 => vsi1-1[10.240.0.4] : All Connections
+Public Internet 11.0.0.0/8 => vsi1-5[10.240.0.128] : All Connections
+Public Internet 11.0.0.0/8 => vsi2-2[10.240.10.5] : All Connections
+Service Network (all ranges) => vsi1-4[10.240.0.66] : All Connections
+Service Network (all ranges) => vsi2-3[10.240.10.129] : All Connections
+Service Network 161.26.0.0/17,166.10.0.0/15 => vsi2-2[10.240.10.5] : All Connections
+Service Network 161.26.128.0/17,166.8.0.0/15 => vsi1-2[10.240.0.5] : All Connections
+Service Network 161.26.128.0/17,166.8.0.0/15 => vsi1-3[10.240.0.65] : All Connections
+vsi1-1[10.240.0.4] => Public Internet 11.0.0.0/8 : All Connections
+vsi1-2[10.240.0.5] => Service Network 161.26.128.0/17,166.8.0.0/15 : All Connections
+vsi1-3[10.240.0.65] => Service Network 161.26.128.0/17,166.8.0.0/15 : All Connections
+vsi1-4[10.240.0.66] => Service Network (all ranges) : All Connections
+vsi1-5[10.240.0.128] => Public Internet 11.0.0.0/8 : All Connections
+vsi2-2[10.240.10.5] => Public Internet 11.0.0.0/8 : All Connections
+vsi2-2[10.240.10.5] => Service Network 161.26.0.0/17,166.10.0.0/15 : All Connections
+vsi2-2[10.240.10.5] => vsi2-3[10.240.10.129] : All Connections
+vsi2-3[10.240.10.129] => Service Network (all ranges) : All Connections
+vsi2-3[10.240.10.129] => vsi2-2[10.240.10.5] : All Connections

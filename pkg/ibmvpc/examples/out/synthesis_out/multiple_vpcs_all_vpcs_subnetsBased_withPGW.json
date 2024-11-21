@@ -1,7 +1,8 @@
 {
     "externals": {
-        "external-0": "0.0.0.0/0",
-        "external-1": "8.8.8.8/32"
+        "external-0": "161.26.0.0/16,166.8.0.0/14",
+        "external-1": "0.0.0.0/0",
+        "external-2": "8.8.8.8/32"
     },
     "required-connections": [
         {
@@ -816,6 +817,21 @@
         {
             "allowed-protocols": [
                 {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-1",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-3",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
                     "max_source_port": 443,
                     "min_source_port": 443,
                     "protocol": "TCP"
@@ -898,6 +914,21 @@
         {
             "allowed-protocols": [
                 {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-1",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-2",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
                     "max_source_port": 443,
                     "min_source_port": 443,
                     "protocol": "TCP"
@@ -954,6 +985,21 @@
             ],
             "dst": {
                 "name": "external-0",
+                "type": "external"
+            },
+            "src": {
+                "name": "ky-testenv-vpc/ky-testenv-edge-subnet-1",
+                "type": "subnet"
+            }
+        },
+        {
+            "allowed-protocols": [
+                {
+                    "protocol": "ANY"
+                }
+            ],
+            "dst": {
+                "name": "external-1",
                 "type": "external"
             },
             "src": {
@@ -1048,7 +1094,7 @@
                 }
             ],
             "dst": {
-                "name": "external-1",
+                "name": "external-2",
                 "type": "external"
             },
             "src": {
@@ -1113,7 +1159,7 @@
                 }
             ],
             "dst": {
-                "name": "external-1",
+                "name": "external-2",
                 "type": "external"
             },
             "src": {

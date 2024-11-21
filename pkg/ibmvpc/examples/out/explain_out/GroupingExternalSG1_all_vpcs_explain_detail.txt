@@ -1,14 +1,14 @@
 Explaining connectivity from 10.240.10.4 to 161.26.0.0/8 within test-vpc1-ky
 Interpreted source(s): vsi1-ky[10.240.10.4]
-Interpreted destination(s): 161.26.0.0/8 (external)
+Interpreted destination(s): 161.26.0.0/8 (Service Network, Public Internet)
 ============================================================================
 
-Connections from vsi1-ky[10.240.10.4] to Public Internet 161.26.0.0/16: protocol: UDP
+Connections from vsi1-ky[10.240.10.4] to Service Network 161.26.0.0/16: protocol: UDP
 
 Path:
 	vsi1-ky[10.240.10.4] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet1-ky -> 
-	PublicGateway public-gw-ky -> 
-	Public Internet 161.26.0.0/16
+	ServiceGateway  -> 
+	Service Network 161.26.0.0/16
 
 
 Details:

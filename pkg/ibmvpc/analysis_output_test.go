@@ -753,6 +753,13 @@ var tests = []*testfunc.VpcAnalysisTest{
 		GroupingType: vpcmodel.GroupingWithConsistencyEdges,
 		NoLbAbstract: true,
 	},
+	{
+		VpcTestCommon: testfunc.VpcTestCommon{
+			InputConfig: "service_network_test",
+			UseCases:    []vpcmodel.OutputUseCase{vpcmodel.AllEndpoints},
+			Format:      vpcmodel.Text,
+		},
+	},
 }
 
 // uncomment the function below to run for updating the expected output
@@ -761,7 +768,7 @@ var tests = []*testfunc.VpcAnalysisTest{
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, testfunc.OutputGeneration, NewIBMresourcesContainer(), analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }*/
@@ -770,7 +777,7 @@ func TestReportWithComparison(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, &IBMresourcesContainer{}, analysisOut, tt.InputConfig)
+		tt.TestAnalysisSingleTest(t, testfunc.OutputComparison, NewIBMresourcesContainer(), analysisOut, tt.InputConfig)
 	}
 	fmt.Println("done")
 }
@@ -809,7 +816,7 @@ func TestUnsupportedAnalysis(t *testing.T) {
 	// tests is the list of tests to run
 	for testIdx := range tests {
 		tt := tests[testIdx]
-		tt.TestAnalysisSingleTest(t, tt.Mode, &IBMresourcesContainer{}, analysisOut, tt.Name)
+		tt.TestAnalysisSingleTest(t, tt.Mode, NewIBMresourcesContainer(), analysisOut, tt.Name)
 	}
 	fmt.Println("done")
 }

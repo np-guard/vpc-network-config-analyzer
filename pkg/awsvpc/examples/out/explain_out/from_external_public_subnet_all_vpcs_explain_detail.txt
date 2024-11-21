@@ -1,5 +1,5 @@
 Explaining connectivity from 147.235.0.0/16 to 10.240.0.96 within mixed
-Interpreted source(s): 147.235.0.0/16 (external)
+Interpreted source(s): 147.235.0.0/16 (Public Internet)
 Interpreted destination(s): p3[10.240.0.96]
 =======================================================================
 

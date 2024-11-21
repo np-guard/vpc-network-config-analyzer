@@ -370,3 +370,14 @@ func NewInternetServiceTreeNode(parent SquareTreeNodeInterface, name string) *In
 	parent.addIconTreeNode(&inter)
 	return &inter
 }
+
+// ////////////////////////////////////////////////////////////////
+type ServiceNetworkTreeNode struct {
+	abstractIconTreeNode
+}
+
+func NewServiceNetworkTreeNode(parent SquareTreeNodeInterface, name string) *ServiceNetworkTreeNode {
+	sn := ServiceNetworkTreeNode{newAbstractIconTreeNode(parent, name)}
+	parent.addIconTreeNode(&sn)
+	return &sn
+}

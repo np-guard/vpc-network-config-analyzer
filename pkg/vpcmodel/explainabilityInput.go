@@ -402,12 +402,15 @@ func getResourceAndVpcNames(name string) (resource, vpc string) {
 func getNodesFromAddress(c *VPCConfig, ipOrCidr string, inputIPBlock *netset.IPBlock) (nodes []Node,
 	errType int, err error) {
 	// 1.
-	_, publicInternet, err1 := GetPublicInternetIPblocksList()
-	if err1 != nil { // should never get here. If still gets here - severe error, quit with err msg
+	_, publicInternet, err1 := GetNetworkAddressList().GetPublicInternetIPblocksList()
+	_, serviceNetwork, err2 := GetNetworkAddressList().GetServiceNetworkIPblocksList()
+	if err1 != nil || err2 != nil { // should never get here. If still gets here - severe error, quit with err msg
 		return nil, fatalErr, err1
 	}
-	isExternal := inputIPBlock.Overlap(publicInternet)
-	isInternal := !inputIPBlock.IsSubset(publicInternet)
+
+	publicInternetAndServiceNetwork := publicInternet.Union(serviceNetwork)
+	isExternal := inputIPBlock.Overlap(publicInternetAndServiceNetwork)
+	isInternal := !inputIPBlock.IsSubset(publicInternetAndServiceNetwork)
 	if isInternal && isExternal {
 		return nil, fatalErr,
 			fmt.Errorf("%s contains both external and internal IP addresses, which is not supported. "+
@@ -459,14 +462,21 @@ func getCidrExternalNodes(c *VPCConfig, inputIPBlock *netset.IPBlock) (cidrNodes
 	disjointBlocks := netset.DisjointIPBlocks([]*netset.IPBlock{inputIPBlock}, vpcConfigNodesExternalBlock)
 	// 3.
 	cidrNodes = []Node{}
+	_, ip, _ := GetNetworkAddressList().GetServiceNetworkIPblocksList()
 	for _, block := range disjointBlocks {
-		if block.IsSubset(inputIPBlock) {
-			node, err1 := newExternalNode(true, block)
-			if err1 != nil {
-				return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
-			}
-			cidrNodes = append(cidrNodes, node)
+		if !block.IsSubset(inputIPBlock) {
+			continue
 		}
+		isPublicInternet := true
+		if block.IsSubset(ip) {
+			isPublicInternet = false
+		}
+		node, err1 := newExternalNode(isPublicInternet, block)
+		if err1 != nil {
+			return nil, fatalErr, err1 // Should never get here. If still does - severe bug, exit with err
+		}
+		cidrNodes = append(cidrNodes, node)
 	}
+
 	return cidrNodes, noErr, nil
 }
