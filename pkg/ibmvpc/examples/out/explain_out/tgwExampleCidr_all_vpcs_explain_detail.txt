@@ -6,9 +6,9 @@ Interpreted destination(s): test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5], test-vpc0-
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]: All Connections
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
-	subnet subnet2 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi0-subnet2[10.240.4.4]
+	subnet subnet2 -> network ACL acl2-ky -> security group sg1-ky -> test-vpc0-ky/ky-vsi0-subnet2[10.240.4.4]
 
 
 Details:
@@ -46,9 +46,9 @@ TCP response is enabled; The relevant rules are:
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi0-subnet3[10.240.5.5]: All Connections
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
-	subnet subnet3 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi0-subnet3[10.240.5.5]
+	subnet subnet3 -> network ACL acl2-ky -> security group sg1-ky -> test-vpc0-ky/ky-vsi0-subnet3[10.240.5.5]
 
 
 Details:
@@ -86,9 +86,9 @@ TCP response is enabled; The relevant rules are:
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5]: All Connections
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
-	subnet subnet2 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi1-subnet2[10.240.4.5]
+	subnet subnet2 -> network ACL acl2-ky -> security group sg1-ky -> test-vpc0-ky/ky-vsi1-subnet2[10.240.4.5]
 
 
 Details:
@@ -126,9 +126,9 @@ TCP response is enabled; The relevant rules are:
 Connections from test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] to test-vpc0-ky/ky-vsi1-subnet3[10.240.5.4]: All Connections
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> TGW local-tg-ky -> test-vpc0-ky -> 
-	subnet subnet3 -> network ACL acl2-ky -> security group sg1-ky -> ky-vsi1-subnet3[10.240.5.4]
+	subnet subnet3 -> network ACL acl2-ky -> security group sg1-ky -> test-vpc0-ky/ky-vsi1-subnet3[10.240.5.4]
 
 
 Details:
@@ -171,7 +171,7 @@ cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> | TGW local-tg-ky |
 
 
@@ -203,7 +203,7 @@ cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> | TGW local-tg-ky |
 
 
@@ -235,7 +235,7 @@ cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> | TGW local-tg-ky |
 
 
@@ -267,7 +267,7 @@ cross-vpc-connection: transit-connection tg_connection0 of transit-gateway local
 Ingress: network ACL acl1-ky allows connection; security group sg1-ky allows connection
 
 Path:
-	ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
+	test-vpc2-ky/ky-vsi1-subnet20[10.240.128.5] -> security group sg21-ky -> network ACL acl21-ky -> subnet subnet20 -> 
 	test-vpc2-ky -> | TGW local-tg-ky |
 
 

@@ -7,9 +7,9 @@ Connections from test-vpc0-ky/ky-vsi0-subnet0[10.240.0.5] to test-vpc1-ky/ky-vsi
 	TCP response is blocked
 
 Path:
-	ky-vsi0-subnet0[10.240.0.5] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet0 -> 
+	test-vpc0-ky/ky-vsi0-subnet0[10.240.0.5] -> security group sg1-ky -> network ACL acl1-ky -> subnet subnet0 -> 
 	test-vpc0-ky -> TGW local-tg-ky -> test-vpc1-ky -> 
-	subnet subnet10 -> network ACL acl11-ky -> security group sg11-ky -> ky-vsi0-subnet10[10.240.64.4]
+	subnet subnet10 -> network ACL acl11-ky -> security group sg11-ky -> test-vpc1-ky/ky-vsi0-subnet10[10.240.64.4]
 
 
 Details:

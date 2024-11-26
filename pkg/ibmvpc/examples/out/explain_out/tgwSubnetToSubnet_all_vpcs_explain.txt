@@ -11,7 +11,7 @@ cross-vpc-connection: transit-connection tg_connection3 of transit-gateway local
 Ingress: network ACL acl31-ky allows connection; security group sg31-ky allows connection
 
 Path:
-	vsi11-ky[10.240.11.4] -> security group sg11-ky -> | network ACL acl11-ky |
+	test-vpc1-ky/vsi11-ky[10.240.11.4] -> security group sg11-ky -> | network ACL acl11-ky |
 
 ------------------------------------------------------------------------------------------------------------------------
 
