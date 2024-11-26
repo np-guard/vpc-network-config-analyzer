@@ -149,14 +149,14 @@ func getVPCResourceInfInOtherConfig(other *VPCConfig, ep VPCResourceIntf,
 			if !node.IsInternal() {
 				continue
 			}
-			if node.NameForAnalyzerOut(nil) == ep.NameForAnalyzerOut(nil) {
+			if node.NameForAnalyzerOut(other) == ep.NameForAnalyzerOut(other) {
 				res = VPCResourceIntf(node)
 				return res, nil
 			}
 		}
 	} else if diffAnalysis == Subnets {
 		for _, subnet := range other.Subnets {
-			if subnet.NameForAnalyzerOut(nil) == ep.NameForAnalyzerOut(nil) {
+			if subnet.NameForAnalyzerOut(other) == ep.NameForAnalyzerOut(other) {
 				res = VPCResourceIntf(subnet)
 				return res, nil
 			}
@@ -467,13 +467,13 @@ func (responsiveConnMap *GeneralResponsiveConnectivityMap) actualAlignSrcOrDstGi
 				if node, ok := src.(Node); ok {
 					origIPBlock = node.IPBlock()
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut(nil))
+					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut(config))
 				}
 			} else {
 				if node, ok := dst.(Node); ok {
 					origIPBlock = node.IPBlock()
 				} else {
-					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut(nil))
+					return nil, fmt.Errorf(castingNodeErr, node.NameForAnalyzerOut(config))
 				}
 			}
 			if err != nil {

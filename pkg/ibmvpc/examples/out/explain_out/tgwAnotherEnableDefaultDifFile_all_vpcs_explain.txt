@@ -6,9 +6,9 @@ Interpreted destination(s): test-vpc2-ky/vsi21a-ky[10.240.64.4]
 Connections from test-vpc1-ky/vsi11-ky[10.240.11.4] to test-vpc2-ky/vsi21a-ky[10.240.64.4]: All Connections
 
 Path:
-	vsi11-ky[10.240.11.4] -> security group sg11-ky -> network ACL acl11-ky -> subnet subnet11-ky -> 
+	test-vpc1-ky/vsi11-ky[10.240.11.4] -> security group sg11-ky -> network ACL acl11-ky -> subnet subnet11-ky -> 
 	test-vpc1-ky -> TGW local-tg-ky -> test-vpc2-ky -> 
-	subnet subnet21-ky -> network ACL acl21-ky -> security group sg21-ky -> vsi21a-ky[10.240.64.4]
+	subnet subnet21-ky -> network ACL acl21-ky -> security group sg21-ky -> test-vpc2-ky/vsi21a-ky[10.240.64.4]
 
 ------------------------------------------------------------------------------------------------------------------------
 

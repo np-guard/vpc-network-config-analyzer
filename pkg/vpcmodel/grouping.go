@@ -527,14 +527,14 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 			nodesList[i] = line.getSrcOrDst(srcGrouping)
 		}
 		groupedEndpoints := groupedEndpointsElems(nodesList)
-		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(&groupedEndpoints)
+		groupedNodes := g.cacheGrouped.getAndSetEndpointElemFromCache(g.config, &groupedEndpoints)
 		if srcGrouping {
 			res = append(res, &groupedConnLine{groupedNodes, linesGroup[0].Dst, linesGroup[0].CommonProperties})
 		} else {
 			res = append(res, &groupedConnLine{linesGroup[0].Src, groupedNodes, linesGroup[0].CommonProperties})
 		}
 	}
-	g.GroupedLines = unifiedGroupedConnLines(res, g.cacheGrouped, false)
+	g.GroupedLines = unifiedGroupedConnLines(g.config, res, g.cacheGrouped, false)
 }
 
 // Go over the grouping result and set groups s.t. all semantically equiv groups have a unified reference.
@@ -543,20 +543,20 @@ func (g *GroupConnLines) groupInternalSrcOrDst(srcGrouping, groupVsi bool) {
 // the latter is required due to the functionality treating self loops as don't cares - extendGroupingSelfLoops
 // in which both srcs and dsts are manipulated  but *GroupConnLines is not familiar
 // within the extendGroupingSelfLoops context and thus can not be done there smoothly
-func unifiedGroupedConnLines(oldConnLines []*groupedConnLine, cacheGrouped *cacheGroupedElements,
+func unifiedGroupedConnLines(c *VPCConfig, oldConnLines []*groupedConnLine, cacheGrouped *cacheGroupedElements,
 	unifyGroupedExternalNodes bool) []*groupedConnLine {
 	newGroupedLines := make([]*groupedConnLine, len(oldConnLines))
 	// go over all connections; if src/dst is not external then use groupedEndpointsElemsMap
 	for i, groupedLine := range oldConnLines {
-		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(groupedLine.Src, cacheGrouped, unifyGroupedExternalNodes),
-			unifiedGroupedElems(groupedLine.Dst, cacheGrouped, unifyGroupedExternalNodes),
+		newGroupedLines[i] = &groupedConnLine{unifiedGroupedElems(c, groupedLine.Src, cacheGrouped, unifyGroupedExternalNodes),
+			unifiedGroupedElems(c, groupedLine.Dst, cacheGrouped, unifyGroupedExternalNodes),
 			groupedLine.CommonProperties}
 	}
 	return newGroupedLines
 }
 
 // unifies reference to a single element
-func unifiedGroupedElems(srcOrDst EndpointElem,
+func unifiedGroupedElems(c *VPCConfig, srcOrDst EndpointElem,
 	cachedGrouped *cacheGroupedElements,
 	unifyGroupedExternalNodes bool) EndpointElem {
 	// external in case external grouping does not need to be unifed
@@ -570,7 +570,7 @@ func unifiedGroupedElems(srcOrDst EndpointElem,
 		return srcOrDst
 	}
 	if groupedEE, ok := srcOrDst.(*groupedEndpointsElems); ok {
-		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(groupedEE)
+		unifiedGroupedEE := cachedGrouped.getAndSetEndpointElemFromCache(c, groupedEE)
 		return unifiedGroupedEE
 	}
 	if groupedExternal, ok := srcOrDst.(*groupedExternalNodes); ok {

@@ -181,7 +181,7 @@ func (g *groupedConnLine) explainabilityLineStr(c *VPCConfig, connQuery *netset.
 
 	// path in "3" above
 	missingExternalRouter := isExternal && externalRouter == nil
-	path := "Path:\n" + pathStr(allRulesDetails, filtersRelevant, src, dst, ingressBlocking, egressBlocking,
+	path := "Path:\n" + pathStr(c, allRulesDetails, filtersRelevant, src, dst, ingressBlocking, egressBlocking,
 		loadBalancerBlocking, missingExternalRouter, externalRouter, crossVpcRouter,
 		crossVpcConnection, rules, privateSubnetRule) + newLine
 	// details is "4" above
@@ -440,12 +440,12 @@ func stringFilterEffect(allRulesDetails *rulesDetails, filterLayerName string, t
 // if the connection does not exist. In the latter case the path is until the first block with the first block between ||
 // e.g.: "vsi1-ky[10.240.10.4] ->  SG sg1-ky -> subnet ... ->  ACL acl1-ky -> PublicGateway: public-gw-ky ->  Public Internet 161.26.0.0/16"
 // e.g.: "vsi1-ky[10.240.10.4] -> security group sg1-ky -> subnet1-ky -> | network ACL acl1-ky |"
-func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src, dst EndpointElem,
+func pathStr(c *VPCConfig, allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src, dst EndpointElem,
 	ingressBlocking, egressBlocking, loadBalancerBlocking, missingExternalRouter bool,
 	externalRouter, crossVpcRouter RoutingResource, crossVpcConnection *netset.TransportSet,
 	rules *rulesConnection, privateSubnetRule PrivateSubnetRule) string {
 	var pathSlice []string
-	pathSlice = append(pathSlice, "\t"+src.NameForAnalyzerOut(nil))
+	pathSlice = append(pathSlice, "\t"+src.NameForAnalyzerOut(c))
 	if loadBalancerBlocking {
 		// todo: add loadBalancer as part of the path and also as blocking??? separate PR?
 		// connection is stopped at the src itself:
@@ -463,7 +463,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		return blockedPathStr(pathSlice)
 	}
 	if isExternal {
-		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.NameForAnalyzerOut(nil)
+		externalRouterStr := newLineTab + externalRouter.Kind() + space + externalRouter.NameForAnalyzerOut(c)
 		// externalRouter is fip - add its cidr
 		if externalRouter.Kind() == fipRouter {
 			externalRouterStr += space + externalRouter.ExternalIP()
@@ -471,7 +471,7 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 		pathSlice = append(pathSlice, externalRouterStr)
 	} else if crossVpcRouterInPath { // src and dst are internal and there is a cross vpc Router
 		pathSlice = append(pathSlice, newLineTab+src.(InternalNodeIntf).Subnet().VPC().Name(),
-			crossVpcRouter.Kind()+space+crossVpcRouter.NameForAnalyzerOut(nil))
+			crossVpcRouter.Kind()+space+crossVpcRouter.NameForAnalyzerOut(c))
 		if crossVpcConnection.IsEmpty() { // cross vpc (tgw) denys connection
 			pathSlice[len(pathSlice)-1] = blockedLeft + pathSlice[len(pathSlice)-1] // blocking cross-vpc router
 			return blockedPathStr(pathSlice)
@@ -485,9 +485,9 @@ func pathStr(allRulesDetails *rulesDetails, filtersRelevant map[string]bool, src
 	}
 	// got here: full path
 	if len(ingressPath) == 0 {
-		pathSlice = append(pathSlice, newLineTab+dst.NameForAnalyzerOut(nil))
+		pathSlice = append(pathSlice, newLineTab+dst.NameForAnalyzerOut(c))
 	} else {
-		pathSlice = append(pathSlice, dst.NameForAnalyzerOut(nil))
+		pathSlice = append(pathSlice, dst.NameForAnalyzerOut(c))
 	}
 	return strings.Join(pathSlice, arrow)
 }

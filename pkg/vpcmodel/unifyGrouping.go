@@ -31,18 +31,18 @@ func newCacheGroupedElements() *cacheGroupedElements {
 func unifyMultiVPC(configs *MultipleVPCConfigs, nodesConn map[string]*VPCConnectivity,
 	subnetsConn map[string]*VPCsubnetConnectivity, uc OutputUseCase) {
 	cache := newCacheGroupedElements()
-	for vpcUID := range configs.Configs() {
+	for vpcUID, config := range configs.Configs() {
 		switch uc {
 		case AllEndpoints:
 			if nodesConn[vpcUID] != nil {
 				nodesConn[vpcUID].GroupedConnectivity.GroupedLines =
-					unifiedGroupedConnLines(nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
+					unifiedGroupedConnLines(config, nodesConn[vpcUID].GroupedConnectivity.GroupedLines,
 						cache, true)
 			}
 		case AllSubnets:
 			if subnetsConn[vpcUID] != nil {
 				subnetsConn[vpcUID].GroupedConnectivity.GroupedLines =
-					unifiedGroupedConnLines(subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
+					unifiedGroupedConnLines(config, subnetsConn[vpcUID].GroupedConnectivity.GroupedLines,
 						cache, true)
 			}
 		}
@@ -64,10 +64,10 @@ func getPublicNetworkNode() *groupedExternalNodes {
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedEndpointsElemsMap
 // if exists, nil otherwise
 func (cachedGrouped *cacheGroupedElements) getExistEndpointElemFromCache(
-	grouped *groupedEndpointsElems) *groupedEndpointsElems {
-	// since the endpoints (vsis/subnets) are sorted before printed, grouped.NameForAnalyzerOut(nil) will be identical
+	c *VPCConfig, grouped *groupedEndpointsElems) *groupedEndpointsElems {
+	// since the endpoints (vsis/subnets) are sorted before printed, grouped.NameForAnalyzerOut(c) will be identical
 	// to equiv groupedEndpointsElems
-	if existingGrouped, ok := cachedGrouped.groupedEndpointsElemsMap[grouped.NameForAnalyzerOut(nil)]; ok {
+	if existingGrouped, ok := cachedGrouped.groupedEndpointsElemsMap[grouped.NameForAnalyzerOut(c)]; ok {
 		return existingGrouped
 	}
 	return nil
@@ -76,19 +76,19 @@ func (cachedGrouped *cacheGroupedElements) getExistEndpointElemFromCache(
 // gets pointer of an element semantically equiv to grouped in cachedGrouped.groupedEndpointsElemsMap
 // if does not exist, sets the input into the cache
 func (cachedGrouped *cacheGroupedElements) getAndSetEndpointElemFromCache(
-	groupedElem *groupedEndpointsElems) *groupedEndpointsElems {
-	existing := cachedGrouped.getExistEndpointElemFromCache(groupedElem)
+	c *VPCConfig, groupedElem *groupedEndpointsElems) *groupedEndpointsElems {
+	existing := cachedGrouped.getExistEndpointElemFromCache(c, groupedElem)
 	if existing != nil {
 		return existing
 	}
-	cachedGrouped.setEndpointElemFromCache(groupedElem)
+	cachedGrouped.setEndpointElemFromCache(c, groupedElem)
 	return groupedElem
 }
 
 // sets pointer of an element to cachedGrouped.groupedEndpointsElemsMap
 func (cachedGrouped *cacheGroupedElements) setEndpointElemFromCache(
-	groupedElem *groupedEndpointsElems) {
-	cachedGrouped.groupedEndpointsElemsMap[groupedElem.NameForAnalyzerOut(nil)] = groupedElem
+	c *VPCConfig, groupedElem *groupedEndpointsElems) {
+	cachedGrouped.groupedEndpointsElemsMap[groupedElem.NameForAnalyzerOut(c)] = groupedElem
 }
 
 // 2. Similar to the above, functionality related to cachedGrouped.groupedExternalNodesMap
