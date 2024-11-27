@@ -8,11 +8,16 @@ package ibmvpc
 
 import (
 	"fmt"
+	"maps"
 	"path/filepath"
+	"reflect"
+	"slices"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/np-guard/models/pkg/netp"
 	"github.com/np-guard/models/pkg/netset"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc"
 	"github.com/np-guard/vpc-network-config-analyzer/pkg/commonvpc/testfunc"
@@ -46,112 +51,314 @@ func testSingleNACL(nacl *commonvpc.NACL) {
 }
 
 func TestGetAllowedXgressConnections(t *testing.T) {
-	rulesTest1 := []*commonvpc.NACLRule{
-		{
-			Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
-			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
-			Connections: netset.AllTransports(),
-			Action:      "deny",
-		},
-		{
-			Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
-			Connections: netset.AllTransports(),
-			Action:      "allow",
-		},
-	}
-	//nolint:all
-	/*nolint
-	rulesTest2 := []*NACLRule{
-		{
-			src:         common.FromCidr("1.2.3.4/32"),
-			dst:         common.FromCidr("10.0.0.1/32"),
-			connections: getTCPconn(80, 80),
-			action:      "allow",
-		},
-		{
-			src:         common.FromCidr("1.2.3.4/32"),
-			dst:         common.FromCidr("10.0.0.1/32"),
-			connections: getTCPconn(1, 100),
-			action:      "deny",
-		},
-		{
-			src:         common.FromCidr("0.0.0.0/0"),
-			dst:         common.FromCidr("0.0.0.0/0"),
-			connections: getAllConnSet(),
-			action:      "allow",
-		},
-	}
-
-	rulesTest3 := []*NACLRule{
-		{
-			dst:         common.FromCidr("1.2.3.4/32"),
-			src:         common.FromCidr("10.0.0.1/32"),
-			connections: getAllConnSet(),
-			action:      "deny",
-		},
-		{
-			dst:         common.FromCidr("0.0.0.0/0"),
-			src:         common.FromCidr("0.0.0.0/0"),
-			connections: getAllConnSet(),
-			action:      "allow",
-		},
-	}
-
-	subnet := common.FromCidr("10.0.0.0/24")
-
-	//res1 := ingressConnResFromInput(rulesTest1, subnet)
-	res1, _ := AnalyzeNACLRules(rulesTest1, subnet, true, nil)
-	fmt.Printf("res for test %s:\n%s\n", "rulesTest1", res1)
-
-	//res2 := ingressConnResFromInput(rulesTest2, subnet)
-	res2, _ := AnalyzeNACLRules(rulesTest2, subnet, true, nil)
-	fmt.Printf("res for test %s:\n%s\n", "rulesTest2", res2)
-
-	res3, _ := AnalyzeNACLRules(rulesTest3, subnet, false, nil)
-	fmt.Printf("res for test %s:\n%s\n", "rulesTest3", res3)
-	*/
+	subnet := newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.0/24")
 
 	tests := []struct {
-		testName      string
-		naclRules     []*commonvpc.NACLRule
-		src           []string
-		dst           []string
-		expectedConns []*netset.TransportSet
+		testName                string
+		naclRules               []*commonvpc.NACLRule
+		expectedConnectivityMap map[string]*commonvpc.ConnectivityResult
 	}{
 		{
-			testName:      "a",
-			naclRules:     rulesTest1,
-			src:           []string{"1.1.1.1/32", "1.2.3.4/32", "1.2.3.4/32"},
-			dst:           []string{"10.0.0.0/24", "10.0.0.1/32", "10.0.0.0/32"},
-			expectedConns: []*netset.TransportSet{netset.AllTransports(), netset.NoTransports(), netset.AllTransports()},
+
+			testName: "a",
+			naclRules: []*commonvpc.NACLRule{
+				{
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
+					Connections: netset.AllTransports(),
+					Action:      "deny",
+				},
+				{
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Connections: netset.AllTransports(),
+					Action:      "allow",
+				},
+			},
+			expectedConnectivityMap: map[string]*commonvpc.ConnectivityResult{
+				"10.0.0.0-10.0.0.0": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.AllTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.NoTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {},
+					},
+				},
+				"10.0.0.1-10.0.0.1": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.NoTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.AllTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+				},
+				"10.0.0.2-10.0.0.255": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.AllTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.NoTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {},
+					},
+				},
+			},
+		},
+		{
+			testName: "b",
+			naclRules: []*commonvpc.NACLRule{
+				{
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
+					Connections: netset.NewTCPTransport(80, 80, netp.MinPort, netp.MaxPort),
+					Action:      "allow",
+				},
+				{
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
+					Connections: netset.NewTCPTransport(1, 100, netp.MinPort, netp.MaxPort),
+					Action:      "deny",
+				},
+				{
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Connections: netset.AllTransports(),
+					Action:      "allow",
+				},
+			},
+			expectedConnectivityMap: map[string]*commonvpc.ConnectivityResult{
+				"10.0.0.0-10.0.0.0": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.AllTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.NoTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {},
+					},
+				},
+				"10.0.0.1-10.0.0.1": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"): netset.NewTCPorUDPTransport(
+							netp.ProtocolString("TCP"), 80, 80, netp.MinPort, netp.MaxPort).Union(
+							netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 101, 65535, netp.MinPort, netp.MaxPort).Union(
+								netset.AllICMPTransport().Union(netset.AllUDPTransport()),
+							),
+						),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0, 0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"): netset.NewTCPorUDPTransport(
+							netp.ProtocolString("TCP"), 1, 79, netp.MinPort, netp.MaxPort).Union(
+							netset.NewTCPorUDPTransport(netp.ProtocolString("TCP"), 81, 100, netp.MinPort, netp.MaxPort),
+						),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+				},
+				"10.0.0.2-10.0.0.255": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.AllTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {0},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {0},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         netset.NoTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-1.2.3.3"):         {},
+						fromIPRangeStrWithoutValidation("1.2.3.5-255.255.255.255"): {},
+						fromIPRangeStrWithoutValidation("1.2.3.4-1.2.3.4"):         {},
+					},
+				},
+			},
+		},
+		{
+			testName: "c",
+			naclRules: []*commonvpc.NACLRule{
+				{
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.1/32"),
+					Connections: netset.AllTransports(),
+					Action:      "deny",
+				},
+				{
+					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Src:         newIPBlockFromCIDROrAddressWithoutValidation("0.0.0.0/0"),
+					Connections: netset.AllTransports(),
+					Action:      "allow",
+				},
+			},
+			expectedConnectivityMap: map[string]*commonvpc.ConnectivityResult{
+				"10.0.0.0-10.0.0.255": {
+					IsIngress: true,
+					AllowedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-10.0.0.0"):         netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("10.0.0.1-10.0.0.1"):        netset.AllTransports(),
+						fromIPRangeStrWithoutValidation("10.0.0.2-255.255.255.255"): netset.AllTransports(),
+					},
+					AllowRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-10.0.0.0"):         {0},
+						fromIPRangeStrWithoutValidation("10.0.0.1-10.0.0.1"):        {},
+						fromIPRangeStrWithoutValidation("10.0.0.2-255.255.255.255"): {0},
+					},
+					DeniedConns: map[*netset.IPBlock]*netset.TransportSet{
+						fromIPRangeStrWithoutValidation("0.0.0.0-10.0.0.0"):         netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("10.0.0.1-10.0.0.1"):        netset.NoTransports(),
+						fromIPRangeStrWithoutValidation("10.0.0.2-255.255.255.255"): netset.NoTransports(),
+					},
+					DenyRules: map[*netset.IPBlock][]int{
+						fromIPRangeStrWithoutValidation("0.0.0.0-10.0.0.0"):         {},
+						fromIPRangeStrWithoutValidation("10.0.0.1-10.0.0.1"):        {},
+						fromIPRangeStrWithoutValidation("10.0.0.2-255.255.255.255"): {},
+					},
+				},
+			},
 		},
 	}
 
-	for _, tt := range tests {
-		require.Equal(t, len(tt.src), len(tt.dst))
-		require.Equal(t, len(tt.src), len(tt.expectedConns))
-		for i := range tt.src {
-			src := newIPBlockFromCIDROrAddressWithoutValidation(tt.src[i])
-			dst := newIPBlockFromCIDROrAddressWithoutValidation(tt.dst[i])
-			disjointPeers := []*netset.IPBlock{dst}
-			expectedConn := tt.expectedConns[i]
-			res, _, _, _ := commonvpc.GetAllowedXgressConnections(tt.naclRules, src, dst, disjointPeers, true)
-			dstStr := dst.ToIPRanges()
-			actualConn := res[dstStr]
-			require.True(t, expectedConn.Equal(actualConn))
+	for _, test := range tests {
+		connectivityMap := commonvpc.AnalyzeNACLRulesPerDisjointTargets(test.naclRules, subnet, true)
+		require.True(t, equalConnectivityMap(connectivityMap, test.expectedConnectivityMap))
+	}
+	fmt.Printf("done\n")
+}
+
+func storeAndSortKeys[T any](m map[string]*commonvpc.ConnectivityResult) []string {
+	keys := make([]string, len(m))
+	i := 0
+	for ipBlockString := range m {
+		keys[i] = ipBlockString
+		i += 1
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func equalKeys(first, second map[string]*commonvpc.ConnectivityResult) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	keys1 := slices.Collect(maps.Keys(first))
+	sort.Strings(keys1)
+	keys2 := slices.Collect(maps.Keys(second))
+	sort.Strings(keys2)
+	// compare the concatenation result to validate equality of keys sets
+	return reflect.DeepEqual(keys1, keys2)
+}
+
+func equalConnectivityMap(connectivityMap, other map[string]*commonvpc.ConnectivityResult) bool {
+	if !equalKeys(connectivityMap, other) {
+		return false
+	}
+	for ipBlockString, connectivityResult := range connectivityMap {
+		fmt.Printf("ipBlockString: %v\n", ipBlockString)
+		fmt.Printf("connectivityResult.AllowedConns: \n")
+		for ipRange, conn := range connectivityResult.AllowedConns {
+			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
+			fmt.Printf("conn: %v\n", conn)
+		}
+
+		fmt.Printf("connectivityResult.AllowRules: \n")
+		for ipRange, conn := range connectivityResult.AllowRules {
+			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
+			fmt.Printf("conn: %v\n", conn)
+		}
+		fmt.Printf("connectivityResult.DeniedConns: \n")
+		for ipRange, conn := range connectivityResult.DeniedConns {
+			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
+			fmt.Printf("conn: %v\n", conn)
+		}
+
+		fmt.Printf("connectivityResult.DenyRules: \n")
+		for ipRange, conn := range connectivityResult.DenyRules {
+			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
+			fmt.Printf("conn: %v\n", conn)
+		}
+		for otherIPBlockString, expectedConnectivityResult := range other {
+			if ipBlockString == otherIPBlockString {
+				if !connectivityResult.Equal(expectedConnectivityResult) {
+					return false
+				}
+				break
+			}
 		}
 	}
-
-	//nolint:all
-	/*src := common.FromCidr("1.1.1.1/32")
-	dst := common.FromCidr("10.0.0.0/24")
-	disjointPeers := []*netset.IPBlock{dst}
-	res := commonvpc.GetAllowedXgressConnections(rulesTest1, src, dst, disjointPeers, true)
-	for d, c := range res {
-		fmt.Printf("%s => %s : %s\n", src.ToIPAdress(), d, c.String())
-		require.True(t, c.Equal(getAllConnSet()))
-	}*/
-
-	fmt.Printf("done\n")
+	return true
 }

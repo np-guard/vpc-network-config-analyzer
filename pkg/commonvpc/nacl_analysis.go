@@ -256,51 +256,6 @@ func getConnStr(src, dst, conn string) string {
 	return fmt.Sprintf("%s => %s : %s\n", src, dst, conn)
 }
 
-// AnalyzeNACLRules todo: this is used only in testing. Did not expand for deny.
-func (na *NACLAnalyzer) AnalyzeNACLRules(rules []*NACLRule, subnet *netset.IPBlock,
-	isIngress bool, subnetDisjointTarget *netset.IPBlock,
-) (string, *ConnectivityResult) {
-	res := []string{}
-	connResult := &ConnectivityResult{IsIngress: isIngress}
-	connResult.AllowedConns = map[*netset.IPBlock]*netset.TransportSet{}
-	connResult.DeniedConns = map[*netset.IPBlock]*netset.TransportSet{}
-	if subnetDisjointTarget == nil {
-		connResult = nil
-	}
-	if isIngress {
-		disjointSrcPeers, disjointDstPeers := getDisjointPeersForIngressAnalysis(rules, subnet)
-		// ingress
-		for _, src := range disjointSrcPeers {
-			allowedIngressConns, _, allowRules, _ := GetAllowedXgressConnections(rules, src, subnet, disjointDstPeers, true)
-			for dst, conn := range allowedIngressConns {
-				res = append(res, getConnStr(src.ToIPRanges(), dst, common.LongString(conn)))
-				dstIP, err := netset.IPBlockFromIPRangeStr(dst)
-				if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.IsSubset(dstIP) {
-					connResult.AllowedConns[src] = conn
-					// the indexing of allowedIngressConns and allowRules are identical
-					connResult.AllowRules[src] = allowRules[dst]
-				}
-			}
-		}
-		return strings.Join(res, ""), connResult
-	}
-	// egress
-	disjointSrcPeers, disjointDstPeers := getDisjointPeersForEgressAnalysis(rules, subnet)
-	for _, dst := range disjointDstPeers {
-		allowedEgressConns, _, allowRules, _ := GetAllowedXgressConnections(rules, dst, subnet, disjointSrcPeers, false)
-		for src, conn := range allowedEgressConns {
-			res = append(res, getConnStr(src, dst.ToIPRanges(), common.LongString(conn)))
-			srcIP, err := netset.IPBlockFromIPRangeStr(src)
-			if err == nil && subnetDisjointTarget != nil && subnetDisjointTarget.IsSubset(srcIP) {
-				connResult.AllowedConns[dst] = conn
-				// the indexing of allowedEgressConns and allowRules are identical
-				connResult.AllowRules[dst] = allowRules[src]
-			}
-		}
-	}
-	return strings.Join(res, ""), connResult
-}
-
 // TODO: return a map from each possible subnetDisjointTarget to its ConnectivityResult, instead of a specific ConnectivityResult
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
 func (na *NACLAnalyzer) AnalyzeNACL(subnet *netset.IPBlock) (
