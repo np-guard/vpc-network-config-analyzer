@@ -156,52 +156,74 @@ var nc6 = &naclConfig{
 
 // tests below
 
-var expectedConnStrTest1 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+type ConnectivityAnalysisTest struct {
+	name              string
+	tc                *testNodesConfig
+	ncList            []*naclConfig
+	expectedStrResult string
+}
+
+var connectivityAnalysisTests = []*ConnectivityAnalysisTest{
+	{
+		name:   "testAnalyzeConnectivity1",
+		tc:     tc1,
+		ncList: []*naclConfig{nc1},
+		expectedStrResult: `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : All Connections
-`
-
-func TestAnalyzeConnectivity1(t *testing.T) {
-	runConnectivityTest(t, tc1, []*naclConfig{nc1}, expectedConnStrTest1)
-}
-
-var expectedConnStrTest2 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP * ; ICMP,UDP
-`
-
-func TestAnalyzeConnectivity2(t *testing.T) {
-	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc3}, expectedConnStrTest2)
-}
-
-var expectedConnStrTest2a = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : ICMP
-` // ICMP is actually enabled only unidirectional in this case, but responsive analysis does not apply to ICMP
-
-func TestAnalyzeConnectivity2a(t *testing.T) {
-	runConnectivityTest(t, tc1, []*naclConfig{nc2a, nc3a}, expectedConnStrTest2a)
-}
-
-var expectedConnStrTest3 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
+`,
+	},
+	{
+		name:   "testAnalyzeConnectivity2",
+		tc:     tc1,
+		ncList: []*naclConfig{nc2, nc3},
+		expectedStrResult: `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP * ; ICMP,UDP
+`,
+	},
+	{
+		name:   "testAnalyzeConnectivity2a",
+		tc:     tc1,
+		ncList: []*naclConfig{nc2a, nc3a},
+		expectedStrResult: `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : ICMP
+`, // ICMP is actually enabled only unidirectional in this case, but responsive analysis does not apply to ICMP
+	},
+	{
+		name:   "testAnalyzeConnectivity3",
+		tc:     tc1,
+		ncList: []*naclConfig{nc2, nc4},
+		expectedStrResult: `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : All Connections
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP
-`
-
-func TestAnalyzeConnectivity3(t *testing.T) {
-	runConnectivityTest(t, tc1, []*naclConfig{nc2, nc4}, expectedConnStrTest3)
-}
-
-var expectedConnStrTest4 = `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP src-ports: 10-100 dst-ports: 443
+`,
+	},
+	{
+		name:   "testAnalyzeConnectivity4",
+		tc:     tc1,
+		ncList: []*naclConfig{nc5, nc6},
+		expectedStrResult: `vsi-0-subnet-1[10.240.10.4] => vsi-0-subnet-2[10.240.20.4] : TCP src-ports: 10-100 dst-ports: 443
 vsi-0-subnet-2[10.240.20.4] => vsi-0-subnet-1[10.240.10.4] : TCP src-ports: 443 dst-ports: 10-100
-`
-
-func TestAnalyzeConnectivity4(t *testing.T) {
-	runConnectivityTest(t, tc1, []*naclConfig{nc5, nc6}, expectedConnStrTest4)
+`,
+	},
 }
 
-func runConnectivityTest(t *testing.T, tc *testNodesConfig, ncList []*naclConfig, expectedStrResult string) {
-	c := createConfigFromTestConfig(tc, ncList)
+func TestConnectivityAnalysis(t *testing.T) {
+	// connectivityAnalysisTests is the list of tests to run
+	for testIdx := range connectivityAnalysisTests {
+		tt := connectivityAnalysisTests[testIdx]
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tt.runConnectivityTest(t)
+		})
+	}
+	fmt.Println("done")
+}
+
+func (tt *ConnectivityAnalysisTest) runConnectivityTest(t *testing.T) {
+	c := createConfigFromTestConfig(tt.tc, tt.ncList)
 	connectivity, err := c.GetVPCNetworkConnectivity(false, vpcmodel.NoGroupingNoConsistencyEdges)
 	require.Nil(t, err)
 	connectivityStr := connectivity.String()
 	fmt.Println(connectivityStr)
 	fmt.Println("done")
-	require.Equal(t, expectedStrResult, connectivityStr)
+	require.Equal(t, tt.expectedStrResult, connectivityStr)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

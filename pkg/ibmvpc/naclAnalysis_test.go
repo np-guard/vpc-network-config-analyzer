@@ -50,7 +50,7 @@ func testSingleNACL(nacl *commonvpc.NACL) {
 	}
 }
 
-func TestGetAllowedXgressConnections(t *testing.T) {
+func TestNaclAnalysis(t *testing.T) {
 	subnet := newIPBlockFromCIDROrAddressWithoutValidation("10.0.0.0/24")
 
 	tests := []struct {
@@ -60,7 +60,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	}{
 		{
 
-			testName: "a",
+			testName: "naclAnalysis1",
 			naclRules: []*commonvpc.NACLRule{
 				{
 					Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
@@ -148,7 +148,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			},
 		},
 		{
-			testName: "b",
+			testName: "naclAnalysis2",
 			naclRules: []*commonvpc.NACLRule{
 				{
 					Src:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
@@ -250,7 +250,7 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 			},
 		},
 		{
-			testName: "c",
+			testName: "naclAnalysis3",
 			naclRules: []*commonvpc.NACLRule{
 				{
 					Dst:         newIPBlockFromCIDROrAddressWithoutValidation("1.2.3.4/32"),
@@ -294,8 +294,11 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		connectivityMap := commonvpc.AnalyzeNACLRulesPerDisjointTargets(test.naclRules, subnet, true)
-		require.True(t, equalConnectivityMap(connectivityMap, test.expectedConnectivityMap))
+		t.Run(test.testName, func(t *testing.T) {
+			t.Parallel()
+			connectivityMap := commonvpc.AnalyzeNACLRulesPerDisjointTargets(test.naclRules, subnet, true)
+			require.True(t, equalConnectivityMap(connectivityMap, test.expectedConnectivityMap))
+		})
 	}
 	fmt.Printf("done\n")
 }
