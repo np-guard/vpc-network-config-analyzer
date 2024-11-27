@@ -252,10 +252,6 @@ func initConnectivityResult(connectivityMap map[string]*ConnectivityResult, indx
 	}
 }
 
-func getConnStr(src, dst, conn string) string {
-	return fmt.Sprintf("%s => %s : %s\n", src, dst, conn)
-}
-
 // TODO: return a map from each possible subnetDisjointTarget to its ConnectivityResult, instead of a specific ConnectivityResult
 // get allowed and denied connections (ingress and egress) for a certain subnet to which this nacl is applied
 func (na *NACLAnalyzer) AnalyzeNACL(subnet *netset.IPBlock) (

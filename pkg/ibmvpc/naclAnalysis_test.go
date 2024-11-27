@@ -300,17 +300,6 @@ func TestGetAllowedXgressConnections(t *testing.T) {
 	fmt.Printf("done\n")
 }
 
-func storeAndSortKeys[T any](m map[string]*commonvpc.ConnectivityResult) []string {
-	keys := make([]string, len(m))
-	i := 0
-	for ipBlockString := range m {
-		keys[i] = ipBlockString
-		i += 1
-	}
-	sort.Strings(keys)
-	return keys
-}
-
 func equalKeys(first, second map[string]*commonvpc.ConnectivityResult) bool {
 	if len(first) != len(second) {
 		return false
