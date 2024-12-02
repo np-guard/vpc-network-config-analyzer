@@ -320,29 +320,6 @@ func equalConnectivityMap(connectivityMap, other map[string]*commonvpc.Connectiv
 		return false
 	}
 	for ipBlockString, connectivityResult := range connectivityMap {
-		fmt.Printf("ipBlockString: %v\n", ipBlockString)
-		fmt.Printf("connectivityResult.AllowedConns: \n")
-		for ipRange, conn := range connectivityResult.AllowedConns {
-			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
-			fmt.Printf("conn: %v\n", conn)
-		}
-
-		fmt.Printf("connectivityResult.AllowRules: \n")
-		for ipRange, conn := range connectivityResult.AllowRules {
-			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
-			fmt.Printf("conn: %v\n", conn)
-		}
-		fmt.Printf("connectivityResult.DeniedConns: \n")
-		for ipRange, conn := range connectivityResult.DeniedConns {
-			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
-			fmt.Printf("conn: %v\n", conn)
-		}
-
-		fmt.Printf("connectivityResult.DenyRules: \n")
-		for ipRange, conn := range connectivityResult.DenyRules {
-			fmt.Printf("ipRange.ToIPRanges(): %v\n", ipRange.ToIPRanges())
-			fmt.Printf("conn: %v\n", conn)
-		}
 		for otherIPBlockString, expectedConnectivityResult := range other {
 			if ipBlockString == otherIPBlockString {
 				if !connectivityResult.Equal(expectedConnectivityResult) {
