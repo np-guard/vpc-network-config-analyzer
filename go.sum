@@ -8,8 +8,8 @@ github.com/IBM/networking-go-sdk v0.49.0 h1:lPS34u3C0JVrbxH+Ulua76Nwl6Frv8BEfq6L
 github.com/IBM/networking-go-sdk v0.49.0/go.mod h1:G9CKbmPE8gSLjN+ABh4hIZ1bMx076enl5Eekvj6zQnA=
 github.com/IBM/platform-services-go-sdk v0.71.1 h1:EyqSctlLVqj092yU6K9hyTyx7JIpzhE192n6eG+Daac=
 github.com/IBM/platform-services-go-sdk v0.71.1/go.mod h1:ApFkvqw7NaluWJ5Uq+afdM/2jQqo5ILc0SzKSVobYNw=
-github.com/IBM/vpc-go-sdk v0.63.1 h1:HqQeq2wGI2pF4y0/m18EaPsOEEXFjyml+xwlLC9AiXE=
-github.com/IBM/vpc-go-sdk v0.63.1/go.mod h1:VBR6bAznHsNCFA89Ue4JFQpqCcFp8F5neqbCFCyks4Q=
+github.com/IBM/vpc-go-sdk v0.64.0 h1:0x2jakapXxXYTTr0EdrwuXa6h0couSK+FTDGxd8jChA=
+github.com/IBM/vpc-go-sdk v0.64.0/go.mod h1:VBR6bAznHsNCFA89Ue4JFQpqCcFp8F5neqbCFCyks4Q=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
