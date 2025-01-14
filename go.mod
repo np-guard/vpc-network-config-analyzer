@@ -1,6 +1,7 @@
 module github.com/np-guard/vpc-network-config-analyzer
 
-go 1.23.1
+go 1.23.3
+
 toolchain go1.23.4
 
 require (
