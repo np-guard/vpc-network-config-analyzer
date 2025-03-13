@@ -721,9 +721,8 @@ func getTableConnEffect(connQuery, conn *netset.TransportSet) (*netset.Transport
 	case connQuery == nil: // connection not part of query
 		if !conn.IsEmpty() {
 			return conn, vpcmodel.Allow
-		} else {
-			return conn, vpcmodel.Deny
 		}
+		return conn, vpcmodel.Deny
 	case conn.Intersect(connQuery).IsEmpty():
 		return netset.NoTransports(), vpcmodel.Deny
 	case connQuery.IsSubset(conn):
