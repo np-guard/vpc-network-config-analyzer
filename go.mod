@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/IBM/networking-go-sdk v0.51.4
-	github.com/IBM/vpc-go-sdk v0.64.0
+	github.com/IBM/vpc-go-sdk v0.67.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.199.0
 	github.com/np-guard/cloud-resource-collector v0.17.1
 	github.com/np-guard/models v0.5.7
