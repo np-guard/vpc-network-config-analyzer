@@ -481,7 +481,7 @@ func (tgw *TransitGateway) ExternalIP() string {
 }
 
 func isPairRelevantToTGW(src, dst vpcmodel.VPCResourceIntf) bool {
-	return !(src.IsExternal() || dst.IsExternal()) && src.VPC().UID() != dst.VPC().UID()
+	return !src.IsExternal() && !dst.IsExternal() && src.VPC().UID() != dst.VPC().UID()
 }
 
 func (tgw *TransitGateway) AllowedConnectivity(src, dst vpcmodel.VPCResourceIntf) (*netset.TransportSet, error) {
@@ -534,11 +534,11 @@ func (tgw *TransitGateway) tgwPrefixStr(tc *datamodel.TransitConnection,
 	// Array of prefix route filters for a transit gateway connection. This is order dependent with those first in the
 	// array being applied first, and those at the end of the array is applied last, or just before the default.
 	if prefixIndx == defaultPrefixFilter { // default
-		defaultStr, actionName, err := prefixDefaultStr(tc)
-		if err != nil {
-			return "", "", err
+		defaultStr, actName, err2 := prefixDefaultStr(tc)
+		if err2 != nil {
+			return "", "", err2
 		}
-		return resStr + defaultStr, actionName, nil
+		return resStr + defaultStr, actName, nil
 	}
 	if len(tc.PrefixFilters) < prefixIndx+1 {
 		return "", "", fmt.Errorf("np-guard error: prefix index %d does not exists in transit connection %s of transit gateway %s",

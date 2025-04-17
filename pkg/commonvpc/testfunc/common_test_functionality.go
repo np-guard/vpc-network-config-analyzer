@@ -299,7 +299,8 @@ func GetTestsDirInput() string {
 
 func compareOrRegenerateOutputPerTest(t *testing.T, mode testMode, actualOutput, testDir, name string,
 	expectedOutput map[vpcmodel.OutputUseCase]string, uc vpcmodel.OutputUseCase) error {
-	if mode == OutputComparison {
+	switch mode {
+	case OutputComparison:
 		expectedOutput, err := os.ReadFile(expectedOutput[uc])
 		if err != nil {
 			t.Fatalf(errString, err)
@@ -309,7 +310,7 @@ func compareOrRegenerateOutputPerTest(t *testing.T, mode testMode, actualOutput,
 			compareTextualResult(expectedOutputStr, actualOutput, testDir)
 			t.Fatalf("output mismatch expected-vs-actual on test name: %s, use case: %d", name, uc)
 		}
-	} else if mode == OutputGeneration {
+	case OutputGeneration:
 		fmt.Printf("outputGeneration\n")
 		// create or override expected output file
 		if _, err := vpcmodel.WriteToFile(actualOutput, expectedOutput[uc]); err != nil {

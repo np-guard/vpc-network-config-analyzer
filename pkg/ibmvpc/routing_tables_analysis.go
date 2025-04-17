@@ -58,9 +58,9 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 	}
 	// if res ends with "tgw" -> should get remaining routing path in the target VPC with src:tgw
 	if res != nil && res.DoesEndWithTGW() {
-		targetVPCAnalyzer, err := ga.getRTAnalyzerPerVPC(res.TargetVPC())
-		if err != nil {
-			return nil, err
+		targetVPCAnalyzer, errGet := ga.getRTAnalyzerPerVPC(res.TargetVPC())
+		if errGet != nil {
+			return nil, errGet
 		}
 		targetVPC := ga.allConfigs.GetVPC(res.TargetVPC()).(*commonvpc.VPC)
 		destZone, _ := getZoneByIPBlock(dest, ga.allConfigs)
@@ -74,8 +74,8 @@ func (ga *GlobalRTAnalyzer) GetRoutingPath(src vpcmodel.InternalNodeIntf, dest *
 		// if dest zone is not found, should consider all routes for  all zones in the RT
 		// and prefer the one with the src zone of such is available
 		// the analysis should be done for all available zones (up to 3)
-		res2, err := targetVPCAnalyzer.getIngressPath(tgwSource, dest, destZone, srcZone)
-		return vpcmodel.ConcatPaths(res, res2), err
+		res2, err2 := targetVPCAnalyzer.getIngressPath(tgwSource, dest, destZone, srcZone)
+		return vpcmodel.ConcatPaths(res, res2), err2
 	}
 	// else - routing remains within a single vpc context
 	return res, err

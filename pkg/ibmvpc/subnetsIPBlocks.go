@@ -67,8 +67,8 @@ type subnetsIPBlocks map[string]*oneSubnetBlocks
 // 3. calculate the splitByFiltersBlocks
 // 4. calculate the freeAddressesBlocks
 func getSubnetsIPBlocks(rc *IBMresourcesContainer, filtersCidrs []map[string][]*string,
-	skipByVPC map[string]bool) (subnetsBlocks subnetsIPBlocks, err error) {
-	subnetsBlocks = subnetsIPBlocks{}
+	skipByVPC map[string]bool) (subnetsIPBlocks, error) {
+	subnetsBlocks := subnetsIPBlocks{}
 	// gets the original blocks of the subnets:
 	if err := subnetsBlocks.getSubnetsOriginalBlocks(rc, skipByVPC); err != nil {
 		return nil, err

@@ -148,14 +148,16 @@ func renameExternalsAndSegments(requiredConnections []spec.SpecRequiredConnectio
 	externalsMap map[string]string, segmentsMap map[string]string) []spec.SpecRequiredConnectionsElem {
 	connLines := []spec.SpecRequiredConnectionsElem{}
 	for _, conn := range requiredConnections {
-		if conn.Src.Type == spec.ResourceTypeExternal {
+		switch conn.Src.Type {
+		case spec.ResourceTypeExternal:
 			conn.Src.Name = getNewExternalOrSegmentName(conn.Src.Name, externalString, externalsMap)
-		} else if conn.Src.Type == spec.ResourceTypeSegment {
+		case spec.ResourceTypeSegment:
 			conn.Src.Name = getNewExternalOrSegmentName(conn.Src.Name, segmentString, segmentsMap)
 		}
-		if conn.Dst.Type == spec.ResourceTypeExternal {
+		switch conn.Dst.Type {
+		case spec.ResourceTypeExternal:
 			conn.Dst.Name = getNewExternalOrSegmentName(conn.Dst.Name, externalString, externalsMap)
-		} else if conn.Dst.Type == spec.ResourceTypeSegment {
+		case spec.ResourceTypeSegment:
 			conn.Dst.Name = getNewExternalOrSegmentName(conn.Dst.Name, segmentString, segmentsMap)
 		}
 		connLines = append(connLines, conn)

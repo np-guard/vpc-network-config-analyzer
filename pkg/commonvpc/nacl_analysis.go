@@ -139,7 +139,8 @@ func GetAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *netset.IPBl
 		}
 		for _, disjointDestCidr := range destCidrList {
 			disjointDestIP := disjointDestCidr.ToIPRanges()
-			if rule.Action == ALLOW {
+			switch rule.Action {
+			case ALLOW:
 				addedAllowedConns := rule.Connections.Copy()
 				addedAllowedConns = addedAllowedConns.Subtract(deniedXgress[disjointDestIP])
 				// issue here at union below
@@ -148,7 +149,7 @@ func GetAllowedXgressConnections(rules []*NACLRule, src, subnetCidr *netset.IPBl
 				if !allowedXgress[disjointDestIP].Equal(allowedXgressDestCidrBefore) { // this rule contributes to the connection
 					allowRules[disjointDestIP] = append(allowRules[disjointDestIP], rule.Index)
 				}
-			} else if rule.Action == DENY {
+			case DENY:
 				addedDeniedConns := rule.Connections.Copy()
 				addedDeniedConns = addedDeniedConns.Subtract(allowedXgress[disjointDestIP])
 				deniedXgressDestCidrBefore := deniedXgress[disjointDestIP]
@@ -418,9 +419,10 @@ func (na *NACLAnalyzer) getRulesRelevantConn(rules []int,
 			continue
 		}
 		curConn = curConn.Union(rule.Connections)
-		if rule.Action == ALLOW {
+		switch rule.Action {
+		case ALLOW:
 			allowRelevant = append(allowRelevant, rule.Index)
-		} else if rule.Action == DENY {
+		case DENY:
 			denyRelevant = append(denyRelevant, rule.Index)
 		}
 		contains := connQuery.IsSubset(curConn)
