@@ -2871,13 +2871,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-07-23T13:29:17.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 30028,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:328",
                     "id": "id:329",
                     "name": "tcp-80-30028",
@@ -2998,13 +2992,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-07-23T13:29:17.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 30446,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:332",
                     "id": "id:333",
                     "name": "tcp-443-30446",
