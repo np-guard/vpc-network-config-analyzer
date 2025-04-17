@@ -9,7 +9,7 @@ require (
 	github.com/IBM/vpc-go-sdk v0.64.0
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.199.0
 	github.com/np-guard/cloud-resource-collector v0.17.1
-	github.com/np-guard/models v0.5.5
+	github.com/np-guard/models v0.5.7
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 )
