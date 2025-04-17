@@ -4205,13 +4205,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-10-24T02:21:06.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 32730,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:498",
                     "id": "id:499",
                     "name": "tcp-80-32730",
@@ -4332,13 +4326,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-10-24T02:21:06.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 32688,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:502",
                     "id": "id:503",
                     "name": "tcp-443-32688",
@@ -4588,13 +4576,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2024-03-02T16:57:22.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 30709,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:543",
                     "id": "id:544",
                     "name": "tcp-80-30709",
@@ -4679,13 +4661,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2024-03-02T16:57:22.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 31355,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:547",
                     "id": "id:548",
                     "name": "tcp-443-31355",
@@ -4899,13 +4875,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-09-06T17:12:20.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 31769,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:580",
                     "id": "id:581",
                     "name": "tcp-443-31769",
@@ -5026,13 +4996,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2023-09-06T17:12:18.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "port": 30703,
-                        "timeout": 2,
-                        "type": "tcp"
-                    },
+                    "health_monitor": null,
                     "href": "href:576",
                     "id": "id:577",
                     "name": "tcp-80-30703",

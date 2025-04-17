@@ -2166,13 +2166,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2024-04-14T13:01:44.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "timeout": 2,
-                        "type": "http",
-                        "url_path": "/"
-                    },
+                    "health_monitor": null,
                     "href": "href:221",
                     "id": "id:222",
                     "name": "alb-pool",

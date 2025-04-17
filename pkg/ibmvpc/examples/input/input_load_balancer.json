@@ -2533,13 +2533,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2024-03-11T07:40:27.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "timeout": 2,
-                        "type": "http",
-                        "url_path": "/"
-                    },
+                    "health_monitor": null,
                     "href": "href:245",
                     "id": "id:246",
                     "name": "app-lb-pool",
@@ -2691,13 +2685,7 @@
                 {
                     "algorithm": "round_robin",
                     "created_at": "2024-03-11T10:00:02.000Z",
-                    "health_monitor": {
-                        "delay": 5,
-                        "max_retries": 2,
-                        "timeout": 2,
-                        "type": "http",
-                        "url_path": "/"
-                    },
+                    "health_monitor": null,
                     "href": "href:257",
                     "id": "id:258",
                     "name": "service-lb-pool",
