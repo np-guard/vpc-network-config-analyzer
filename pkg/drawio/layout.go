@@ -207,12 +207,13 @@ func getSubnetIconsOrder(subnet SquareTreeNodeInterface) [][]IconTreeNodeInterfa
 	// collect for each group with viability square its innerSquares groups:
 	for _, groupS := range sortedBySizeGroups {
 		group := groupS.(*GroupSquareTreeNode)
-		if group.visibility == square {
+		switch group.visibility {
+		case square:
 			outerToInnersGroup[group] = map[SquareTreeNodeInterface]bool{}
 			for _, icon := range group.groupedIcons {
 				iconOuterGroup[icon] = group
 			}
-		} else if group.visibility == innerSquare {
+		case innerSquare:
 			for _, icon := range group.groupedIcons {
 				iconInnerGroup[icon] = group
 				outerToInnersGroup[iconOuterGroup[icon]][group] = true
@@ -379,8 +380,8 @@ func (ly *layoutS) resolveGroupedSubnetsOverlap() {
 
 // check if two squares: share a col and have the same first/last raw, or share a row and have the same first/last col
 func squareBordersOverlap(l1, l2 *Location) bool {
-	shareCol := !(l1.firstCol.index > l2.lastCol.index || l2.firstCol.index > l1.lastCol.index)
-	shareRow := !(l1.firstRow.index > l2.lastRow.index || l2.firstRow.index > l1.lastRow.index)
+	shareCol := l1.firstCol.index <= l2.lastCol.index && l2.firstCol.index <= l1.lastCol.index
+	shareRow := l1.firstRow.index <= l2.lastRow.index && l2.firstRow.index <= l1.lastRow.index
 	sameRow := l1.firstRow == l2.firstRow || l1.lastRow == l2.lastRow
 	sameCol := l1.firstCol == l2.firstCol || l1.lastCol == l2.lastCol
 	return shareCol && sameRow || shareRow && sameCol
@@ -772,13 +773,13 @@ func (ly *layoutS) setGroupingIconLocations() {
 		r, c := calcGroupingIconLocation(parentLocation, colleagueLocation)
 		gIcon.setLocation(newCellLocation(r, c))
 		// add the icon to its border:
-		groupBorder := groupBorder{
+		gb := groupBorder{
 			c:          c,
 			r:          r,
 			visibility: parent.visibility,
 			right:      c == parentLocation.nextCol(),
 		}
-		iconsInBorder[groupBorder] = append(iconsInBorder[groupBorder], gIcon)
+		iconsInBorder[gb] = append(iconsInBorder[gb], gIcon)
 		// set the x offset to the icons:
 		switch parent.visibility {
 		case theSubnet:

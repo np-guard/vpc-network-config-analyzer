@@ -395,7 +395,7 @@ func (g *GroupConnLines) groupExternalAddressesForDiff(thisMinusOther bool) erro
 	for src, endpointConnDiff := range connRemovedChanged {
 		for dst, connDiff := range endpointConnDiff {
 			connDiffString := connDiffEncode(src, dst, connDiff)
-			if !(connDiff.conn1.isEmpty() && connDiff.conn2.isEmpty()) {
+			if !connDiff.conn1.isEmpty() || !connDiff.conn2.isEmpty() {
 				err := g.addLineToExternalGrouping(&res, src, dst,
 					&groupedCommonProperties{connDiff: connDiff, groupingStrKey: connDiffString})
 				if err != nil {

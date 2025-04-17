@@ -116,13 +116,14 @@ func (configs configsForDiff) GetDiff() (*diffBetweenCfgs, error) {
 
 func getAllowedResponsiveConnections(c *VPCConfig,
 	diffAnalysis diffAnalysisType) (responsiveConnectivityMap GeneralResponsiveConnectivityMap, err error) {
-	if diffAnalysis == Subnets {
+	switch diffAnalysis {
+	case Subnets:
 		subnetsConn, err := c.GetSubnetsConnectivity(true, NoGroupingNoConsistencyEdges)
 		if err != nil {
 			return nil, err
 		}
 		return subnetsConn.AllowedConnsCombinedResponsive, err
-	} else if diffAnalysis == Vsis {
+	case Vsis:
 		connectivity1, err := c.GetVPCNetworkConnectivity(false, NoGroupingNoConsistencyEdges)
 		if err != nil {
 			return nil, err
@@ -238,9 +239,10 @@ func getDiffType(src, srcInOther, dst, dstInOther VPCResourceIntf) DiffType {
 }
 
 func getDiffInfoHeader(diffAnalysis diffAnalysisType) string {
-	if diffAnalysis == Subnets {
+	switch diffAnalysis {
+	case Subnets:
 		return "subnets-diff-info:"
-	} else if diffAnalysis == Vsis {
+	case Vsis:
 		return "vsis-diff-info:"
 	}
 	return ""

@@ -75,10 +75,10 @@ func (na *AWSNACLAnalyzer) GetNACLRule(index int) (ruleStr string, ruleRes *comm
 		portsStr = fmt.Sprintf(", dstPorts: %d-%d", minPort, maxPort)
 	case protocolICMP:
 		icmpTypeMin, icmpTypeMax, icmpCodeMin, icmpCodeMax,
-			err := handleIcmpTypeCode(ruleObj.IcmpTypeCode.Type, ruleObj.IcmpTypeCode.Code)
+			err2 := handleIcmpTypeCode(ruleObj.IcmpTypeCode.Type, ruleObj.IcmpTypeCode.Code)
 
-		if err != nil {
-			return "", nil, false, err
+		if err2 != nil {
+			return "", nil, false, err2
 		}
 		if ruleObj.IcmpTypeCode.Type != nil && *ruleObj.IcmpTypeCode.Type != -1 {
 			portsStr = fmt.Sprintf(", type: %d", *ruleObj.IcmpTypeCode.Type)

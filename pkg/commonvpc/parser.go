@@ -215,9 +215,9 @@ func NewVPC(name, uid, region string, zonesToAP map[string][]string, regionToStr
 	}
 	for zoneName, zoneCidrsList := range zonesToAP {
 		vpcNodeSet.AddressPrefixesList = append(vpcNodeSet.AddressPrefixesList, zoneCidrsList...)
-		zoneIPBlock, err := netset.IPBlockFromCidrList(zoneCidrsList)
-		if err != nil {
-			return nil, err
+		zoneIPBlock, err2 := netset.IPBlockFromCidrList(zoneCidrsList)
+		if err2 != nil {
+			return nil, err2
 		}
 		vpcNodeSet.Zones[zoneName] = &Zone{Name: zoneName,
 			Vpc:     vpcNodeSet,
