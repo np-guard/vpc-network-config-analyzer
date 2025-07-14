@@ -6,7 +6,7 @@ toolchain go1.23.4
 
 require (
 	github.com/IBM/networking-go-sdk v0.51.4
-	github.com/IBM/vpc-go-sdk v0.67.1
+	github.com/IBM/vpc-go-sdk v0.69.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.211.3
 	github.com/np-guard/cloud-resource-collector v0.17.2
 	github.com/np-guard/models v0.5.7
@@ -16,7 +16,7 @@ require (
 
 require (
 	github.com/IBM-Cloud/container-services-go-sdk v0.0.0-20240510130133-9f76aa34af27 // indirect
-	github.com/IBM/go-sdk-core/v5 v5.19.0 // indirect
+	github.com/IBM/go-sdk-core/v5 v5.20.1 // indirect
 	github.com/IBM/platform-services-go-sdk v0.79.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.36.3 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/go-openapi/strfmt v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.24.0 // indirect
+	github.com/go-playground/validator/v10 v10.26.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
@@ -55,6 +55,6 @@ require (
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	sigs.k8s.io/yaml v1.4.0 // indirect
 )
