@@ -11,7 +11,7 @@ require (
 	github.com/np-guard/cloud-resource-collector v0.17.2
 	github.com/np-guard/models v0.5.7
 	github.com/spf13/cobra v1.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
