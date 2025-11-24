@@ -1,5 +1,7 @@
 > [!WARNING]  
-> This repo is no longer being maintained# vpc-network-config-analyzer
+> This repo is no longer being maintained
+
+# vpc-network-config-analyzer
 
 ## About vpc-network-config-analyzer
 This repo contains packages and a CLI for analyzing the network connectivity of a VPC, as specified by various VPC resources.
